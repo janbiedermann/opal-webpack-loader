@@ -4,14 +4,182 @@ const child = require('child_process');
 const fs = require('fs');
 const loaderUtils = require('loader-utils')
 
+var Owl = {
+    cache_fetched: false,
+    already_compiled: [],
+    compile_log: []
+};
+
+var warning = function(message) {
+    Owl.emitWarning(new Error(message));
+}
+
+var error = function(message) {
+    Owl.emitError(new Error(message));
+}
+
+function read_require(logical_path) {
+    var source = null;
+    var javascript = null;
+    var logical_filename_rb;
+    var logical_filename_js;
+    var absolute_filename;
+    if (logical_path.endsWith('.js')) {
+        logical_filename_rb = logical_path + '.rb';
+        logical_filename_js = logical_path;
+    } else if (logical_path.endsWith('.rb')) {
+        logical_filename_rb = logical_path;
+        logical_filename_js = null;
+    } else {
+        logical_filename_rb = logical_path + '.rb';
+        logical_filename_js = logical_path + '.js';
+    }
+    var l = Owl.paths.length;
+
+    // look up known entries
+    for (var i = 0; i < l; i++) {
+        // try .rb
+        absolute_filename = Owl.paths[i] + '/' + logical_filename_rb;
+        if (Owl.entries.includes(absolute_filename)) {
+            if (fs.existsSync(absolute_filename)) {
+                source = fs.readFileSync(absolute_filename);
+                break;
+            }
+        }
+        // try .js
+        if (logical_filename_js) {
+            absolute_filename = Owl.paths[i] + '/' + logical_filename_js;
+            if (Owl.entries.includes(absolute_filename)) {
+                if (fs.existsSync(absolute_filename)) {
+                    javascript = fs.readFileSync(absolute_filename);
+                    break;
+                }
+            }
+        }
+    }
+    if (source) { return { source: source, javascript: javascript, filename: absolute_filename };}
+
+    // look up file system
+
+    for (var i = 0; i < l; i++) {
+        if (Owl.paths[i].startsWith(process.cwd())) {
+            // try .rb
+            absolute_filename = Owl.paths[i] + '/' + logical_filename_rb;
+            if (fs.existsSync(absolute_filename)) {
+                source = fs.readFileSync(absolute_filename);
+                break;
+            }
+            // try .js
+            if (logical_filename_js) {
+                absolute_filename = Owl.paths[i] + '/' + logical_filename_js;
+                if (fs.existsSync(absolute_filename)) {
+                    javascript = fs.readFileSync(absolute_filename);
+                    break;
+                }
+            }
+        }
+    }
+    return { source: source, javascript: javascript, filename: absolute_filename };
+}
+
+function compile_requires(requires) {
+    var result = { javascript: '', source_map: '' };
+    var r_length = requires.length;
+    for (var i = 0; i < r_length; i++) {
+        if (!Owl.already_compiled.includes(requires[i])) {
+            var req = read_require(requires[i]);
+            if (req.javascript !== null) {
+                result.javascript += req.javascript + 'Opal.loaded(["' + requires[i] + '"]);';
+            } else if (req.source !== null) {
+                var c_result = compile_ruby(req.source, requires[i]);
+                result.javascript += '\n' + c_result.javascript;
+                result.javascript += c_result.source_map;
+            }
+        }
+    }
+    return result;
+}
+
+function compile_ruby(source, module) {
+    var result = { javascript: '', source_map: '' };
+    var compiler;
+    var unified_source = (typeof source === 'object') ? source.toString() : source;
+    if (module) {
+        compiler = Opal.Opal.$const_get('Compiler').$new(unified_source, Opal.hash({requirable: true, file: module}));
+    } else {
+        compiler = Opal.Opal.$const_get('Compiler').$new(unified_source);
+    }
+    compiler.$compile();
+    var requires = compiler.$requires();
+    if (requires.length > 0) {
+        var c_result = compile_requires(requires);
+        result.javascript += c_result.javascript;
+        result.source_map += c_result.source_map
+    }
+    // requires = compiler.$required_trees()
+    // if (requires.length > 0) {
+    //     result = compile_required_trees();
+    //     javascript += result.javascript;
+    // }
+    result.javascript += compiler.$result();
+    result.source_map = compiler.$source_map();
+    if (module) { Owl.already_compiled.push(module)}
+    return result;
+}
+
+function get_directory_entries(path) {
+    if (!path.startsWith('/')) { return [] }
+    if (path.startsWith(process.cwd())) { return [] }
+    if (!fs.existsSync(path)) { return [] }
+    var directory_entries = [];
+    var f = fs.openSync(path, 'r');
+    var is_dir = fs.fstatSync(f).isDirectory();
+    fs.closeSync(f);
+    if (is_dir) {
+        var entries = fs.readdirSync(path);
+        var e_length = entries.length;
+        for (var k = 0; k < e_length; k++) {
+            var current_path = path + '/' + entries[k];
+            if (fs.existsSync(current_path)) {
+                var fe = fs.openSync(current_path, 'r');
+                var se = fs.fstatSync(fe);
+                var eis_dir = se.isDirectory();
+                var eis_file = se.isFile();
+                fs.closeSync(fe);
+                if (eis_dir) {
+                    var more_entries = get_directory_entries(current_path);
+                    var m_length = more_entries.length;
+                    for (var m = 0; m < m_length; m++) {
+                        directory_entries.push(more_entries[m]);
+                    }
+                } else if (eis_file) {
+                    if (current_path.endsWith('.rb') || current_path.endsWith('.js')) {
+                        directory_entries.push(current_path);
+                    }
+                }
+            }
+        }
+    }
+    return directory_entries;
+}
+
+function get_load_path_entries(load_paths) {
+    var load_path_entries = [];
+    var lp_length = load_paths.length;
+    for (var i = 0; i < lp_length; i++) {
+        var dir_entries = get_directory_entries(load_paths[i]);
+        var d_length = dir_entries.length;
+        for (var k = 0; k < d_length; k++) {
+            load_path_entries.push(dir_entries[k]);
+        }
+    }
+    return load_path_entries;
+}
+
 module.exports = function(source, map, meta) {
-    var self = this;
-    var warning = function(message) {
-        self.emitWarning(new Error(message));
-    }
-    var error = function(message) {
-        self.emitError(new Error(message));
-    }
+    this.cacheable && this.cacheable();
+    Owl.emitWarning = this.emitWarning;
+    Owl.emitError = this.emitError;
 
     var callback = this.async();
     var result = 'console.log("Hello from opal-webpack-loader :)");\n';
@@ -40,7 +208,7 @@ module.exports = function(source, map, meta) {
     var gemfile_mtime = fs.statSync(gemfile_path).mtimeMs;
     var gemfile_lock_mtime = fs.statSync(gemfile_lock_path).mtimeMs;
 
-    if (owl_cache_mtime == 0) { owl_cache_mtime = fs.statSync(owl_cache_path).mtimeMs; }
+    if (owl_cache_mtime === 0) { owl_cache_mtime = fs.statSync(owl_cache_path).mtimeMs; }
 
     // warning('Gemfile mtime: ' + gemfile_mtime);
     // warning('Gemfile.lock mtime: ' + gemfile_lock_mtime);
@@ -49,7 +217,6 @@ module.exports = function(source, map, meta) {
     if (gemfile_mtime > gemfile_lock_mtime) { error("Gemfile is newer than Gemfile.lock, please run 'bundle install' or 'bundle update'!"); }
     if (gemfile_lock_mtime > owl_cache_mtime || must_generate_cache) {
         // generate cache
-        // warning('Generating Opal load path cache:');
         var child_result = '';
         if (fs.existsSync('bin/rails')) {
             child_result = child.execSync('bundle exec rails runner "puts Opal.paths; exit 0"');
@@ -60,25 +227,22 @@ module.exports = function(source, map, meta) {
         var crl_length = child_result_lines.length;
         if (child_result_lines[crl_length-1] === '' || child_result_lines[crl_length-1] == null) {
             child_result_lines.pop();
-            crl_length = child_result_lines.length;
         }
-        // for (var i = 0; i < crl_length; i++) {
-        //     warning('found Opal load path: ' + child_result_lines[i]);
-        // }
         owl_cache.opal_load_paths = child_result_lines;
+        owl_cache.opal_load_path_entries = get_load_path_entries(owl_cache.opal_load_paths);
+        Owl.paths = owl_cache.opal_load_paths;
+        Owl.entries = owl_cache.opal_load_path_entries;
+        Owl.cache_fetched = true;
         fs.writeFileSync(owl_cache_path, JSON.stringify(owl_cache));
     } else {
-        var owl_cache_from_file = fs.readFileSync(owl_cache_path);
-        owl_cache = JSON.parse(owl_cache_from_file.toString());
-        // warning('Reading Opal load path cache:');
-        var ocl_length = owl_cache.opal_load_paths.length;
-        if (owl_cache.opal_load_paths[ocl_length-1] === '' || owl_cache.opal_load_paths[ocl_length-1] == null) {
-            owl_cache.opal_load_paths = owl_cache.opal_load_paths.pop();
-            ocl_length = owl_cache.opal_load_paths.length;
+        if (!Owl.cache_fetched) {
+            // fetch cache
+            var owl_cache_from_file = fs.readFileSync(owl_cache_path);
+            owl_cache = JSON.parse(owl_cache_from_file.toString());
+            Owl.paths = owl_cache.opal_load_paths;
+            Owl.entries = owl_cache.opal_load_path_entries;
+            Owl.cache_fetched = true;
         }
-        // for (var i = 0; i < ocl_length; i++) {
-        //     warning('found Opal load path: ' + owl_cache.opal_load_paths[i]);
-        // }
     }
 
     // load or compile and cache compiler
@@ -88,7 +252,6 @@ module.exports = function(source, map, meta) {
         } else {
             child_result = child.execSync('bundle exec ruby -e "Bundler.require; puts \\\$LOAD_PATH; exit 0"');
         }
-        // warning(child_result);
         child_result_lines = child_result.toString().split('\n');
         var load_path_options = '';
         crl_length = child_result_lines.length;
@@ -99,8 +262,27 @@ module.exports = function(source, map, meta) {
         for (var i = 0; i < crl_length; i++) {
             load_path_options += ' --include ' + child_result_lines[i];
         }
-        // warning(load_path_options);
-        child.execSync("bundle exec opal" + load_path_options + " -E -ce 'require \"opal\";require \"opal-platform\";require \"hike\";require \"opal/source_map\";require \"opal/builder\";require \"opal/builder_processors\";require \"nodejs\"' > " + owl_compiler_path);
+        // this implments Regexp.names, becasue thats missing in opal 0.11 and before
+        // TODO remove Regexp.names once it is in opal
+        child.execSync("bundle exec opal" + load_path_options + " -E -ce '" + "" +
+            "require \"opal\";" +
+            "require \"opal-platform\";" +
+            "require \"opal/source_map\";" +
+            "require \"source_map\";" +
+            "require \"opal/compiler\";" +
+            "require \"nodejs\";" +
+            "class Regexp;" +
+            "def names;" +
+            "`var result = [];" +
+            "var splits = self.source.split(\"(?<\");" +
+            "var sl = splits.length;" +
+            "for (var i = 0; i < sl; i ++) { " +
+            "var matchres = splits[i].match(/(\\w+)>/);" +
+            "if (matchres && matchres[1]) {" +
+            "result.push(matchres[1]);}}" +
+            "return result;`" +
+            "end;" +
+            "end' > " + owl_compiler_path);
         require(process.cwd() + '/' + owl_compiler_path);
     } else {
         if (typeof Opal === "undefined") {
@@ -108,7 +290,6 @@ module.exports = function(source, map, meta) {
         }
     }
 
-    // warning('Opal Platform ' + Opal.OPAL_PLATFORM);
     // get additional options
 
     const options = loaderUtils.getOptions(this);
@@ -118,41 +299,17 @@ module.exports = function(source, map, meta) {
         }
     }
 
-    // for (var property in this) {
-    //     if (this.hasOwnProperty(property)) {
-    //         if (typeof this[property] === 'function') {
-    //             warning('this are function: ' + property);
-    //         } else {
-    //             warning('this are: ' + property + ': ' + this[property]);
-    //         }
-    //     }
-    // }
-
     // compile the source
 
-    var builder = Opal.Opal.$const_get('Builder').$new();
-    builder.$append_paths.apply(builder, owl_cache.opal_load_paths);
+    var compile_result = compile_ruby(source);
 
-    builder.$build_str(source, this.resourcePath);
+    delete Owl.emitError;
+    delete Owl.emitWarning;
+    fs.writeFileSync('owl_status.json', JSON.stringify(Owl));
+    fs.writeFileSync('owl_out.js', compile_result.javascript);
+    Owl.already_compiled = [];
 
-    // warning(builder.$requires());
+    callback(null, compile_result.javascript, compile_result.source_map, meta);
 
-    var compiled_source = builder.$to_s();
-
-    if (this.sourceMap) {
-        // generate source map
-        // warning('Generating source map');
-        map = builder.$source_map();
-    } else {
-        // compile without source map
-        // warning('NOT generating source map');
-    }
-    // var requires = builder.$processed().$requires();
-    // var r_length = requires.length;
-    // for (var i = 0; i < r_length; i++) {
-    //     warning('needs require: ' + requires[i]);
-    // }
-    result += compiled_source;
-    callback(null, result, map, meta);
     return;
 };
