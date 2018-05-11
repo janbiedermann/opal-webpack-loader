@@ -93,7 +93,7 @@ function compile_requires(requires) {
             } else if (req.source !== null) {
                 var c_result = compile_ruby(req.source, requires[i]);
                 result.javascript += '\n' + c_result.javascript;
-                result.javascript += c_result.source_map;
+                result.source_map += c_result.source_map;
             }
         }
     }
@@ -122,7 +122,7 @@ function compile_ruby(source, module) {
     //     javascript += result.javascript;
     // }
     result.javascript += compiler.$result();
-    result.source_map = compiler.$source_map();
+    result.source_map += compiler.$source_map();
     if (module) { Owl.already_compiled.push(module)}
     return result;
 }
@@ -307,9 +307,10 @@ module.exports = function(source, map, meta) {
     delete Owl.emitWarning;
     fs.writeFileSync('owl_status.json', JSON.stringify(Owl));
     fs.writeFileSync('owl_out.js', compile_result.javascript);
+    fs.writeFileSync('owl_out_source_map.js', compile_result.source_map);
     Owl.already_compiled = [];
 
-    callback(null, compile_result.javascript, compile_result.source_map, meta);
+    callback(null, compile_result.javascript, map, meta);
 
     return;
 };
