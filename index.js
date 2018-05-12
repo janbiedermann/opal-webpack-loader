@@ -82,26 +82,26 @@ function read_require(logical_path) {
     return { source: source, javascript: javascript, filename: absolute_filename };
 }
 
-function compile_requires(requires) {
-    var result = { javascript: '', source_map: '' };
+function compile_requires(source_map, requires) {
+    var result = { javascript: '' };
     var r_length = requires.length;
     for (var i = 0; i < r_length; i++) {
         if (!Owl.already_compiled.includes(requires[i])) {
             var req = read_require(requires[i]);
             if (req.javascript !== null) {
                 result.javascript += req.javascript + 'Opal.loaded(["' + requires[i] + '"]);';
+                source_map.offset_lines += result.javascript.split('\n').length;
             } else if (req.source !== null) {
-                var c_result = compile_ruby(req.source, requires[i]);
-                result.javascript += '\n' + c_result.javascript;
-                result.source_map += c_result.source_map;
+                var c_result = compile_ruby(source_map, req.source, requires[i]);
+                result.javascript += c_result.javascript;
             }
         }
     }
     return result;
 }
 
-function compile_ruby(source, module) {
-    var result = { javascript: '', source_map: '' };
+function compile_ruby(source_map, source, module) {
+    var result = { javascript: '' };
     var compiler;
     var unified_source = (typeof source === 'object') ? source.toString() : source;
     if (module) {
@@ -112,9 +112,8 @@ function compile_ruby(source, module) {
     compiler.$compile();
     var requires = compiler.$requires();
     if (requires.length > 0) {
-        var c_result = compile_requires(requires);
+        var c_result = compile_requires(source_map, requires);
         result.javascript += c_result.javascript;
-        result.source_map += c_result.source_map
     }
     // requires = compiler.$required_trees()
     // if (requires.length > 0) {
@@ -122,7 +121,19 @@ function compile_ruby(source, module) {
     //     javascript += result.javascript;
     // }
     result.javascript += compiler.$result();
-    result.source_map += compiler.$source_map();
+    source_map.sections.push({
+        offset: { line: source_map.offset_lines, column: 0 },
+        map: {
+            version: 3,
+            // file: module, // optional
+            // sourceRoot: '', // optional
+            sources: [module],
+            sourcesContent: [unified_source],
+            names: [],
+            mappings: compiler.$source_map().$to_s()
+        }
+    });
+    source_map.offset_lines += result.javascript.split('\n').length;
     if (module) { Owl.already_compiled.push(module)}
     return result;
 }
@@ -282,7 +293,8 @@ module.exports = function(source, map, meta) {
             "result.push(matchres[1]);}}" +
             "return result;`" +
             "end;" +
-            "end' > " + owl_compiler_path);
+            "end" +
+            "' > " + owl_compiler_path);
         require(process.cwd() + '/' + owl_compiler_path);
     } else {
         if (typeof Opal === "undefined") {
@@ -300,17 +312,23 @@ module.exports = function(source, map, meta) {
     }
 
     // compile the source
+    var source_map = {
+        version: 3,
+        sections: [], // this is where the maps go
+        offset_lines: 0, // non standard, we use it to keep track, remove before passing source_map on
+    }
 
-    var compile_result = compile_ruby(source);
+    var compile_result = compile_ruby(source_map, source);
 
     delete Owl.emitError;
     delete Owl.emitWarning;
     fs.writeFileSync('owl_status.json', JSON.stringify(Owl));
     fs.writeFileSync('owl_out.js', compile_result.javascript);
-    fs.writeFileSync('owl_out_source_map.js', compile_result.source_map);
+    delete source_map.offset_lines;
+    fs.writeFileSync('owl_out_source_map.js', JSON.stringify(source_map));
     Owl.already_compiled = [];
 
-    callback(null, compile_result.javascript, map, meta);
+    callback(null, compile_result.javascript, source_map, meta);
 
     return;
 };
