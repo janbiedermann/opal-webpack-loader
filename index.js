@@ -60,7 +60,6 @@ function read_require(logical_path) {
     if (source) { return { source: source, javascript: javascript, filename: absolute_filename };}
 
     // look up file system
-
     for (var i = 0; i < l; i++) {
         if (Owl.paths[i].startsWith(process.cwd())) {
             // try .rb
@@ -82,26 +81,21 @@ function read_require(logical_path) {
     return { source: source, javascript: javascript, filename: absolute_filename };
 }
 
-function compile_requires(source_map, requires) {
-    var result = { javascript: '' };
+function compile_requires(accumulator, requires) {
     var r_length = requires.length;
     for (var i = 0; i < r_length; i++) {
         if (!Owl.already_compiled.includes(requires[i])) {
             var req = read_require(requires[i]);
             if (req.javascript !== null) {
-                result.javascript += req.javascript + 'Opal.loaded(["' + requires[i] + '"]);';
-                source_map.offset_lines += result.javascript.split('\n').length;
+                accumulator.javascript += req.javascript + 'Opal.loaded(["' + requires[i] + '"]);\n';
             } else if (req.source !== null) {
-                var c_result = compile_ruby(source_map, req.source, requires[i]);
-                result.javascript += c_result.javascript;
+                compile_ruby(accumulator, req.source, requires[i]);
             }
         }
     }
-    return result;
 }
 
-function compile_ruby(source_map, source, module) {
-    var result = { javascript: '' };
+function compile_ruby(accumulator, source, module) {
     var compiler;
     var unified_source = (typeof source === 'object') ? source.toString() : source;
     if (module) {
@@ -112,30 +106,23 @@ function compile_ruby(source_map, source, module) {
     compiler.$compile();
     var requires = compiler.$requires();
     if (requires.length > 0) {
-        var c_result = compile_requires(source_map, requires);
-        result.javascript += c_result.javascript;
+        compile_requires(accumulator, requires);
     }
     // requires = compiler.$required_trees()
     // if (requires.length > 0) {
     //     result = compile_required_trees();
     //     javascript += result.javascript;
     // }
-    result.javascript += compiler.$result();
-    source_map.sections.push({
-        offset: { line: source_map.offset_lines, column: 0 },
-        map: {
-            version: 3,
-            // file: module, // optional
-            // sourceRoot: '', // optional
-            sources: [module],
-            sourcesContent: [unified_source],
-            names: [],
-            mappings: compiler.$source_map().$to_s()
-        }
+
+    var tsm = compiler.$source_map().$to_json().$to_n();
+    tsm.sourcesContent = [unified_source];
+    delete tsm.file;
+    accumulator.source_map.sections.push({
+        offset: { line: accumulator.javascript.split('\n').length, column: 0 },
+        map: tsm
     });
-    source_map.offset_lines += result.javascript.split('\n').length;
+    accumulator.javascript += compiler.$result() + '\n';
     if (module) { Owl.already_compiled.push(module)}
-    return result;
 }
 
 function get_directory_entries(path) {
@@ -282,6 +269,7 @@ module.exports = function(source, map, meta) {
             "require \"source_map\";" +
             "require \"opal/compiler\";" +
             "require \"nodejs\";" +
+            "require \"native\";" +
             "class Regexp;" +
             "def names;" +
             "`var result = [];" +
@@ -312,23 +300,24 @@ module.exports = function(source, map, meta) {
     }
 
     // compile the source
-    var source_map = {
-        version: 3,
-        sections: [], // this is where the maps go
-        offset_lines: 0, // non standard, we use it to keep track, remove before passing source_map on
+    var accumulator = {
+        javascript: '',
+        source_map: {
+            version: 3,
+            sections: [], // this is where the maps go
+        }
     }
 
-    var compile_result = compile_ruby(source_map, source);
+    compile_ruby(accumulator, source);
 
     delete Owl.emitError;
     delete Owl.emitWarning;
     fs.writeFileSync('owl_status.json', JSON.stringify(Owl));
-    fs.writeFileSync('owl_out.js', compile_result.javascript);
-    delete source_map.offset_lines;
-    fs.writeFileSync('owl_out_source_map.js', JSON.stringify(source_map));
+    fs.writeFileSync('owl_out.js', accumulator.javascript);
+    fs.writeFileSync('owl_out_source_map.json', JSON.stringify(accumulator.source_map));
     Owl.already_compiled = [];
 
-    callback(null, compile_result.javascript, source_map, meta);
+    callback(null, accumulator.javascript, accumulator.source_map, meta);
 
     return;
 };
