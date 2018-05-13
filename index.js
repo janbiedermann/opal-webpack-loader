@@ -12,11 +12,11 @@ var Owl = {
 
 var warning = function(message) {
     Owl.emitWarning(new Error(message));
-}
+};
 
 var error = function(message) {
     Owl.emitError(new Error(message));
-}
+};
 
 function read_require(logical_path) {
     var source = null;
@@ -161,6 +161,21 @@ function get_directory_entries(path) {
     return directory_entries;
 }
 
+function get_load_paths() {
+    var load_paths;
+    if (fs.existsSync('bin/rails')) {
+        load_paths = child.execSync('bundle exec rails runner "puts Opal.paths; exit 0"');
+    } else {
+        load_paths = child.execSync('bundle exec ruby -e "Bundler.require; puts Opal.paths; exit 0"');
+    }
+    var load_path_lines = load_paths.toString().split('\n');
+    var lp_length = load_path_lines.length;
+    if (load_path_lines[lp_length-1] === '' || load_path_lines[lp_length-1] == null) {
+        load_path_lines.pop();
+    }
+    return load_path_lines;
+}
+
 function get_load_path_entries(load_paths) {
     var load_path_entries = [];
     var lp_length = load_paths.length;
@@ -180,7 +195,6 @@ module.exports = function(source, map, meta) {
     Owl.emitError = this.emitError;
 
     var callback = this.async();
-    var result = 'console.log("Hello from opal-webpack-loader :)");\n';
 
     // Get opal load paths from cache and generate cache if not yet there or needs update
 
@@ -215,83 +229,60 @@ module.exports = function(source, map, meta) {
     if (gemfile_mtime > gemfile_lock_mtime) { error("Gemfile is newer than Gemfile.lock, please run 'bundle install' or 'bundle update'!"); }
     if (gemfile_lock_mtime > owl_cache_mtime || must_generate_cache) {
         // generate cache
-        var child_result = '';
-        if (fs.existsSync('bin/rails')) {
-            child_result = child.execSync('bundle exec rails runner "puts Opal.paths; exit 0"');
-        } else {
-            child_result = child.execSync('bundle exec ruby -e "Bundler.require; puts Opal.paths; exit 0"');
-        }
-        var child_result_lines = child_result.toString().split('\n');
-        var crl_length = child_result_lines.length;
-        if (child_result_lines[crl_length-1] === '' || child_result_lines[crl_length-1] == null) {
-            child_result_lines.pop();
-        }
-        owl_cache.opal_load_paths = child_result_lines;
+        owl_cache.opal_load_paths = get_load_paths();
         owl_cache.opal_load_path_entries = get_load_path_entries(owl_cache.opal_load_paths);
         Owl.paths = owl_cache.opal_load_paths;
         Owl.entries = owl_cache.opal_load_path_entries;
         Owl.cache_fetched = true;
         fs.writeFileSync(owl_cache_path, JSON.stringify(owl_cache));
-    } else {
-        if (!Owl.cache_fetched) {
-            // fetch cache
-            var owl_cache_from_file = fs.readFileSync(owl_cache_path);
-            owl_cache = JSON.parse(owl_cache_from_file.toString());
-            Owl.paths = owl_cache.opal_load_paths;
-            Owl.entries = owl_cache.opal_load_path_entries;
-            Owl.cache_fetched = true;
+
+        // compile compiler
+        if (!fs.existsSync(owl_compiler_path)) {
+            var load_path_options = '';
+            var lp_length = owl_cache.opal_load_paths.length;
+            for (var i = 0; i < lp_length; i++) {
+                load_path_options += ' --include ' + owl_cache.opal_load_paths[i];
+            }
+            // this implments Regexp.names, because that is missing in opal 0.11.0 and before
+            // TODO remove Regexp.names once it is in opal
+            child.execSync("bundle exec opal" + load_path_options + " -E -ce '" + "" +
+                "require \"opal\";" +
+                "require \"opal-platform\";" +
+                "require \"opal/source_map\";" +
+                "require \"source_map\";" +
+                "require \"opal/compiler\";" +
+                "require \"nodejs\";" +
+                "require \"native\";" +
+                "class Regexp;" +
+                "def names;" +
+                "`var result = [];" +
+                "var splits = self.source.split(\"(?<\");" +
+                "var sl = splits.length;" +
+                "for (var i = 0; i < sl; i ++) { " +
+                "var matchres = splits[i].match(/(\\w+)>/);" +
+                "if (matchres && matchres[1]) {" +
+                "result.push(matchres[1]);}}" +
+                "return result;`" +
+                "end;" +
+                "end" +
+                "' > " + owl_compiler_path);
         }
+
+    } else if (!Owl.cache_fetched) {
+        // fetch cache
+        var owl_cache_from_file = fs.readFileSync(owl_cache_path);
+        owl_cache = JSON.parse(owl_cache_from_file.toString());
+        Owl.paths = owl_cache.opal_load_paths;
+        Owl.entries = owl_cache.opal_load_path_entries;
+        Owl.cache_fetched = true;
     }
 
-    // load or compile and cache compiler
-    if (gemfile_lock_mtime > owl_cache_mtime || must_generate_cache || !fs.existsSync(owl_compiler_path)) {
-        if (fs.existsSync('bin/rails')) {
-            child_result = child.execSync('bundle exec rails runner "puts \\\$LOAD_PATH; exit 0"');
-        } else {
-            child_result = child.execSync('bundle exec ruby -e "Bundler.require; puts \\\$LOAD_PATH; exit 0"');
-        }
-        child_result_lines = child_result.toString().split('\n');
-        var load_path_options = '';
-        crl_length = child_result_lines.length;
-        if (child_result_lines[crl_length-1] === '' || child_result_lines[crl_length-1] == null) {
-            child_result_lines.pop();
-            crl_length = child_result_lines.length;
-        }
-        for (var i = 0; i < crl_length; i++) {
-            load_path_options += ' --include ' + child_result_lines[i];
-        }
-        // this implments Regexp.names, becasue thats missing in opal 0.11 and before
-        // TODO remove Regexp.names once it is in opal
-        child.execSync("bundle exec opal" + load_path_options + " -E -ce '" + "" +
-            "require \"opal\";" +
-            "require \"opal-platform\";" +
-            "require \"opal/source_map\";" +
-            "require \"source_map\";" +
-            "require \"opal/compiler\";" +
-            "require \"nodejs\";" +
-            "require \"native\";" +
-            "class Regexp;" +
-            "def names;" +
-            "`var result = [];" +
-            "var splits = self.source.split(\"(?<\");" +
-            "var sl = splits.length;" +
-            "for (var i = 0; i < sl; i ++) { " +
-            "var matchres = splits[i].match(/(\\w+)>/);" +
-            "if (matchres && matchres[1]) {" +
-            "result.push(matchres[1]);}}" +
-            "return result;`" +
-            "end;" +
-            "end" +
-            "' > " + owl_compiler_path);
+    // load compiler
+    if (typeof Opal === "undefined") {
         require(process.cwd() + '/' + owl_compiler_path);
-    } else {
-        if (typeof Opal === "undefined") {
-            require(process.cwd() + '/' + owl_compiler_path);
-        }
     }
 
-    // get additional options
-
+    // get additional options - ignored for now
     const options = loaderUtils.getOptions(this);
     for (var property in options) {
         if (options.hasOwnProperty(property)) {
@@ -306,15 +297,14 @@ module.exports = function(source, map, meta) {
             version: 3,
             sections: [], // this is where the maps go
         }
-    }
+    };
 
     compile_ruby(accumulator, source);
 
-    delete Owl.emitError;
-    delete Owl.emitWarning;
     fs.writeFileSync('owl_status.json', JSON.stringify(Owl));
     fs.writeFileSync('owl_out.js', accumulator.javascript);
     fs.writeFileSync('owl_out_source_map.json', JSON.stringify(accumulator.source_map));
+
     Owl.already_compiled = [];
 
     callback(null, accumulator.javascript, accumulator.source_map, meta);
