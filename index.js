@@ -3,11 +3,13 @@
 const child = require('child_process');
 const fs = require('fs');
 const loaderUtils = require('loader-utils')
+// const UglifyJS = require('uglify-js') // for minifying the compiler
 
+// keep some global state
 var Owl = {
     cache_fetched: false,
     already_compiled: [],
-    compile_log: []
+    compile_log: [] // for debugging
 };
 
 var warning = function(message) {
@@ -57,7 +59,7 @@ function read_require(logical_path) {
             }
         }
     }
-    if (source) { return { source: source, javascript: javascript, filename: absolute_filename };}
+    if (source || javascript) { return { source: source, javascript: javascript, filename: absolute_filename }; }
 
     // look up file system
     for (var i = 0; i < l; i++) {
@@ -78,7 +80,15 @@ function read_require(logical_path) {
             }
         }
     }
-    return { source: source, javascript: javascript, filename: absolute_filename };
+    if (source || javascript) {
+        return { source: source, javascript: javascript, resource_path: absolute_filename };
+    } else {
+        error('opal-webpack-loader: Unable ot locate module "' + logical_path + '"'); return null;
+    }
+}
+
+function compile_required_trees(accumulator, required_trees) {
+    warning('Did not compile required trees: ' + required_trees.join(', '))
 }
 
 function compile_requires(accumulator, requires) {
@@ -86,42 +96,51 @@ function compile_requires(accumulator, requires) {
     for (var i = 0; i < r_length; i++) {
         if (!Owl.already_compiled.includes(requires[i])) {
             var req = read_require(requires[i]);
-            if (req.javascript !== null) {
+            if (req && req.javascript !== null) {
                 accumulator.javascript += req.javascript + 'Opal.loaded(["' + requires[i] + '"]);\n';
-            } else if (req.source !== null) {
-                compile_ruby(accumulator, req.source, requires[i]);
+            } else if (req && req.source !== null) {
+                compile_ruby(accumulator, req.source, req.resource_path, requires[i]);
             }
         }
     }
 }
 
-function compile_ruby(accumulator, source, module) {
+function compile_ruby(accumulator, source, path, module) {
     var compiler;
     var unified_source = (typeof source === 'object') ? source.toString() : source;
     if (module) {
         compiler = Opal.Opal.$const_get('Compiler').$new(unified_source, Opal.hash({requirable: true, file: module}));
     } else {
-        compiler = Opal.Opal.$const_get('Compiler').$new(unified_source);
+        compiler = Opal.Opal.$const_get('Compiler').$new(unified_source, Opal.hash({file: module}));
     }
+
+    // compile the ruby source
     compiler.$compile();
+
+    // compile 'require'-ed modules
     var requires = compiler.$requires();
     if (requires.length > 0) {
         compile_requires(accumulator, requires);
     }
-    // requires = compiler.$required_trees()
-    // if (requires.length > 0) {
-    //     result = compile_required_trees();
-    //     javascript += result.javascript;
-    // }
 
-    var tsm = compiler.$source_map().$to_json().$to_n();
+    // compile 'require_tree' modules
+    requires = compiler.$required_trees()
+    if (requires.length > 0) {
+        compile_required_trees();
+    }
+
+    // get source map
+    var tsm = compiler.$source_map(path).$to_json().$to_n();
     tsm.sourcesContent = [unified_source];
-    delete tsm.file;
+
+    // accumulate everything
     accumulator.source_map.sections.push({
-        offset: { line: accumulator.javascript.split('\n').length, column: 0 },
+        offset: { line: accumulator.javascript.split('\n').length -1, column: 1 },
         map: tsm
     });
     accumulator.javascript += compiler.$result() + '\n';
+
+    // note module as compiled
     if (module) { Owl.already_compiled.push(module)}
 }
 
@@ -164,7 +183,10 @@ function get_directory_entries(path) {
 function get_load_paths() {
     var load_paths;
     if (fs.existsSync('bin/rails')) {
-        load_paths = child.execSync('bundle exec rails runner "puts Opal.paths; exit 0"');
+        load_paths = child.execSync('bundle exec rails runner ' +
+            '"puts (Rails.configuration.assets ? ' +
+            '(Rails.configuration.assets.paths + Opal.paths).uniq : ' +
+            'Opal.paths); exit 0"');
     } else {
         load_paths = child.execSync('bundle exec ruby -e "Bundler.require; puts Opal.paths; exit 0"');
     }
@@ -266,6 +288,10 @@ module.exports = function(source, map, meta) {
                 "end;" +
                 "end" +
                 "' > " + owl_compiler_path);
+            // minify compiler, disable in favour of saving time
+            // var compiler_code = fs.readFileSync(owl_compiler_path);
+            // var minified_compiler_result = UglifyJS.minify(compiler_code.toString());
+            // fs.writeFileSync(owl_compiler_path, minified_compiler_result.code);
         }
 
     } else if (!Owl.cache_fetched) {
@@ -299,8 +325,9 @@ module.exports = function(source, map, meta) {
         }
     };
 
-    compile_ruby(accumulator, source);
+    compile_ruby(accumulator, source, this.resourcePath, null);
 
+    // for debugging
     fs.writeFileSync('owl_status.json', JSON.stringify(Owl));
     fs.writeFileSync('owl_out.js', accumulator.javascript);
     fs.writeFileSync('owl_out_source_map.json', JSON.stringify(accumulator.source_map));
