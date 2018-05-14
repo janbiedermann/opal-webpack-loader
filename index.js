@@ -20,28 +20,28 @@ var error = function(message) {
     Owl.emitError(new Error(message));
 };
 
-function read_require(logical_path) {
+function read_require(logical_path, requester) {
     var source = null;
     var javascript = null;
     var logical_filename_rb;
     var logical_filename_js;
     var absolute_filename;
     if (logical_path.endsWith('.js')) {
-        logical_filename_rb = logical_path + '.rb';
-        logical_filename_js = logical_path;
+        logical_filename_rb = '/' + logical_path + '.rb';
+        logical_filename_js = '/' + logical_path;
     } else if (logical_path.endsWith('.rb')) {
-        logical_filename_rb = logical_path;
+        logical_filename_rb = '/' + logical_path;
         logical_filename_js = null;
     } else {
-        logical_filename_rb = logical_path + '.rb';
-        logical_filename_js = logical_path + '.js';
+        logical_filename_rb = '/' + logical_path + '.rb';
+        logical_filename_js = '/' + logical_path + '.js';
     }
     var l = Owl.paths.length;
 
     // look up known entries
     for (var i = 0; i < l; i++) {
         // try .rb
-        absolute_filename = Owl.paths[i] + '/' + logical_filename_rb;
+        absolute_filename = Owl.paths[i] + logical_filename_rb;
         if (Owl.entries.includes(absolute_filename)) {
             if (fs.existsSync(absolute_filename)) {
                 source = fs.readFileSync(absolute_filename);
@@ -50,7 +50,7 @@ function read_require(logical_path) {
         }
         // try .js
         if (logical_filename_js) {
-            absolute_filename = Owl.paths[i] + '/' + logical_filename_js;
+            absolute_filename = Owl.paths[i] + logical_filename_js;
             if (Owl.entries.includes(absolute_filename)) {
                 if (fs.existsSync(absolute_filename)) {
                     javascript = fs.readFileSync(absolute_filename);
@@ -65,14 +65,14 @@ function read_require(logical_path) {
     for (var i = 0; i < l; i++) {
         if (Owl.paths[i].startsWith(process.cwd())) {
             // try .rb
-            absolute_filename = Owl.paths[i] + '/' + logical_filename_rb;
+            absolute_filename = Owl.paths[i] + logical_filename_rb;
             if (fs.existsSync(absolute_filename)) {
                 source = fs.readFileSync(absolute_filename);
                 break;
             }
             // try .js
             if (logical_filename_js) {
-                absolute_filename = Owl.paths[i] + '/' + logical_filename_js;
+                absolute_filename = Owl.paths[i] + logical_filename_js;
                 if (fs.existsSync(absolute_filename)) {
                     javascript = fs.readFileSync(absolute_filename);
                     break;
@@ -81,9 +81,10 @@ function read_require(logical_path) {
         }
     }
     if (source || javascript) {
-        return { source: source, javascript: javascript, resource_path: absolute_filename };
+        return { source: source, javascript: javascript, filename: absolute_filename };
     } else {
-        error('opal-webpack-loader: Unable ot locate module "' + logical_path + '"'); return null;
+        error('opal-webpack-loader: Unable to locate module "' + logical_path + '" included by ' + requester);
+        return null;
     }
 }
 
@@ -91,27 +92,27 @@ function compile_required_trees(accumulator, required_trees) {
     warning('Did not compile required trees: ' + required_trees.join(', '))
 }
 
-function compile_requires(accumulator, requires) {
+function compile_requires(accumulator, requires, requester) {
     var r_length = requires.length;
     for (var i = 0; i < r_length; i++) {
         if (!Owl.already_compiled.includes(requires[i])) {
-            var req = read_require(requires[i]);
+            var req = read_require(requires[i], requester);
             if (req && req.javascript !== null) {
                 accumulator.javascript += req.javascript + 'Opal.loaded(["' + requires[i] + '"]);\n';
             } else if (req && req.source !== null) {
-                compile_ruby(accumulator, req.source, req.resource_path, requires[i]);
+                compile_ruby(accumulator, req.source, req.filename, requires[i]);
             }
         }
     }
 }
 
-function compile_ruby(accumulator, source, path, module) {
+function compile_ruby(accumulator, source, filename, module) {
     var compiler;
     var unified_source = (typeof source === 'object') ? source.toString() : source;
     if (module) {
         compiler = Opal.Opal.$const_get('Compiler').$new(unified_source, Opal.hash({requirable: true, file: module}));
     } else {
-        compiler = Opal.Opal.$const_get('Compiler').$new(unified_source, Opal.hash({file: module}));
+        compiler = Opal.Opal.$const_get('Compiler').$new(unified_source);
     }
 
     // compile the ruby source
@@ -120,22 +121,22 @@ function compile_ruby(accumulator, source, path, module) {
     // compile 'require'-ed modules
     var requires = compiler.$requires();
     if (requires.length > 0) {
-        compile_requires(accumulator, requires);
+        compile_requires(accumulator, requires, filename);
     }
 
     // compile 'require_tree' modules
     requires = compiler.$required_trees()
     if (requires.length > 0) {
-        compile_required_trees();
+        compile_required_trees(accumulator, requires);
     }
 
     // get source map
-    var tsm = compiler.$source_map(path).$to_json().$to_n();
+    var tsm = compiler.$source_map(filename).$to_json().$to_n();
     tsm.sourcesContent = [unified_source];
 
     // accumulate everything
     accumulator.source_map.sections.push({
-        offset: { line: accumulator.javascript.split('\n').length -1, column: 1 },
+        offset: { line: accumulator.javascript.split('\n').length -1, column: 1 }, // these numbers point to the correct target
         map: tsm
     });
     accumulator.javascript += compiler.$result() + '\n';
@@ -272,6 +273,7 @@ module.exports = function(source, map, meta) {
                 "require \"opal-platform\";" +
                 "require \"opal/source_map\";" +
                 "require \"source_map\";" +
+                "require \"opal/paths\";" +
                 "require \"opal/compiler\";" +
                 "require \"nodejs\";" +
                 "require \"native\";" +
@@ -306,6 +308,7 @@ module.exports = function(source, map, meta) {
     // load compiler
     if (typeof Opal === "undefined") {
         require(process.cwd() + '/' + owl_compiler_path);
+        Opal.Opal.$append_paths.apply(Opal.Opal, Owl.paths);
     }
 
     // get additional options - ignored for now
