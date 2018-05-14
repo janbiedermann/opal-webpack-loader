@@ -88,8 +88,26 @@ function read_require(logical_path, requester) {
     }
 }
 
-function compile_required_trees(accumulator, required_trees) {
-    warning('Did not compile required trees: ' + required_trees.join(', '))
+function compile_required_trees(accumulator, required_trees, requester) {
+    var path_elements = requester.split('/');
+    path_elements.pop();
+    var base_path = path_elements.join('/') + '/';
+    var base_length = base_path.length;
+    var rt_length = required_trees.length;
+    for (var i = 0; i < rt_length; i++) {
+        var directory_path = base_path + required_trees[i];
+        var directory_entries = get_directory_entries(directory_path, true);
+        var d_length = directory_entries.length;
+        for (var k = 0; k < d_length; k++) {
+            // determine module
+            var mod_path = directory_entries[k].substr(base_length).split('.');
+            mod_path.pop();
+            var module = mod_path.join('.');
+            var source = fs.readFileSync(directory_entries[k]);
+            // compile module
+            compile_ruby(accumulator, source, directory_entries[k], module)
+        }
+    }
 }
 
 function compile_requires(accumulator, requires, requester) {
@@ -127,7 +145,7 @@ function compile_ruby(accumulator, source, filename, module) {
     // compile 'require_tree' modules
     requires = compiler.$required_trees()
     if (requires.length > 0) {
-        compile_required_trees(accumulator, requires);
+        compile_required_trees(accumulator, requires, filename);
     }
 
     // get source map
@@ -145,9 +163,9 @@ function compile_ruby(accumulator, source, filename, module) {
     if (module) { Owl.already_compiled.push(module)}
 }
 
-function get_directory_entries(path) {
+function get_directory_entries(path, in_app) {
     if (!path.startsWith('/')) { return [] }
-    if (path.startsWith(process.cwd())) { return [] }
+    if (!in_app && path.startsWith(process.cwd())) { return [] }
     if (!fs.existsSync(path)) { return [] }
     var directory_entries = [];
     var f = fs.openSync(path, 'r');
@@ -165,7 +183,7 @@ function get_directory_entries(path) {
                 var eis_file = se.isFile();
                 fs.closeSync(fe);
                 if (eis_dir) {
-                    var more_entries = get_directory_entries(current_path);
+                    var more_entries = get_directory_entries(current_path, in_app);
                     var m_length = more_entries.length;
                     for (var m = 0; m < m_length; m++) {
                         directory_entries.push(more_entries[m]);
@@ -203,7 +221,7 @@ function get_load_path_entries(load_paths) {
     var load_path_entries = [];
     var lp_length = load_paths.length;
     for (var i = 0; i < lp_length; i++) {
-        var dir_entries = get_directory_entries(load_paths[i]);
+        var dir_entries = get_directory_entries(load_paths[i], false);
         var d_length = dir_entries.length;
         for (var k = 0; k < d_length; k++) {
             load_path_entries.push(dir_entries[k]);
