@@ -60,5 +60,11 @@ module.exports = {
 ```
 and in your app/assets/application.js, for example:
 ```
-require('./ruby.rb')
+global.React = require('react');
+global.ReactDOM = require('react-dom');
+global.History = require('history');
+global.ReactRouter = require('react-router');
+global.ReactRouterDOM = require('react-router-dom');
+const ReactRailsUJS = require('react_ujs');
+require('./ruby.rb');
 ```
