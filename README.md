@@ -1,12 +1,17 @@
 # opal-webpack-loader
-Requirements:
+### Requirements
 - webpack 4.8
-- ruby installed, version 2.5 or higher recommended
-- bundler installed, latest version recommended
+- ruby, version 2.5 or higher recommended
+- bundler, latest version recommended
 - Gemfile with at least: `gem 'opal'`, version 0.11 or higher
-- Gemfile.lock, create with bundle install or bundle update
-
-example webpack.config.js:
+- Gemfile.lock, created with bundle install or bundle update
+### Installation
+#### From the repo
+clone repo, then `npm pack` in the repo and `npm -i opal-webpack-loader-x.y.z.tgz`
+#### From NPM
+`npm i opal-webpack-loader --save`
+### Example configuration
+webpack.config.js:
 ```
 module.exports = {
     optimization: {
@@ -58,7 +63,7 @@ module.exports = {
     }
 };
 ```
-and in your app/assets/application.js, for example:
+app/assets/application.js:
 ```
 global.React = require('react');
 global.ReactDOM = require('react-dom');

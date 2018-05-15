@@ -54,9 +54,8 @@ function fetched_from_cache(accumulator, filename, module) {
         accumulator.source_map.sections.push(cc.source_map_section);
         if (module) { Owl.already_compiled.push(module)}
         return true;
-    } else {
-        return false;
     }
+    return false;
 }
 
 function read_require(logical_path, requester) {
