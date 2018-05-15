@@ -23,6 +23,7 @@
   },
   "homepage": "https://github.com/janbiedermann/opal-webpack-loader#readme",
   "dependencies": {
+    "js-md5": "^0.7.3",
     "loader-utils": "^1.1.0"
   }
 }

@@ -2,8 +2,9 @@
 
 const child = require('child_process');
 const fs = require('fs');
-const loaderUtils = require('loader-utils')
-// const UglifyJS = require('uglify-js') // for minifying the compiler
+const loaderUtils = require('loader-utils');
+const md5 = require('js-md5');
+// const UglifyJS = require('uglify-js') // for minifying the compiler, disabled
 
 // keep some global state
 var Owl = {
@@ -19,6 +20,44 @@ var warning = function(message) {
 var error = function(message) {
     Owl.emitError(new Error(message));
 };
+
+function store_in_cache(filename, javascript, requires, required_trees, source_map_section) {
+    var cache_key = md5(filename);
+    var cc_fn = Owl.cc_dir + '/' + cache_key;
+    var file_mtime = fs.statSync(filename).mtimeMs;
+    var json_obj = {
+        mtime: file_mtime,
+        requires: requires,
+        required_trees: required_trees,
+        javascript: javascript,
+        source_map_section: source_map_section
+    };
+    fs.writeFileSync(cc_fn, JSON.stringify(json_obj));
+}
+
+function fetched_from_cache(accumulator, filename, module) {
+    var cache_key = md5(filename);
+    var cc_fn = Owl.cc_dir + '/' + cache_key;
+    if (fs.existsSync(cc_fn)) {
+        var ccf = fs.readFileSync(cc_fn);
+        var cc = JSON.parse(ccf.toString());
+        // check paths within current dir/app for mtime
+        // but dont check system gems, because cache gets cleaned up on Gemfile change/bundle install/update
+        if (filename.startsWith(process.cwd())) {
+            // check filename mtime
+            var file_mtime = fs.statSync(filename).mtimeMs;
+            if (file_mtime !== cc.mtime) { return false; }
+        }
+        compile_requires(accumulator, cc.requires, filename);
+        compile_required_trees(accumulator, cc.required_trees, filename);
+        accumulator.javascript += cc.javascript + '\n';
+        accumulator.source_map.sections.push(cc.source_map_section);
+        if (module) { Owl.already_compiled.push(module)}
+        return true;
+    } else {
+        return false;
+    }
+}
 
 function read_require(logical_path, requester) {
     var source = null;
@@ -103,9 +142,11 @@ function compile_required_trees(accumulator, required_trees, requester) {
             var mod_path = directory_entries[k].substr(base_length).split('.');
             mod_path.pop();
             var module = mod_path.join('.');
-            var source = fs.readFileSync(directory_entries[k]);
-            // compile module
-            compile_ruby(accumulator, source, directory_entries[k], module)
+            if (!Owl.already_compiled.includes(module)) {
+                var source = fs.readFileSync(directory_entries[k]);
+                // compile module
+                compile_ruby(accumulator, source, directory_entries[k], module)
+            }
         }
     }
 }
@@ -116,7 +157,7 @@ function compile_requires(accumulator, requires, requester) {
         if (!Owl.already_compiled.includes(requires[i])) {
             var req = read_require(requires[i], requester);
             if (req && req.javascript !== null) {
-                accumulator.javascript += req.javascript + 'Opal.loaded(["' + requires[i] + '"]);\n';
+                include_javascript(accumulator, req.javascript, req.filename, requires[i]);
             } else if (req && req.source !== null) {
                 compile_ruby(accumulator, req.source, req.filename, requires[i]);
             }
@@ -124,7 +165,16 @@ function compile_requires(accumulator, requires, requester) {
     }
 }
 
+function include_javascript(accumulator, javascript, filename, module) {
+    accumulator.javascript += javascript + 'Opal.loaded(["' + module + '"]);\n';
+    if (module) { Owl.already_compiled.push(module)};
+}
+
 function compile_ruby(accumulator, source, filename, module) {
+    // fetch from cache
+    if (fetched_from_cache(accumulator, filename, module)) { return; }
+
+    // or compile
     var compiler;
     var unified_source = (typeof source === 'object') ? source.toString() : source;
     if (module) {
@@ -143,9 +193,9 @@ function compile_ruby(accumulator, source, filename, module) {
     }
 
     // compile 'require_tree' modules
-    requires = compiler.$required_trees()
-    if (requires.length > 0) {
-        compile_required_trees(accumulator, requires, filename);
+    var required_trees = compiler.$required_trees();
+    if (required_trees.length > 0) {
+        compile_required_trees(accumulator, required_trees, filename);
     }
 
     // get source map
@@ -153,11 +203,16 @@ function compile_ruby(accumulator, source, filename, module) {
     tsm.sourcesContent = [unified_source];
 
     // accumulate everything
-    accumulator.source_map.sections.push({
+    var source_map_section = {
         offset: { line: accumulator.javascript.split('\n').length -1, column: 1 }, // these numbers point to the correct target
         map: tsm
-    });
-    accumulator.javascript += compiler.$result() + '\n';
+    };
+    accumulator.source_map.sections.push(source_map_section);
+    var result = compiler.$result();
+    accumulator.javascript += result + '\n';
+
+    // store in cache
+    store_in_cache(filename, result, requires, required_trees, source_map_section);
 
     // note module as compiled
     if (module) { Owl.already_compiled.push(module)}
@@ -245,14 +300,18 @@ module.exports = function(source, map, meta) {
 
     const gemfile_path = 'Gemfile';
     const gemfile_lock_path = 'Gemfile.lock';
-    const owl_cache_path = '.opal_webpack_loader_cache.json';
-    const owl_compiler_path = '.opal_webpack_loader_compiler.js';
+    const owl_cache_dir = '.owl_cache';
+    const owl_compiler_cache_dir = owl_cache_dir + '/cc';
+    const owl_cache_path = owl_cache_dir + '/load_paths.json';
+    const owl_compiler_path = owl_cache_dir + '/compiler.js';
 
     fs.accessSync(gemfile_path, fs.constants.R_OK);
     fs.accessSync(gemfile_lock_path, fs.constants.R_OK);
     try {
         fs.accessSync(owl_cache_path, fs.constants.R_OK | fs.constants.W_OK);
     } catch (err) {
+        if (!fs.existsSync(owl_cache_dir)) { fs.mkdirSync(owl_cache_dir); }
+        if (!fs.existsSync(owl_compiler_cache_dir)) { fs.mkdirSync(owl_compiler_cache_dir); }
         fs.writeFileSync(owl_cache_path, JSON.stringify(owl_cache));
         owl_cache_mtime = fs.statSync(owl_cache_path).mtimeMs;
         must_generate_cache = true;
@@ -263,17 +322,26 @@ module.exports = function(source, map, meta) {
 
     if (owl_cache_mtime === 0) { owl_cache_mtime = fs.statSync(owl_cache_path).mtimeMs; }
 
+    // for debugging
     // warning('Gemfile mtime: ' + gemfile_mtime);
     // warning('Gemfile.lock mtime: ' + gemfile_lock_mtime);
     // warning('owl cache mtime: ' + owl_cache_mtime);
 
     if (gemfile_mtime > gemfile_lock_mtime) { error("Gemfile is newer than Gemfile.lock, please run 'bundle install' or 'bundle update'!"); }
     if (gemfile_lock_mtime > owl_cache_mtime || must_generate_cache) {
-        // generate cache
+        // clean up compiler cache
+        var cc_entries = fs.readdirSync(owl_compiler_cache_dir);
+        var cce_length = cc_entries.length;
+        for (var i = 0; i < cce_length; i++) {
+            fs.unlinkSync(owl_compiler_cache_dir + '/' + cc_entries[i]);
+        }
+
+        // generate load path cache
         owl_cache.opal_load_paths = get_load_paths();
         owl_cache.opal_load_path_entries = get_load_path_entries(owl_cache.opal_load_paths);
         Owl.paths = owl_cache.opal_load_paths;
         Owl.entries = owl_cache.opal_load_path_entries;
+        Owl.cc_dir = owl_compiler_cache_dir;
         Owl.cache_fetched = true;
         fs.writeFileSync(owl_cache_path, JSON.stringify(owl_cache));
 
@@ -308,7 +376,8 @@ module.exports = function(source, map, meta) {
                 "end;" +
                 "end" +
                 "' > " + owl_compiler_path);
-            // minify compiler, disable in favour of saving time
+
+            // minify compiler, disabled in favour of saving time
             // var compiler_code = fs.readFileSync(owl_compiler_path);
             // var minified_compiler_result = UglifyJS.minify(compiler_code.toString());
             // fs.writeFileSync(owl_compiler_path, minified_compiler_result.code);
@@ -320,8 +389,10 @@ module.exports = function(source, map, meta) {
         owl_cache = JSON.parse(owl_cache_from_file.toString());
         Owl.paths = owl_cache.opal_load_paths;
         Owl.entries = owl_cache.opal_load_path_entries;
+        Owl.cc_dir = owl_compiler_cache_dir;
         Owl.cache_fetched = true;
     }
+
 
     // load compiler
     if (typeof Opal === "undefined") {
@@ -349,9 +420,7 @@ module.exports = function(source, map, meta) {
     compile_ruby(accumulator, source, this.resourcePath, null);
 
     // for debugging
-    fs.writeFileSync('owl_status.json', JSON.stringify(Owl));
-    fs.writeFileSync('owl_out.js', accumulator.javascript);
-    fs.writeFileSync('owl_out_source_map.json', JSON.stringify(accumulator.source_map));
+    // fs.writeFileSync('owl_status.json', JSON.stringify(Owl));
 
     Owl.already_compiled = [];
 
