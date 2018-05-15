@@ -7,10 +7,10 @@ Compile opal ruby projects nicely with webpack, without sprockets or webpacker g
 - Gemfile with at least: `gem 'opal'`, version 0.11 or higher
 - Gemfile.lock, created with bundle install or bundle update
 ### Installation
-#### From the repo
-clone repo, then `npm pack` in the repo and `npm -i opal-webpack-loader-x.y.z.tgz`
 #### From NPM
 `npm i opal-webpack-loader --save`
+#### From the repo
+clone repo, then `npm pack` in the repo and `npm i opal-webpack-loader-x.y.z.tgz`
 ### Example configuration
 webpack.config.js:
 ```
