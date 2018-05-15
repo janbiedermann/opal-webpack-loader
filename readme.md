@@ -1,4 +1,5 @@
 # opal-webpack-loader
+Compile opal ruby projects nicely with webpack, without sprockets or webpacker gem.
 ### Requirements
 - webpack 4.8
 - ruby, version 2.5 or higher recommended
