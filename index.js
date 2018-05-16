@@ -21,7 +21,7 @@ var error = function(message) {
     Owl.emitError(new Error(message));
 };
 
-function store_in_cache(filename, javascript, requires, required_trees, source_map_section) {
+function store_in_cache(filename, javascript, requires, required_trees, source_map) {
     var cache_key = md5(filename);
     var cc_fn = Owl.cc_dir + '/' + cache_key;
     var file_mtime = fs.statSync(filename).mtimeMs;
@@ -30,7 +30,7 @@ function store_in_cache(filename, javascript, requires, required_trees, source_m
         requires: requires,
         required_trees: required_trees,
         javascript: javascript,
-        source_map_section: source_map_section
+        source_map: source_map
     };
     fs.writeFileSync(cc_fn, JSON.stringify(json_obj));
 }
@@ -51,7 +51,11 @@ function fetched_from_cache(accumulator, filename, module) {
         compile_requires(accumulator, cc.requires, filename);
         compile_required_trees(accumulator, cc.required_trees, filename);
         accumulator.javascript += cc.javascript + '\n';
-        accumulator.source_map.sections.push(cc.source_map_section);
+        var source_map_section = {
+            offset: { line: accumulator.javascript.split('\n').length -1, column: 1 }, // these numbers point to the correct target
+            map: cc.source_map
+        };
+        accumulator.source_map.sections.push(source_map_section);
         if (module) { Owl.already_compiled.push(module)}
         return true;
     }
@@ -211,7 +215,7 @@ function compile_ruby(accumulator, source, filename, module) {
     accumulator.javascript += result + '\n';
 
     // store in cache
-    store_in_cache(filename, result, requires, required_trees, source_map_section);
+    store_in_cache(filename, result, requires, required_trees, tsm);
 
     // note module as compiled
     if (module) { Owl.already_compiled.push(module)}

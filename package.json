@@ -1,6 +1,6 @@
 {
   "name": "opal-webpack-loader",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "A loader for Opal Ruby files for Webpack",
   "main": "index.js",
   "scripts": {
