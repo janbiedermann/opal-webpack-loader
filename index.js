@@ -50,19 +50,19 @@ function fetched_from_cache(accumulator, filename, module) {
         }
         compile_requires(accumulator, cc.requires, filename);
         compile_required_trees(accumulator, cc.required_trees, filename);
-        accumulator.javascript += cc.javascript + '\n';
         var source_map_section = {
             offset: { line: accumulator.javascript.split('\n').length -1, column: 1 }, // these numbers point to the correct target
             map: cc.source_map
         };
         accumulator.source_map.sections.push(source_map_section);
+        accumulator.javascript += cc.javascript + '\n';
         if (module) { Owl.already_compiled.push(module)}
         return true;
     }
     return false;
 }
 
-function read_require(logical_path, requester) {
+function get_require_meta(logical_path, requester) {
     var source = null;
     var javascript = null;
     var logical_filename_rb;
@@ -86,7 +86,7 @@ function read_require(logical_path, requester) {
         absolute_filename = Owl.paths[i] + logical_filename_rb;
         if (Owl.entries.includes(absolute_filename)) {
             if (fs.existsSync(absolute_filename)) {
-                source = fs.readFileSync(absolute_filename);
+                source = true;
                 break;
             }
         }
@@ -95,7 +95,7 @@ function read_require(logical_path, requester) {
             absolute_filename = Owl.paths[i] + logical_filename_js;
             if (Owl.entries.includes(absolute_filename)) {
                 if (fs.existsSync(absolute_filename)) {
-                    javascript = fs.readFileSync(absolute_filename);
+                    javascript = true;
                     break;
                 }
             }
@@ -109,14 +109,14 @@ function read_require(logical_path, requester) {
             // try .rb
             absolute_filename = Owl.paths[i] + logical_filename_rb;
             if (fs.existsSync(absolute_filename)) {
-                source = fs.readFileSync(absolute_filename);
+                source = true;
                 break;
             }
             // try .js
             if (logical_filename_js) {
                 absolute_filename = Owl.paths[i] + logical_filename_js;
                 if (fs.existsSync(absolute_filename)) {
-                    javascript = fs.readFileSync(absolute_filename);
+                    javascript = true;
                     break;
                 }
             }
@@ -146,9 +146,9 @@ function compile_required_trees(accumulator, required_trees, requester) {
             mod_path.pop();
             var module = mod_path.join('.');
             if (!Owl.already_compiled.includes(module)) {
-                var source = fs.readFileSync(directory_entries[k]);
+
                 // compile module
-                compile_ruby(accumulator, source, directory_entries[k], module)
+                compile_ruby(accumulator, null, directory_entries[k], module)
             }
         }
     }
@@ -158,17 +158,20 @@ function compile_requires(accumulator, requires, requester) {
     var r_length = requires.length;
     for (var i = 0; i < r_length; i++) {
         if (!Owl.already_compiled.includes(requires[i])) {
-            var req = read_require(requires[i], requester);
+            var req = get_require_meta(requires[i], requester);
             if (req && req.javascript !== null) {
-                include_javascript(accumulator, req.javascript, req.filename, requires[i]);
+                include_javascript(accumulator, null, req.filename, requires[i]);
             } else if (req && req.source !== null) {
-                compile_ruby(accumulator, req.source, req.filename, requires[i]);
+                compile_ruby(accumulator, null, req.filename, requires[i]);
             }
         }
     }
 }
 
 function include_javascript(accumulator, javascript, filename, module) {
+    if (javascript === null ) {
+        javascript = fs.readFileSync(filename);
+    }
     accumulator.javascript += javascript + 'Opal.loaded(["' + module + '"]);\n';
     if (module) { Owl.already_compiled.push(module)};
 }
@@ -176,6 +179,10 @@ function include_javascript(accumulator, javascript, filename, module) {
 function compile_ruby(accumulator, source, filename, module) {
     // fetch from cache
     if (fetched_from_cache(accumulator, filename, module)) { return; }
+
+    if (source === null ) {
+        source = fs.readFileSync(filename);
+    }
 
     // or compile
     var compiler;
@@ -293,7 +300,7 @@ module.exports = function(source, map, meta) {
     Owl.emitWarning = this.emitWarning;
     Owl.emitError = this.emitError;
 
-    var callback = this.async();
+    // var callback = this.async(); // nothing relevant is async
 
     // Get opal load paths from cache and generate cache if not yet there or needs update
 
@@ -427,7 +434,7 @@ module.exports = function(source, map, meta) {
 
     Owl.already_compiled = [];
 
-    callback(null, accumulator.javascript, accumulator.source_map, meta);
+    this.callback(null, accumulator.javascript, accumulator.source_map, meta);
 
     return;
 };
