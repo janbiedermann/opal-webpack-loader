@@ -10,7 +10,7 @@ Compile opal ruby projects nicely with webpack, without sprockets or webpacker g
 #### From NPM
 `npm i opal-webpack-loader --save`
 #### From the repo
-clone repo, then `npm pack` in the repo and `npm i opal-webpack-loader-x.y.z.tgz`
+clone repo, then `npm pack` in the repo and `npm i opal-webpack-loader-x.y.z.tgz --save`
 ### Example configuration
 webpack.config.js:
 ```

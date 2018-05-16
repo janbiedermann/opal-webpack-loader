@@ -257,7 +257,7 @@ function get_load_paths() {
     var load_paths;
     if (fs.existsSync('bin/rails')) {
         load_paths = child.execSync('bundle exec rails runner ' +
-            '"puts (Rails.configuration.assets ? ' +
+            '"puts (Rails.configuration.respond_to?(:assets) ? ' +
             '(Rails.configuration.assets.paths + Opal.paths).uniq : ' +
             'Opal.paths); exit 0"');
     } else {
