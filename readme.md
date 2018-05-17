@@ -12,6 +12,7 @@ Compile opal ruby projects nicely with webpack, without sprockets or webpacker g
 #### From the repo
 clone repo, then `npm pack` in the repo and `npm i opal-webpack-loader-x.y.z.tgz --save`
 ### Example configuration
+Enables simple HMR
 webpack.config.js:
 ```
 module.exports = {
@@ -22,17 +23,28 @@ module.exports = {
         maxAssetSize: 20000000,
         maxEntrypointSize: 20000000
     },
-    devtool: 'inline-source-map',
+    // currently works only with one of these:
+    devtool: 'inline-source-map', // use this for correctness, disable for HMR, its slow
+    // devtool: 'inline-cheap-source-map', // use this for faster builds, but less reliable, disable for HMR
     devServer: {
-        contentBase: './public'
+        hot: true,
+        host: 'localhost',
+        port: 8080,
+        headers: {
+            'Access-Control-Allow-Origin': '*'
+        }
     },
     entry: {
         application: './app/assets/javascripts/application.js'
     },
     output: {
         filename: '[name].js',
-        path: path.resolve(__dirname, 'public')
+        path: path.resolve(__dirname, 'public'),
+        publicPath: 'http://localhost:8080/assets/'
     },
+    plugins: [
+        new webpack.HotModuleReplacementPlugin()
+    ],
     module: {
         rules: [
             {
@@ -73,4 +85,11 @@ global.ReactRouter = require('react-router');
 global.ReactRouterDOM = require('react-router-dom');
 const ReactRailsUJS = require('react_ujs');
 require('./ruby.rb');
+
+if (module.hot) {
+    module.hot.accept('./application.js', function() {
+        console.log('Accepting the updated printMe module!');
+        printMe();
+    })
+}
 ```

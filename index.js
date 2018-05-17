@@ -138,6 +138,7 @@ function compile_required_trees(accumulator, required_trees, requester) {
     var rt_length = required_trees.length;
     for (var i = 0; i < rt_length; i++) {
         var directory_path = base_path + required_trees[i];
+        Owl.addContextDependency(directory_path);
         var directory_entries = get_directory_entries(directory_path, true);
         var d_length = directory_entries.length;
         for (var k = 0; k < d_length; k++) {
@@ -146,7 +147,7 @@ function compile_required_trees(accumulator, required_trees, requester) {
             mod_path.pop();
             var module = mod_path.join('.');
             if (!Owl.already_compiled.includes(module)) {
-
+                Owl.addDependency(directory_entries[k]);
                 // compile module
                 compile_ruby(accumulator, null, directory_entries[k], module)
             }
@@ -159,6 +160,7 @@ function compile_requires(accumulator, requires, requester) {
     for (var i = 0; i < r_length; i++) {
         if (!Owl.already_compiled.includes(requires[i])) {
             var req = get_require_meta(requires[i], requester);
+            Owl.addDependency(req.filename);
             if (req && req.javascript !== null) {
                 include_javascript(accumulator, null, req.filename, requires[i]);
             } else if (req && req.source !== null) {
@@ -299,6 +301,8 @@ module.exports = function(source, map, meta) {
     this.cacheable && this.cacheable();
     Owl.emitWarning = this.emitWarning;
     Owl.emitError = this.emitError;
+    Owl.addDependency = this.addDependency;
+    Owl.addContextDependency = this.addContextDependency;
 
     // var callback = this.async(); // nothing relevant is async
 
@@ -307,6 +311,8 @@ module.exports = function(source, map, meta) {
     var owl_cache = {};
     var owl_cache_mtime = 0;
     var must_generate_cache = false;
+
+    var start; // for performance measurements
 
     const gemfile_path = 'Gemfile';
     const gemfile_lock_path = 'Gemfile.lock';
@@ -340,13 +346,19 @@ module.exports = function(source, map, meta) {
     if (gemfile_mtime > gemfile_lock_mtime) { error("Gemfile is newer than Gemfile.lock, please run 'bundle install' or 'bundle update'!"); }
     if (gemfile_lock_mtime > owl_cache_mtime || must_generate_cache) {
         // clean up compiler cache
+        start = new Date();
+
         var cc_entries = fs.readdirSync(owl_compiler_cache_dir);
         var cce_length = cc_entries.length;
         for (var i = 0; i < cce_length; i++) {
             fs.unlinkSync(owl_compiler_cache_dir + '/' + cc_entries[i]);
         }
 
+        console.log("owl cleaning cache took: %dms", new Date() - start);
+
         // generate load path cache
+        start = new Date();
+
         owl_cache.opal_load_paths = get_load_paths();
         owl_cache.opal_load_path_entries = get_load_path_entries(owl_cache.opal_load_paths);
         Owl.paths = owl_cache.opal_load_paths;
@@ -355,7 +367,11 @@ module.exports = function(source, map, meta) {
         Owl.cache_fetched = true;
         fs.writeFileSync(owl_cache_path, JSON.stringify(owl_cache));
 
+        console.log("owl generating load path cache took: %dms", new Date() - start);
+
         // compile compiler
+        start = new Date();
+
         if (!fs.existsSync(owl_compiler_path)) {
             var load_path_options = '';
             var lp_length = owl_cache.opal_load_paths.length;
@@ -393,21 +409,32 @@ module.exports = function(source, map, meta) {
             // fs.writeFileSync(owl_compiler_path, minified_compiler_result.code);
         }
 
+        console.log("owl compiling the compiler took %dms", new Date() - start);
+
     } else if (!Owl.cache_fetched) {
         // fetch cache
+
+        start = new Date();
+
         var owl_cache_from_file = fs.readFileSync(owl_cache_path);
         owl_cache = JSON.parse(owl_cache_from_file.toString());
         Owl.paths = owl_cache.opal_load_paths;
         Owl.entries = owl_cache.opal_load_path_entries;
         Owl.cc_dir = owl_compiler_cache_dir;
         Owl.cache_fetched = true;
+
+        console.log("owl loading load path cache took %dms", new Date() - start);
     }
 
 
     // load compiler
     if (typeof Opal === "undefined") {
+        start = new Date();
+
         require(process.cwd() + '/' + owl_compiler_path);
         Opal.Opal.$append_paths.apply(Opal.Opal, Owl.paths);
+
+        console.log("owl loading the compiler took %dms", new Date() - start);
     }
 
     // get additional options - ignored for now
@@ -427,7 +454,10 @@ module.exports = function(source, map, meta) {
         }
     };
 
+    start = new Date();
+    Owl.addDependency(this.resourcePath);
     compile_ruby(accumulator, source, this.resourcePath, null);
+    console.log("owl compiling took %dms", new Date() - start);
 
     // for debugging
     // fs.writeFileSync('owl_status.json', JSON.stringify(Owl));
