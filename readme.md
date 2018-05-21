@@ -1,7 +1,17 @@
 # opal-webpack-loader
 Compile opal ruby projects nicely with webpack, without sprockets or webpacker gem.
+### Features
+- webpack based build process
+- very fast builds of opal code
+- builds are asynchronous and even parallel, depending on how webpack triggers builds
+- opal modules are packaged as es6 modules
+- other webpack features become available, like:
+- tree shaking
+- code splitting
+- lazy loading
 ### Requirements
 - webpack 4.8
+- if you have webpacker gem installed somewhere, it should be 3.5.3 (it brings its own webpack command, older versions may interfere)
 - ruby, version 2.5 or higher recommended
 - bundler, latest version recommended
 - Gemfile with at least: 
@@ -11,11 +21,11 @@ git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
 ruby '2.5.1'
 
-# for opal
+# for opal:
 gem 'opal', github: 'janbiedermann/opal', branch: 'es6_import_export'
 gem 'opal-webpack-compile-server', '0.0.2'
 
-# for hyperloop
+# for hyperloop in addition:
 gem 'hyper-component', github: 'janbiedermann/hyper-component', branch: 'pinata'
 gem 'hyper-mesh', github: 'janbiedermann/hyper-mesh', branch: 'pinata'
 gem 'hyper-model', github: 'janbiedermann/hyper-model', branch: 'pinata'
@@ -27,6 +37,9 @@ gem 'hyperloop', github: 'janbiedermann/hyperloop', branch: 'pinata'
 gem 'hyperloop-config', github: 'janbiedermann/hyperloop-config', branch: 'pinata'
 ```
 - Gemfile.lock, created with bundle install or bundle update
+### Helpful commands
+Killing the compile server: `echo 'command:kill' | nc -U .owl_cache/owcs_socket`
+Deleting the compiler cache: `rm .owl_cache/cc/*`
 ### Installation
 #### From NPM
 `npm i opal-webpack-loader --save`
@@ -34,6 +47,7 @@ gem 'hyperloop-config', github: 'janbiedermann/hyperloop-config', branch: 'pinat
 clone repo, then `npm pack` in the repo and `npm i opal-webpack-loader-x.y.z.tgz --save`
 ### Example configuration
 Enables simple HMR
+Source maps currently dont work.
 webpack.config.js:
 ```
 const path = require('path');
