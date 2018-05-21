@@ -4,7 +4,28 @@ Compile opal ruby projects nicely with webpack, without sprockets or webpacker g
 - webpack 4.8
 - ruby, version 2.5 or higher recommended
 - bundler, latest version recommended
-- Gemfile with at least: `gem 'opal'`, version 0.11 or higher
+- Gemfile with at least: 
+```
+source 'https://rubygems.org'
+git_source(:github) { |repo| "https://github.com/#{repo}.git" }
+
+ruby '2.5.1'
+
+# for opal
+gem 'opal', github: 'janbiedermann/opal', branch: 'es6_import_export'
+gem 'opal-webpack-compile-server', '0.0.2'
+
+# for hyperloop
+gem 'hyper-component', github: 'janbiedermann/hyper-component', branch: 'pinata'
+gem 'hyper-mesh', github: 'janbiedermann/hyper-mesh', branch: 'pinata'
+gem 'hyper-model', github: 'janbiedermann/hyper-model', branch: 'pinata'
+gem 'hyper-operation', github: 'janbiedermann/hyper-operation', branch: 'pinata'
+gem 'hyper-react', github: 'janbiedermann/hyper-react', branch: 'pinata'
+gem 'hyper-router', github: 'janbiedermann/hyper-router', branch: 'pinata'
+gem 'hyper-store', github: 'janbiedermann/hyper-store', branch: 'pinata'
+gem 'hyperloop', github: 'janbiedermann/hyperloop', branch: 'pinata'
+gem 'hyperloop-config', github: 'janbiedermann/hyperloop-config', branch: 'pinata'
+```
 - Gemfile.lock, created with bundle install or bundle update
 ### Installation
 #### From NPM
@@ -15,7 +36,12 @@ clone repo, then `npm pack` in the repo and `npm i opal-webpack-loader-x.y.z.tgz
 Enables simple HMR
 webpack.config.js:
 ```
+const path = require('path');
+const webpack = require('webpack');
+const OpalWebpackResolverPlugin = require('opal-webpack-resolver-plugin');
+
 module.exports = {
+    mode: "development",
     optimization: {
         minimize: false
     },
@@ -23,13 +49,16 @@ module.exports = {
         maxAssetSize: 20000000,
         maxEntrypointSize: 20000000
     },
-    // currently works only with one of these:
-    devtool: 'inline-source-map', // use this for correctness, disable for HMR, its slow
-    // devtool: 'inline-cheap-source-map', // use this for faster builds, but less reliable, disable for HMR
+    // devtool: 'cheap-eval-source-map',
+    // devtool: 'inline-source-map',
+    // devtool: 'inline-cheap-source-map',
     devServer: {
+        disableHostCheck: true,
         hot: true,
         host: 'localhost',
         port: 8080,
+        public: 'localhost:8080',
+        publicPath: 'http://localhost:8080/assets/',
         headers: {
             'Access-Control-Allow-Origin': '*'
         }
@@ -43,8 +72,14 @@ module.exports = {
         publicPath: 'http://localhost:8080/assets/'
     },
     plugins: [
+        // new webpack.ProvidePlugin({'Opal': 'corelib/runtime.js'}),
         new webpack.HotModuleReplacementPlugin()
     ],
+    resolve: {
+        plugins: [
+            new OpalWebpackResolverPlugin('resolve', 'resolved')
+        ]
+    },
     module: {
         rules: [
             {
@@ -76,7 +111,7 @@ module.exports = {
     }
 };
 ```
-app/assets/application.js:
+app/assets/javascripts/application.js:
 ```
 global.React = require('react');
 global.ReactDOM = require('react-dom');
@@ -92,4 +127,34 @@ if (module.hot) {
         printMe();
     })
 }
+```
+app/assets/javascripts/ruby.rb
+```
+require 'opal'
+require 'browser' # CLIENT ONLY
+require 'browser/delay' # CLIENT ONLY
+require 'hyperloop-config'
+require 'hyperloop/autoloader'
+require 'hyperloop/autoloader_starter'
+require 'reactrb/auto-import'
+require 'hyper-component'
+require 'hyper-react'
+require 'hyper-model'
+require 'hyper-store'
+require 'hyper-operation'
+require 'hyper-router'
+require 'hyperloop_webpack_loader'
+
+puts "Loaded!!"
+
+require_tree 'ruby_tree'
+
+puts "after require tree!"
+```
+app/hyperloop/hyperloop_webpack_loader.rb
+```
+require_tree 'stores'
+require_tree 'models'
+require_tree 'operations'
+require_tree 'components'
 ```
