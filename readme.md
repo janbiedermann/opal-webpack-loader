@@ -42,6 +42,7 @@ Killing the compile server: `echo 'command:kill' | nc -U .owl_cache/owcs_socket`
 Deleting the compiler cache: `rm .owl_cache/cc/*`
 ### Installation
 #### From NPM
+`npm i opal-webpack-resolver-plugin --save`
 `npm i opal-webpack-loader --save`
 #### From the repo
 clone repo, then `npm pack` in the repo and `npm i opal-webpack-loader-x.y.z.tgz --save`
