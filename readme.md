@@ -146,10 +146,6 @@ require 'hyper-router'
 require 'hyperloop_webpack_loader'
 
 puts "Loaded!!"
-
-require_tree 'ruby_tree'
-
-puts "after require tree!"
 ```
 app/hyperloop/hyperloop_webpack_loader.rb
 ```
