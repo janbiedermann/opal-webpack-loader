@@ -86,7 +86,6 @@ module.exports = {
         publicPath: 'http://localhost:8080/assets/'
     },
     plugins: [
-        // new webpack.ProvidePlugin({'Opal': 'corelib/runtime.js'}),
         new webpack.HotModuleReplacementPlugin()
     ],
     resolve: {
