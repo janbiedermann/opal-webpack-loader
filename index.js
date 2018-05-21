@@ -114,6 +114,7 @@ module.exports = function(source, map, meta) {
     // TODO this is not necessary for every compilation
     try {
         fs.accessSync(Owl.lp_cache, fs.constants.R_OK | fs.constants.W_OK);
+        fs.accessSync(Owl.cc_dir, fs.constants.R_OK | fs.constants.W_OK);
     } catch (err) {
         if (!fs.existsSync(Owl.c_dir)) { fs.mkdirSync(Owl.c_dir); }
         if (!fs.existsSync(Owl.cc_dir)) { fs.mkdirSync(Owl.cc_dir); }
