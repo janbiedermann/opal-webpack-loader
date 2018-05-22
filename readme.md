@@ -130,13 +130,21 @@ module.exports = {
 ```
 app/assets/javascripts/application.js:
 ```
-global.React = require('react');
-global.ReactDOM = require('react-dom');
-global.History = require('history');
-global.ReactRouter = require('react-router');
-global.ReactRouterDOM = require('react-router-dom');
-const ReactRailsUJS = require('react_ujs');
-require('./ruby.rb');
+import * as React from 'react';
+import * as ReactDOM from 'react-dom';
+import * as History from 'history';
+import * as ReactRouter from 'react-router';
+import * as ReactRouterDOM from 'react-router-dom';
+import * as ReactRailsUJS from 'react_ujs';
+
+global.React = React;
+global.ReactDOM = ReactDOM;
+global.History = History;
+global.ReactRouter = ReactRouter;
+global.ReactRouterDOM = ReactRouterDOM;
+global.ReactRailsUJS = ReactRailsUJS;
+
+import bla from './ruby.rb';
 
 if (module.hot) {
     module.hot.accept('./application.js', function() {
