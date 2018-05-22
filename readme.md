@@ -39,6 +39,7 @@ gem 'hyperloop-config', github: 'janbiedermann/hyperloop-config', branch: 'pinat
 - Gemfile.lock, created with bundle install or bundle update
 ### Helpful commands
 Killing the compile server: `echo 'command:kill' | nc -U .owl_cache/owcs_socket`
+
 Deleting the compiler cache: `rm .owl_cache/cc/*`
 ### Installation
 #### From NPM
@@ -48,7 +49,9 @@ Deleting the compiler cache: `rm .owl_cache/cc/*`
 clone repo, then `npm pack` in the repo and `npm i opal-webpack-loader-x.y.z.tgz --save`
 ### Example configuration
 Enables simple HMR
+
 Source maps currently dont work.
+
 webpack.config.js:
 ```
 const path = require('path');
