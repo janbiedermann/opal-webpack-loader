@@ -1,7 +1,6 @@
 'use strict';
 
 const fs = require('fs');
-const child_process = require('child_process');
 const net = require('net');
 
 // keep some global state
