@@ -23,7 +23,7 @@ ruby '2.5.1'
 
 # for opal:
 gem 'opal', github: 'janbiedermann/opal', branch: 'es6_import_export'
-gem 'opal-webpack-compile-server', '0.0.2'
+gem 'opal-webpack-compile-server', '0.1.4'
 
 # for hyperloop in addition:
 gem 'hyper-component', github: 'janbiedermann/hyper-component', branch: 'pinata'
@@ -43,8 +43,10 @@ Killing the compile server: `echo 'command:kill' | nc -U .owl_cache/owcs_socket`
 Deleting the compiler cache: `rm .owl_cache/cc/*`
 ### Installation
 #### From NPM
-`npm i opal-webpack-resolver-plugin --save`
-`npm i opal-webpack-loader --save`
+```
+npm i opal-webpack-resolver-plugin --save-dev
+npm i opal-webpack-loader --save-dev
+```
 #### From the repo
 clone repo, then `npm pack` in the repo and `npm i opal-webpack-loader-x.y.z.tgz --save`
 ### Example configuration
