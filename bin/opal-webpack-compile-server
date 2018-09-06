@@ -1,0 +1,8 @@
+#!/usr/bin/env ruby
+require 'opal-webpack-loader/compile_server'
+
+if ARGV[0] == 'stop' || ARGV[0] == 'kill'
+  OpalWebpackCompileServer::Exe.stop
+else
+  OpalWebpackCompileServer::Exe.run
+end

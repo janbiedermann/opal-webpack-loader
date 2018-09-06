@@ -1,7 +1,7 @@
 {
   "name": "opal-webpack-loader",
-  "version": "0.2.0",
-  "description": "A loader for Opal Ruby files for Webpack",
+  "version": "0.3.0",
+  "description": "A loader for Opal Ruby files for Webpack, including the resolver.",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -14,7 +14,8 @@
     "opal",
     "ruby",
     "webpack",
-    "loader"
+    "loader",
+    "resolver"
   ],
   "author": "Jan Biedermann",
   "license": "MIT",
@@ -23,6 +24,7 @@
   },
   "homepage": "https://github.com/janbiedermann/opal-webpack-loader#readme",
   "dependencies": {
-    "webpack": "^4.8.3"
+    "webpack": "^4.8.0",
+    "webpack-serve": "^2.0.2"
   }
 }
