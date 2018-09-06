@@ -1,5 +1,6 @@
 # opal-webpack-loader
 Compile opal ruby projects nicely with webpack, without sprockets or webpacker gem.
+Includes loader and resolver plugin.
 ### Features
 - webpack based build process
 - very fast builds of opal code
@@ -10,55 +11,46 @@ Compile opal ruby projects nicely with webpack, without sprockets or webpacker g
 - code splitting
 - lazy loading
 ### Requirements
-- webpack 4.8
-- if you have webpacker gem installed somewhere, it should be 3.5.3 (it brings its own webpack command, older versions may interfere)
+- minimum webpack 4.8
+- webpack-serve 2.0
+- if you have webpacker gem installed somewhere, it should be a version supporting webpack 4
 - ruby, version 2.5 or higher recommended
 - bundler, latest version recommended
 - Gemfile with at least: 
 ```
 source 'https://rubygems.org'
-git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
-ruby '2.5.1'
-
-# for opal:
-gem 'opal', github: 'janbiedermann/opal', branch: 'es6_import_export'
-gem 'opal-webpack-compile-server', '0.1.4'
-
-# for hyperloop in addition:
-gem 'hyper-component', github: 'janbiedermann/hyper-component', branch: 'pinata'
-gem 'hyper-mesh', github: 'janbiedermann/hyper-mesh', branch: 'pinata'
-gem 'hyper-model', github: 'janbiedermann/hyper-model', branch: 'pinata'
-gem 'hyper-operation', github: 'janbiedermann/hyper-operation', branch: 'pinata'
-gem 'hyper-react', github: 'janbiedermann/hyper-react', branch: 'pinata'
-gem 'hyper-router', github: 'janbiedermann/hyper-router', branch: 'pinata'
-gem 'hyper-store', github: 'janbiedermann/hyper-store', branch: 'pinata'
-gem 'hyperloop', github: 'janbiedermann/hyperloop', branch: 'pinata'
-gem 'hyperloop-config', github: 'janbiedermann/hyperloop-config', branch: 'pinata'
+gem 'opal', github: 'janbiedermann/opal', branch: 'es6_import_export' # requires this branch
+gem 'opal-autoloader' # recommended
+gem 'opal-webpack-loader'
 ```
 - Gemfile.lock, created with bundle install or bundle update
 ### Helpful commands
-Killing the compile server: `echo 'command:kill' | nc -U .owl_cache/owcs_socket`
+Stopping the compile server: `echo 'command:stop' | nc -U .owl_cache/owcs_socket`
 
-Deleting the compiler cache: `rm .owl_cache/cc/*`
+Deleting the load path cache: `rm .owl_cache/load_paths.json`
 ### Installation
-#### From NPM
+#### of the accompanying NPM package:
+one of:
 ```
-npm i opal-webpack-resolver-plugin --save-dev
 npm i opal-webpack-loader --save-dev
+yarn add opal-webpack-loader --dev
 ```
+the gem
+```
+gem install opal-webpack-loader'
+```
+or add it to the Gemfile as above and `bundle install`
 #### From the repo
 clone repo, then `npm pack` in the repo and `npm i opal-webpack-loader-x.y.z.tgz --save`
-### Example configuration
-Enables simple HMR
-
-Source maps currently dont work.
+### Example webpack configuration
+for development:
 
 webpack.config.js:
 ```
 const path = require('path');
 const webpack = require('webpack');
-const OpalWebpackResolverPlugin = require('opal-webpack-resolver-plugin');
+const Owl = require('opal-webpack-loader');
 
 module.exports = {
     mode: "development",
@@ -69,34 +61,26 @@ module.exports = {
         maxAssetSize: 20000000,
         maxEntrypointSize: 20000000
     },
+    devtool: 'source-map'
     // devtool: 'cheap-eval-source-map',
     // devtool: 'inline-source-map',
     // devtool: 'inline-cheap-source-map',
-    devServer: {
-        disableHostCheck: true,
-        hot: true,
-        host: 'localhost',
-        port: 8080,
-        public: 'localhost:8080',
-        publicPath: 'http://localhost:8080/assets/',
-        headers: {
-            'Access-Control-Allow-Origin': '*'
-        }
-    },
     entry: {
-        application: './app/assets/javascripts/application.js'
+        application: './app/javascript/application.js'
     },
     output: {
-        filename: '[name].js',
-        path: path.resolve(__dirname, 'public'),
-        publicPath: 'http://localhost:8080/assets/'
+        filename: '[name]_development.js',
+        // for porduction: '[name]-[chunkhash].js'
+        // for test: '[name]_test_[chunkhash].js'
+        path: path.resolve(__dirname, 'public/packs'),
+        publicPath: 'http://localhost:8080/packs'
     },
     plugins: [
         new webpack.HotModuleReplacementPlugin()
     ],
     resolve: {
         plugins: [
-            new OpalWebpackResolverPlugin('resolve', 'resolved')
+            new Owl.resolver('resolve', 'resolved')
         ]
     },
     module: {
@@ -128,9 +112,32 @@ module.exports = {
             }
         ]
     }
+        serve: {
+            devMiddleware: {
+                publicPath: '/pack/',
+                headers: {
+                    'Access-Control-Allow-Origin': '*'
+                },
+                watchOptions: {
+    
+                }
+            },
+            hotClient: {
+                host: 'localhost',
+                port: 8081,
+                allEntries: true,
+                hmr: true
+            },
+            host: "localhost",
+            port: 3035,
+            logLevel: 'debug',
+            content: path.resolve(__dirname, '../../public/packs'),
+            clipboard: false,
+            open: false,
+        }
 };
 ```
-app/assets/javascripts/application.js:
+app/javascript/application.js:
 ```
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
@@ -146,7 +153,9 @@ global.ReactRouter = ReactRouter;
 global.ReactRouterDOM = ReactRouterDOM;
 global.ReactRailsUJS = ReactRailsUJS;
 
-import bla from './ruby.rb';
+import ruby_code from './ruby_code.rb';
+ruby_code();
+Opal.load('ruby_code');
 
 if (module.hot) {
     module.hot.accept('./application.js', function() {
@@ -155,29 +164,44 @@ if (module.hot) {
     })
 }
 ```
-app/assets/javascripts/ruby.rb
+app/assets/javascripts/ruby_code.rb
 ```
 require 'opal'
-require 'browser' # CLIENT ONLY
-require 'browser/delay' # CLIENT ONLY
-require 'hyperloop-config'
-require 'hyperloop/autoloader'
-require 'hyperloop/autoloader_starter'
-require 'reactrb/auto-import'
-require 'hyper-component'
-require 'hyper-react'
-require 'hyper-model'
-require 'hyper-store'
-require 'hyper-operation'
-require 'hyper-router'
-require 'hyperloop_webpack_loader'
+require 'opal-autoloader'
 
-puts "Loaded!!"
+puts "Ruby Code Loaded!!"
 ```
-app/hyperloop/hyperloop_webpack_loader.rb
+package.json needs to start the opal compile server before webpack:
 ```
-require_tree 'stores'
-require_tree 'models'
-require_tree 'operations'
-require_tree 'components'
+  "scripts": {
+    "start": "bundle exec opal-webpack-compile-server stop; bundle exec opal-webpack-compile-server && bundle exec webpack-serve --config webpack.config.js; bundle exec opal-webpack-compile-server stop",
+    "build": "bundle exec opal-webpack-compile-server stop; bundle exec opal-webpack-compile-server && webpack --config=config/webpack/production.js; bundle exec opal-webpack-compile-server stop"
+  },
 ```
+### View Helper
+in rails or frameworks that support `javscript_include_tag`, in your app/helpers/application_helper.rb
+``` 
+module ApplicationHelper
+  include OpalWebpackLoader::RailsViewHelper
+```
+in other frameworks that dont have `javascript_include_tag`:
+``` 
+module ApplicationHelper
+  include OpalWebpackLoader::ViewHelper
+```
+
+Then you can use in your views:
+```
+owl_include_tag('application.js')
+```
+
+#### Conventions
+The webpack manifest is stored in `public/packs/manifest.json`.
+
+Webpack must build the following packs for a `application.js` entry:
+
+production: `application-[chunkhash].js`
+
+development, using webpack serve: `http://localhost:3035//packs/application_development.js`
+
+test: `application_test_[chunkhash].js`
