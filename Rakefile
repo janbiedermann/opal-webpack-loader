@@ -17,6 +17,10 @@ end
 task :push_packages do
   package_json = Oj.load(File.read('package.json'))
   version = package_json['version']
-  `npm push opal-webpack-loader-#{version}.tgz`
-  `gem push opal-webpack-loader-#{version}.gem`
+  puts `npm publish opal-webpack-loader-#{version}.tgz`
+  puts `gem push opal-webpack-loader-#{version}.gem`
+end
+
+task build_and_push: %i[build_packages push_packages] do
+  puts "Done :-)"
 end
