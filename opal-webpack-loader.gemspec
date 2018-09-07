@@ -10,7 +10,7 @@ Gem::Specification.new do |s|
   s.summary      = 'Compile server, loader and resolver for building opal ruby packs with webpack.'
   s.description  = 'Compile server, loader and resolver for building opal ruby packs with webpack.'
   s.executables << 'opal-webpack-compile-server'
-  s.files          = `git ls-files -- {lib}/*`.split("\n")
+  s.files          = `git ls-files -- lib`.split("\n")
   s.test_files     = `git ls-files -- {test,spec,features}/*`.split("\n")
   s.require_paths  = ['lib']
 
