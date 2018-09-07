@@ -51,6 +51,7 @@ webpack.config.js:
 const path = require('path');
 const webpack = require('webpack');
 const Owl = require('opal-webpack-loader');
+const OwlResolver = require('opal-webpack-loader/resolver');
 
 module.exports = {
     mode: "development",
@@ -80,7 +81,7 @@ module.exports = {
     ],
     resolve: {
         plugins: [
-            new Owl.resolver('resolve', 'resolved')
+            new OwlResolver('resolve', 'resolved')
         ]
     },
     module: {
