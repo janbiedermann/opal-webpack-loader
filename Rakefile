@@ -14,13 +14,9 @@ end
   `gem build opal-webpack-loader`
 end
 
-task :push_packages do
+task :push_packages, [:npm_otp] do |_, args|
   package_json = Oj.load(File.read('package.json'))
   version = package_json['version']
-  puts `npm publish opal-webpack-loader-#{version}.tgz`
+  puts `npm publish opal-webpack-loader-#{version}.tgz --otp=#{args[:npm_otp]}`
   puts `gem push opal-webpack-loader-#{version}.gem`
-end
-
-task build_and_push: %i[build_packages push_packages] do
-  puts "Done :-)"
 end

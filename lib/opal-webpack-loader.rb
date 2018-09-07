@@ -21,7 +21,7 @@ else
   end
 end
 
-unless owl_version.chop != OpalWebpackLoader::VERSION
+if owl_version.chop != OpalWebpackLoader::VERSION
   raise "opal-webpack-loader: Incorrect version of npm package found or npm package not installed.\n" +
     "Please install the npm package for opal-webpack-loader:\n" +
     "\twith npm:\tnpm install opal-webpack-loader@#{OpalWebpackLoader::VERSION} --save-dev\n" +
