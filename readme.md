@@ -192,7 +192,7 @@ module ApplicationHelper
 
 Then you can use in your views:
 ```
-owl_include_tag('application.js')
+owl_include_tag('/packs/application.js')
 ```
 
 #### Conventions
