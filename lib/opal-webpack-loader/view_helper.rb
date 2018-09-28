@@ -1,5 +1,5 @@
 module OpalWebpackLoader
-  module RailsViewHelper
+  module ViewHelper
     def owl_include_tag(path)
       case Rails.env
       when 'production'
