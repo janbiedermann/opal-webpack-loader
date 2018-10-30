@@ -6,7 +6,7 @@ Gem::Specification.new do |s|
   s.author       = 'Jan Biedermann'
   s.email        = 'jan@kursator.de'
   s.licenses     = %w[MIT]
-  s.homepage     = 'http://hyperstack.org'
+  s.homepage     = 'http://isomorfeus.com'
   s.summary      = 'Compile server, loader and resolver for building opal ruby packs with webpack.'
   s.description  = 'Compile server, loader and resolver for building opal ruby packs with webpack.'
   s.executables << 'opal-webpack-compile-server'
