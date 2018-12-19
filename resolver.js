@@ -4,8 +4,6 @@ const fs = require('fs');
 
 module.exports = class Resolver {
     constructor(source, target) {
-        const gemfile_path = 'Gemfile';
-        const gemfile_lock_path = 'Gemfile.lock';
         const owl_cache_path = '.owl_cache/load_paths.json';
 
         if (!this.owl_cache_fetched) {

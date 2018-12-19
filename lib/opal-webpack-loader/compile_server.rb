@@ -26,7 +26,9 @@ module OpalWebpackCompileServer
         exit(0)
       end
 
-      filename = data.chop # remove newline
+      request_hash = Oj.load(data)
+      filename = request_hash['filename']
+      compile_source_map = request_hash['source_map']
 
       operation = proc do
         begin
@@ -34,10 +36,12 @@ module OpalWebpackCompileServer
           c = Opal::Compiler.new(source, file: filename, es6_modules: true)
           c.compile
           result = { 'javascript' => c.result }
-          result['source_map'] = c.source_map.as_json
-          result['source_map']['sourcesContent'] = [source]
-          result['source_map']['file'] = filename
-          result['source_map']['names'] = result['source_map']['names'].map(&:to_s)
+          if compile_source_map
+            result['source_map'] = c.source_map.as_json
+            result['source_map']['sourcesContent'] = [source]
+            result['source_map']['file'] = filename
+            result['source_map']['names'] = result['source_map']['names'].map(&:to_s)
+          end
           result['required_trees'] = c.required_trees
           Oj.dump(result)
         rescue Exception => e
@@ -120,7 +124,7 @@ module OpalWebpackCompileServer
       @unlink = false
     end
 
-    def self.stop
+    def self.stop(do_exit = true)
       if File.exist?(OWCS_SOCKET_PATH)
         dont_unlink_on_exit
         begin
@@ -131,7 +135,7 @@ module OpalWebpackCompileServer
           # socket cant be reached so owcs is already dead, delete socket
           unlink_on_exit
         end
-        exit(0)
+        exit(0) if do_exit
       end
     end
 
@@ -145,7 +149,7 @@ module OpalWebpackCompileServer
         load_paths = OpalWebpackCompileServer::LoadPathManager.get_load_paths
         if load_paths
           Opal.append_paths(*load_paths)
-          Process.daemon(true)
+          # Process.daemon(true)
           EventMachine.run do
             EventMachine.start_unix_domain_server(OWCS_SOCKET_PATH, OpalWebpackCompileServer::Compiler)
           end

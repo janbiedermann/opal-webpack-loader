@@ -1,6 +1,6 @@
 # opal-webpack-loader
 Compile opal ruby projects nicely with webpack, without sprockets or webpacker gem.
-Includes loader and resolver plugin.
+Includes a loader and resolver plugin for webpack.
 ### Features
 - webpack based build process
 - very fast builds of opal code
@@ -11,12 +11,28 @@ Includes loader and resolver plugin.
 - code splitting
 - lazy loading
 ### Requirements
-- minimum webpack 4.8
-- webpack-serve 2.0
+- minimum webpack 4.27
+- webpack-dev-server 3.1.10
+- es6_import_export branch of opal
 - if you have webpacker gem installed somewhere, it should be a version supporting webpack 4
 - ruby, version 2.5 or higher recommended
 - bundler, latest version recommended
-- Gemfile with at least: 
+### Helpful commands
+Stopping the compile server: `bundle exec opal-webpack-compil-server stop`
+
+Deleting the load path cache: `rm .owl_cache/load_paths.json`
+### Installation
+#### Install the accompanying NPM package:
+one of:
+```
+npm i opal-webpack-loader --save-dev
+yarn add opal-webpack-loader --dev
+```
+#### install the gems
+```
+gem install opal-webpack-loader'
+```
+or add it to the Gemfile as below and `bundle install`
 ```
 source 'https://rubygems.org'
 
@@ -24,24 +40,7 @@ gem 'opal', github: 'janbiedermann/opal', branch: 'es6_import_export' # requires
 gem 'opal-autoloader' # recommended
 gem 'opal-webpack-loader'
 ```
-- Gemfile.lock, created with bundle install or bundle update
-### Helpful commands
-Stopping the compile server: `echo 'command:stop' | nc -U .owl_cache/owcs_socket`
-
-Deleting the load path cache: `rm .owl_cache/load_paths.json`
-### Installation
-#### of the accompanying NPM package:
-one of:
-```
-npm i opal-webpack-loader --save-dev
-yarn add opal-webpack-loader --dev
-```
-the gem
-```
-gem install opal-webpack-loader'
-```
-or add it to the Gemfile as above and `bundle install`
-#### From the repo
+#### Install NPM package from the repo
 clone repo, then `npm pack` in the repo and `npm i opal-webpack-loader-x.y.z.tgz --save`
 ### Example webpack configuration
 for development:
@@ -105,36 +104,42 @@ module.exports = {
                 ]
             },
             {
-                test: /\.rb$/,
+                // opal-webpack-loader will compile and include ruby files in the pack
+                test: /.(rb|js.rb)$/,
                 use: [
-                    'opal-webpack-loader'
+                    {
+                        loader: 'opal-webpack-loader',
+                        options: {
+                            // set sourceMap to false to improve performance
+                            sourceMap: true
+                        }
+                    }
                 ]
             }
         ]
     }
-        serve: {
-            devMiddleware: {
-                publicPath: '/pack/',
-                headers: {
-                    'Access-Control-Allow-Origin': '*'
-                },
-                watchOptions: {
-    
-                }
-            },
-            hotClient: {
-                host: 'localhost',
-                port: 8081,
-                allEntries: true,
-                hmr: true
-            },
-            host: "localhost",
-            port: 3035,
-            logLevel: 'debug',
-            content: path.resolve(__dirname, '../../public/packs'),
-            clipboard: false,
-            open: false,
-        }
+    // configuration for webpack-dev-server
+    devServer: {
+        open: false,
+        lazy: false,
+        port: 3035,
+        hot: true,
+        // hotOnly: true,
+        inline: true,
+        headers: {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",
+            "Access-Control-Allow-Headers": "X-Requested-With, content-type, Authorization"
+        },
+        watchOptions: {
+            // in case of problems with hot reloading uncomment the following two lines:
+            // aggregateTimeout: 250,
+            // poll: 50,
+            ignored: /\bnode_modules\b/
+        },
+        contentBase: path.resolve(__dirname, 'public')
+        // watchContentBase: true
+    }
 };
 ```
 app/javascript/application.js:
@@ -174,8 +179,8 @@ puts "Ruby Code Loaded!!"
 package.json needs to start the opal compile server before webpack:
 ```
   "scripts": {
-    "start": "bundle exec opal-webpack-compile-server stop; bundle exec opal-webpack-compile-server && bundle exec webpack-serve --config webpack.config.js; bundle exec opal-webpack-compile-server stop",
-    "build": "bundle exec opal-webpack-compile-server stop; bundle exec opal-webpack-compile-server && webpack --config=config/webpack/production.js; bundle exec opal-webpack-compile-server stop"
+    "start": "bundle exec opal-webpack-compile-server start webpack-dev-server --config development.js",
+    "build": "bundle exec opal-webpack-compile-server start webpack --config=production.js"
   },
 ```
 ### View Helper
@@ -192,16 +197,17 @@ module ApplicationHelper
 
 Then you can use in your views:
 ```
-owl_include_tag('/packs/application.js')
+owl_include_tag('application.js')
 ```
 
-#### Conventions
-The webpack manifest is stored in `public/packs/manifest.json`.
-
-Webpack must build the following packs for a `application.js` entry:
-
-production: `application-[chunkhash].js`
-
-development, using webpack serve: `http://localhost:3035//packs/application_development.js`
-
-test: `application_test_[chunkhash].js`
+#### Project configuration options for the view helpers
+```ruby
+OpalWebpackLoader.manifest_path = File.join(Dir.getwd, 'public', 'packs', 'manifest.json')
+```
+sets the path to the webpack generated manifest.json to look up assets
+```
+OpalWebpackLoader.client_asset_path = '/packs'
+```
+The path to prepend to the assets as configured in the webpack config 'publicPath'. 
+In the example above its `publicPath: 'http://localhost:8080/packs'` so
+client_asset_path should be set to '/packs'

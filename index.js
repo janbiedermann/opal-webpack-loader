@@ -2,12 +2,14 @@
 
 const fs = require('fs');
 const net = require('net');
+const loaderUtils = require('loader-utils');
 
 // keep some global state
 var Owl = {
     c_dir: '.owl_cache',
     lp_cache: '.owl_cache/load_paths.json',
-    socket: '.owl_cache/owcs_socket'
+    socket: '.owl_cache/owcs_socket',
+    options: null
 };
 
 var error = function(message) {
@@ -16,9 +18,10 @@ var error = function(message) {
 
 function delegate_compilation(filename, callback, meta) {
     var buffer = Buffer.alloc(0);
+    var request_json = JSON.stringify({ filename: filename, source_map: Owl.options.sourceMap });
     // or let the source be compiled by the compile server
     var socket = net.connect(Owl.socket, function () {
-        socket.write(filename + '\n'); // triggers compilation
+        socket.write(request_json + '\n'); // triggers compilation
     });
     socket.on('data', function (data) {
         buffer = Buffer.concat([buffer, data]);
@@ -50,6 +53,7 @@ module.exports = function(source, map, meta) {
     var callback = this.async();
     this.cacheable && this.cacheable();
     Owl.emitError = this.emitError;
+    Owl.options = loaderUtils.getOptions(this);
 
     this.addDependency(this.resourcePath);
     compile_ruby(source, this.resourcePath, callback, meta);

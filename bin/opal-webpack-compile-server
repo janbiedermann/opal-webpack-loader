@@ -1,8 +1,59 @@
 #!/usr/bin/env ruby
 require 'opal-webpack-loader/compile_server'
+require 'open3'
+
+puts "args: #{ARGV}"
 
 if ARGV[0] == 'stop' || ARGV[0] == 'kill'
   OpalWebpackCompileServer::Exe.stop
 else
-  OpalWebpackCompileServer::Exe.run
+  if ARGV[0] == 'start'
+    OpalWebpackCompileServer::Exe.stop
+    runargs = ARGV[1..-1]
+  else
+    runargs = ARGV
+  end
+
+  fork { OpalWebpackCompileServer::Exe.run }
+
+  have_socket = false
+  start_time = Time.now
+  begin
+    until have_socket
+      if File.exist?(OpalWebpackCompileServer::OWCS_SOCKET_PATH)
+        have_socket = true
+      else
+        if Time.now - start_time > 60
+          puts "opal-webpack-compile-server didnt start in time. Exiting"
+          OpalWebpackCompileServer::Exe.stop(false)
+          exit 1
+        end
+      end
+    end
+  rescue Exception => e
+    OpalWebpackCompileServer::Exe.stop(false)
+    puts "opal-webpack-compile-server couldn't start:"
+    puts e.backtrace.join("\n")
+    puts e.message
+    exit 1
+  end
+
+  begin
+    # see: http://stackoverflow.com/a/1162850/83386
+    Open3.popen3(*runargs) do |stdin, stdout, stderr, thread|
+      # read each stream from a new thread
+      { :out => stdout, :err => stderr }.each do |key, stream|
+        Thread.new do
+          until (raw_line = stream.gets).nil? do
+            puts raw_line
+          end
+        end
+      end
+
+      thread.join # don't exit until the external process is done
+    end
+  rescue Interrupt => e
+    puts "opal-webpack-compile-server got interrupted. Exiting with drama."
+    exit 0
+  end
 end

@@ -1,13 +1,34 @@
 # check version of opal-webpack-loader-npm
 require 'opal-webpack-loader/version'
 require 'opal-webpack-loader/manifest'
+
+module OpalWebpackLoader
+  def self.manifest_path
+    @manifest_path
+  end
+
+  def self.manifest_path=(path)
+    @manifest_path = path
+  end
+
+  def self.client_asset_path
+    @client_asset_path
+  end
+
+  def self.client_asset_path=(path)
+    @client_asset_path = path
+  end
+end
+
 if defined? Rails
   require 'opal-webpack-loader/rails_view_helper'
 else
   require 'opal-webpack-loader/view_helper'
 end
 
-owl_version = ''
+OpalWebpackLoader.manifest_path = File.join(Dir.getwd, 'public', 'assets', 'manifest.json')
+OpalWebpackLoader.client_asset_path = '/assets'
+
 npm = `which npm`.chop
 
 if npm != ''
