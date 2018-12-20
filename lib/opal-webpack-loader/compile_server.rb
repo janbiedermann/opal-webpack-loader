@@ -84,7 +84,7 @@ module OpalWebpackCompileServer
                      }
                    else
                      %x{
-                       bundle exec ruby -e 'require "bundler/setup"; Bundler.require; puts Opal.paths'
+                       bundle exec ruby -e 'require "bundler/setup"; Bundler.require; set :run, false if defined? Sinatra; puts Opal.paths'
                      }
                    end
       if $? == 0
