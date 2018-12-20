@@ -32,10 +32,10 @@ OpalWebpackLoader.client_asset_path = '/assets'
 npm = `which npm`.chop
 
 if npm != ''
-  bin_dir = `npm bin`
-  owl_npm_version = `#{bin_dir}/opal-webpack-loader-npm-version`
+  bin_dir = `npm bin`.chop
+  owl_npm_version = `#{bin_dir}/opal-webpack-loader-npm-version`.chop
 
-  if owl_npm_version.chop != OpalWebpackLoader::VERSION
+  if owl_npm_version != OpalWebpackLoader::VERSION
     raise "opal-webpack-loader: Incorrect version of npm package found or npm package not installed.\n" +
       "Please install the npm package for opal-webpack-loader:\n" +
       "\twith npm:\tnpm install opal-webpack-loader@#{OpalWebpackLoader::VERSION} --save-dev\n" +
