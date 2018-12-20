@@ -20,10 +20,3 @@ else
     raise 'opal-webpack-loader: Could not find npm or yarn! Please install npm or yarn'
   end
 end
-
-if owl_version.chop != OpalWebpackLoader::VERSION
-  raise "opal-webpack-loader: Incorrect version of npm package found or npm package not installed.\n" +
-    "Please install the npm package for opal-webpack-loader:\n" +
-    "\twith npm:\tnpm install opal-webpack-loader@#{OpalWebpackLoader::VERSION} --save-dev\n" +
-    "\twith yarn:\tyarn add opal-webpack-loader@#{OpalWebpackLoader::VERSION} --dev\n"
-end
