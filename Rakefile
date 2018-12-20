@@ -10,6 +10,13 @@ module OpalWebpackLoader
 end
   CODE
   File.write('lib/opal-webpack-loader/version.rb', version_code)
+  File.delete('npm_bin/opal-webpack-loader-npm-version') if File.exist?('npm_bin/opal-webpack-loader-npm-version')
+  File.write('npm_bin/opal-webpack-loader-npm-version', <<~JAVASCRIPT
+#!/usr/bin/env node
+console.log("#{version}");
+  JAVASCRIPT
+             )
+  `chmod +x npm_bin/opal-webpack-loader-npm-version`
   `npm pack`
   `gem build opal-webpack-loader`
 end

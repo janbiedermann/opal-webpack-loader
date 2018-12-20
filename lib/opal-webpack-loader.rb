@@ -32,19 +32,15 @@ OpalWebpackLoader.client_asset_path = '/assets'
 npm = `which npm`.chop
 
 if npm != ''
-  owl_version = `#{npm} view opal-webpack-loader version`
-else
-  yarn = `which yarn`.chop
-  if yarn != ''
-    owl_version = `#{yarn} -s info opal-webpack-loader version`
-  else
-    raise 'opal-webpack-loader: Could not find npm or yarn! Please install npm or yarn'
-  end
-end
+  bind_dir = `npm bin`
+  owl_npm_version = `#{bin_dir}/opal-webpack-loader-npm-version`
 
-if owl_version.chop != OpalWebpackLoader::VERSION
-  raise "opal-webpack-loader: Incorrect version of npm package found or npm package not installed.\n" +
-    "Please install the npm package for opal-webpack-loader:\n" +
-    "\twith npm:\tnpm install opal-webpack-loader@#{OpalWebpackLoader::VERSION} --save-dev\n" +
-    "\twith yarn:\tyarn add opal-webpack-loader@#{OpalWebpackLoader::VERSION} --dev\n"
+  if owl_npm_version.chop != OpalWebpackLoader::VERSION
+    raise "opal-webpack-loader: Incorrect version of npm package found or npm package not installed.\n" +
+      "Please install the npm package for opal-webpack-loader:\n" +
+      "\twith npm:\tnpm install opal-webpack-loader@#{OpalWebpackLoader::VERSION} --save-dev\n" +
+      "\tor with yarn:\tyarn add opal-webpack-loader@#{OpalWebpackLoader::VERSION} --dev\n"
+  end
+else
+  puts "opal-webpack-loader: Unable to check npm package version. Please check your npm installation."
 end

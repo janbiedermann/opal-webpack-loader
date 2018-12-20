@@ -11,7 +11,7 @@ Includes a loader and resolver plugin for webpack.
 - code splitting
 - lazy loading
 ### Requirements
-- minimum webpack 4.27
+- webpack 4.28
 - webpack-dev-server 3.1.10
 - es6_import_export branch of opal
 - if you have webpacker gem installed somewhere, it should be a version supporting webpack 4
