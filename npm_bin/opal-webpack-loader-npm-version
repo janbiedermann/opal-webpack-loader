@@ -1,2 +1,2 @@
 #!/usr/bin/env node
-console.log("0.4.1");
+console.log("0.4.2");

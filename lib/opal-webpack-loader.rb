@@ -32,7 +32,7 @@ OpalWebpackLoader.client_asset_path = '/assets'
 npm = `which npm`.chop
 
 if npm != ''
-  bind_dir = `npm bin`
+  bin_dir = `npm bin`
   owl_npm_version = `#{bin_dir}/opal-webpack-loader-npm-version`
 
   if owl_npm_version.chop != OpalWebpackLoader::VERSION
