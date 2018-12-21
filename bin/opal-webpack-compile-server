@@ -14,7 +14,7 @@ else
     runargs = ARGV
   end
 
-  fork { OpalWebpackCompileServer::Exe.run }
+  pid = fork { OpalWebpackCompileServer::Exe.run }
 
   have_socket = false
   start_time = Time.now
@@ -26,6 +26,7 @@ else
         if Time.now - start_time > 60
           puts "opal-webpack-compile-server didnt start in time. Exiting"
           OpalWebpackCompileServer::Exe.stop(false)
+          Process.kill("TERM", pid)
           exit 1
         end
       end
@@ -35,6 +36,7 @@ else
     puts "opal-webpack-compile-server couldn't start:"
     puts e.backtrace.join("\n")
     puts e.message
+    Process.kill("TERM", pid)
     exit 1
   end
 
@@ -54,6 +56,8 @@ else
     end
   rescue Interrupt => e
     puts "opal-webpack-compile-server got interrupted. Exiting with drama."
+    Process.kill("TERM", pid)
     exit 0
   end
+  Process.kill("TERM", pid)
 end
