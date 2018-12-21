@@ -1,13 +1,12 @@
 module OpalWebpackLoader
   module RailsViewHelper
-    def owl_include_tag(path)
-      case Rails.env
-      when 'development'
-        javascript_include_tag("http://localhost:3035#{OpalWebpackLoader.client_asset_path}/#{path}")
-      else
+    def owl_script_tag(path)
+      if OpalWebpackLoader.use_manifest
         asset = path.split('/').last
         asset_path = OpalWebpackLoader::Manifest.lookup_path_for(asset)
-        javascript_include_tag("#{OpalWebpackLoader.client_asset_path}/#{asset_path}")
+        javascript_include_tag("#{OpalWebpackLoader.client_asset_path}#{asset_path}")
+      else
+        javascript_include_tag("#{OpalWebpackLoader.client_asset_path}#{path}")
       end
     end
   end
