@@ -61,3 +61,6 @@ typings/
 .env
 
 Gemfile.lock
+
+# test apps
+spec/test_apps
