@@ -43,9 +43,9 @@ module OpalWebpackCompileServer
             result['source_map']['names'] = result['source_map']['names'].map(&:to_s)
           end
           result['required_trees'] = c.required_trees
-          Oj.dump(result)
+          Oj.dump(result, {})
         rescue Exception => e
-          Oj.dump({ 'error' => { 'name' => e.class, 'message' => e.message, 'backtrace' => e.backtrace } })
+          Oj.dump({ 'error' => { 'name' => e.class, 'message' => e.message, 'backtrace' => e.backtrace } }, {})
         end
       end
 
@@ -66,6 +66,7 @@ module OpalWebpackCompileServer
       dir_entries.each do |entry|
         next if entry == '.'
         next if entry == '..'
+        next unless entry
         absolute_path = File.join(path, entry)
         if File.directory?(absolute_path)
           more_path_entries = get_load_path_entries(absolute_path)
@@ -78,13 +79,13 @@ module OpalWebpackCompileServer
     end
 
     def self.get_load_paths
-      load_paths = if File.exist?('bin/rails')
+      load_paths = if File.exist?(File.join('bin', 'rails'))
                      %x{
                        bundle exec rails runner "puts (Rails.configuration.respond_to?(:assets) ? (Rails.configuration.assets.paths + Opal.paths).uniq : Opal.paths)"
                      }
                    else
                      %x{
-                       bundle exec ruby -e 'require "bundler/setup"; Bundler.require; set :run, false if defined? Sinatra; puts Opal.paths'
+                       bundle exec ruby -e 'if File.exist?("app_loader.rb"); require "./app_loader.rb"; else; require "bundler/setup"; Bundler.require; set :run, false if defined? Sinatra; end; puts Opal.paths'
                      }
                    end
       if $? == 0
@@ -102,7 +103,7 @@ module OpalWebpackCompileServer
         end
         cache_obj = { 'opal_load_paths' => load_path_lines, 'opal_load_path_entries' => load_path_entries }
         Dir.mkdir(OpalWebpackCompileServer::OWL_CACHE_DIR) unless Dir.exist?(OpalWebpackCompileServer::OWL_CACHE_DIR)
-        File.write(OpalWebpackCompileServer::OWL_LP_CACHE, Oj.dump(cache_obj))
+        File.write(OpalWebpackCompileServer::OWL_LP_CACHE, Oj.dump(cache_obj, {}))
         load_path_lines
       else
         raise 'Error getting load paths!'
