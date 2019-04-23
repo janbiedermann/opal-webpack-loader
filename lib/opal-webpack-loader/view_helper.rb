@@ -8,5 +8,9 @@ module OpalWebpackLoader
         "<script type=\"application/javascript\" src=\"#{OpalWebpackLoader.client_asset_path}#{path}\"></script>"
       end
     end
+
+    def application_script_tag
+      "<script type=\"application/javascript\" src=\"#{OpalWebpackLoader.application_js_path}\"></script>"
+    end
   end
 end

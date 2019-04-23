@@ -3,28 +3,28 @@ require 'opal-webpack-loader/version'
 require 'opal-webpack-loader/manifest'
 
 module OpalWebpackLoader
-  def self.manifest_path
-    @manifest_path
-  end
+  class << self
+    attr_accessor :client_asset_path
+    attr_accessor :manifest_path
+    attr_accessor :use_manifest
 
-  def self.manifest_path=(path)
-    @manifest_path = path
-  end
+    def application_js_path
+      if OpalWebpackLoader.use_manifest
+        asset_path = OpalWebpackLoader::Manifest.lookup_path_for("application.js")
+        "OpalWebpackLoader.client_asset_path}#{asset_path}"
+      else
+        "#{OpalWebpackLoader.client_asset_path}application.js"
+      end
+    end
 
-  def self.client_asset_path
-    @client_asset_path
-  end
-
-  def self.client_asset_path=(path)
-    @client_asset_path = path
-  end
-
-  def self.use_manifest
-    @use_manifest
-  end
-
-  def self.use_manifest=(bool)
-    @use_manifest = bool
+    def application_ssr_js_path
+      if OpalWebpackLoader.use_manifest
+        asset_path = OpalWebpackLoader::Manifest.lookup_path_for("application_ssr.js")
+        "OpalWebpackLoader.client_asset_path}#{asset_path}"
+      else
+        "#{OpalWebpackLoader.client_asset_path}application_ssr.js"
+      end
+    end
   end
 end
 
@@ -38,18 +38,20 @@ OpalWebpackLoader.manifest_path = File.join(Dir.getwd, 'public', 'assets', 'mani
 OpalWebpackLoader.client_asset_path = 'http://localhost:3035/assets/'
 OpalWebpackLoader.use_manifest = false
 
+# TODO require yarn instead of npm
+# TODO don't depend on which for non unixes
 npm = `which npm`.chop
 
 if npm != ''
   bin_dir = `npm bin`.chop
   begin
-    owl_npm_version = `#{bin_dir}/opal-webpack-loader-npm-version`.chop
+    owl_npm_version = `#{File.join(bin_dir, 'opal-webpack-loader-npm-version')}`.chop
   rescue
     owl_npm_version = nil
   end
 
   if owl_npm_version != OpalWebpackLoader::VERSION
-    raise "opal-webpack-loader: Incorrect version of npm package found or npm package not installed.\n" +
+    STDERR.puts "opal-webpack-loader: Incorrect version of npm package found or npm package not installed.\n" +
       "Please install the npm package for opal-webpack-loader:\n" +
       "\twith npm:\tnpm install opal-webpack-loader@#{OpalWebpackLoader::VERSION} --save-dev\n" +
       "\tor with yarn:\tyarn add opal-webpack-loader@#{OpalWebpackLoader::VERSION} --dev\n"

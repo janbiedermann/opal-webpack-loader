@@ -1,9 +1,11 @@
 # opal-webpack-loader
-Compile opal ruby projects nicely with webpack, without sprockets or webpacker gem.
+Bundle assets with webpack, resolve and compile opal ruby files and import them in the bundle, without sprockets or the webpacker gem
+ (but can be used with both of them too).
 Includes a loader and resolver plugin for webpack.
-### Chat
-https://gitter.im/isomorfeus/Lobby
+### Community and Support
+At the [Isomorfeus Framework Project](http://isomorfeus.com) 
 ### Features
+- comes with a installer for rails and other frameworks
 - webpack based build process
 - very fast builds of opal code
 - builds are asynchronous and even parallel, depending on how webpack triggers builds
@@ -13,21 +15,107 @@ https://gitter.im/isomorfeus/Lobby
 - code splitting
 - lazy loading
 ### Requirements
-- webpack 4.28
-- webpack-dev-server 3.1.10
+- webpack 4.30
+- webpack-dev-server 3.3.0
 - es6_import_export branch of opal
 - if you have webpacker gem installed somewhere, it should be a version supporting webpack 4
 - ruby, version 2.5 or higher recommended
 - bundler, latest version recommended
 
 ### Installation
-#### Install the accompanying NPM package:
+
+#### Using the installer
+First install the gem:
+```
+gem install 'opal-webpack-loader'
+```
+##### Install for Rails like projects
+If your project is a rails project, then within the projects root directory execute:
+```bash
+owl-install rails
+```
+If you have the webpacker gem installed, you need to merge the configuration in the config/webpacker directory.
+
+Please see the message of owl-install. You may need to manually add the following gems to the projects Gemfile:
+```ruby
+gem 'opal', github: 'janbiedermann/opal', branch: 'es6_import_export'
+gem 'opal-webpack-loader', '~> 0.5.1'
+```
+
+Then:
+```bash
+yarn install
+bundle install
+```
+Opal ruby files should then go in the newly created `app/opal` directory. With the option -o the directory can be named differently, for example:
+```bash
+owl-install rails -o hyperhyper
+```
+A directory `app/hyperhyper` will be created, opal files should then go there and will be properly resolved by webpack.
+
+Complete 
+```
+project_root
+    +- app
+        +- assets
+            +- javascripts  # javascript entries directory
+            +- styles       # directory for stylesheets
+        +- opal             # directory for opal application files, can be changed with -o
+    +- config
+        +- webpack          # directory for webpack configuration files
+        +- initializers
+            +- opal_webpack_loader.rb  # initializer for owl
+    +- package.json         # package config for npm/yarn and their scripts
+    +- public
+        +- assets           # directory for compiled output files
+    +- Procfile             # config file for foreman
+```
+              
+##### Install for Cuba, Roda, Sinatra and others with a flat structure
+```bash
+owl-install flat
+```
+
+Please see the message of owl-install. You may need to manually add the following gems to the projects Gemfile:
+```ruby
+gem 'opal', github: 'janbiedermann/opal', branch: 'es6_import_export'
+gem 'opal-webpack-loader', '~> 0.5.1'
+```
+
+Then:
+```bash
+yarn install
+bundle install
+```
+Also make sure to require the owl initializer, e.g. `require './owl_init'`, in your projects startup file.
+Opal ruby files should then go in the newly created `opal` directory. With the option -o the directory can be named differently, for example:
+```bash
+owl-install rails -o supersuper
+```
+A directory `supersuper` will be created, opal files should then go there and will be properly resolved by webpack.
+
+Complete set of directories and files created by the installer for projects with a flat structure:
+```
+project_root
+    +- owl_init.rb      # initializer for owl
+    +- javascripts      # javascript entries directory
+    +- opal             # directory for opal application files, can be changed with -o
+    +- package.json     # package config for npm/yarn and their scripts
+    +- public
+        +- assets       # directory for compiled output files
+    +- styles           # directory for stylesheets
+    +- webpack          # directory for webpack configuration files
+    +- Procfile         # config file for foreman
+```
+
+#### Manual installation
+##### Install the accompanying NPM package:
 one of:
 ```bash
 npm i opal-webpack-loader --save-dev
 yarn add opal-webpack-loader --dev
 ```
-#### install the gems
+##### Install the gems
 ```bash
 gem install opal-webpack-loader
 ```
@@ -39,6 +127,10 @@ gem 'opal', github: 'janbiedermann/opal', branch: 'es6_import_export' # requires
 gem 'opal-autoloader' # recommended
 gem 'opal-webpack-loader'
 ```
+##### Install config
+See the [configuration templates](https://github.com/isomorfeus/opal-webpack-loader/tree/master/lib/opal-webpack-loader/templates)
+and adjust to your preference.
+
 ### View Helper
 in Rails or frameworks that support `javscript_include_tag`, in your app/helpers/application_helper.rb
 ```ruby
@@ -55,6 +147,21 @@ Then you can use in your views:
 ```ruby
 owl_script_tag('application.js')
 ```
+#### Compile Server and app_loader.rb
+For non rails projects, determining Opal load paths, for the resolver and compile server to work properly, may not be obvious. For these cases
+a file `app_loader.rb` in the projects root can be created which just loads all requirements without starting anything.
+Usually it would just setup bundler with the appropriate options, for example:
+```ruby
+require 'bundler/setup'
+if ENV['MY_PROJECT_ENV'] && ENV['MY_PROJECT_ENV'] == 'test'
+  Bundler.require(:default, :test)
+elsif ENV['MY_PROJECT_ENV'] && ENV['MY_PROJECT_ENV'] == 'production'
+  Bundler.require(:default, :production)
+else
+  Bundler.require(:default, :development)
+end
+```
+When this file exists, the compile server will load it and generate Opal load paths accordingly for the resolver.
 
 #### Project configuration options for the view helper
 ```ruby
@@ -87,146 +194,5 @@ OpalWebpackLoader.use_manifest = false
 OpalWebpackLoader.manifest_path = File.join(Dir.getwd, 'public', 'packs', 'manifest.json') # doesn't matter, not used
 OpalWebpackLoader.client_asset_path = 'http://localhost:3035/packs/'
 ```
-### Example Applications
-Example applications can be generated with the isomorfeus installer. See the isomorfeus-framework project at [isomorfeus.com](http://isomorfeus.com).
 ### Example webpack configuration
-for development:
-
-webpack.config.js:
-```javascript
-const path = require('path');
-const webpack = require('webpack');
-const OwlResolver = require('opal-webpack-loader/resolver');
-
-module.exports = {
-    mode: "development",
-    optimization: {
-        minimize: false
-    },
-    performance: {
-        maxAssetSize: 20000000,
-        maxEntrypointSize: 20000000
-    },
-    devtool: 'source-map'
-    // devtool: 'cheap-eval-source-map',
-    // devtool: 'inline-source-map',
-    // devtool: 'inline-cheap-source-map',
-    entry: {
-        application: './app/javascript/application.js'
-    },
-    output: {
-        filename: '[name]_development.js',
-        // for porduction: '[name]-[chunkhash].js'
-        // for test: '[name]_test_[chunkhash].js'
-        path: path.resolve(__dirname, 'public/packs'),
-        publicPath: 'http://localhost:3035/packs'
-    },
-    plugins: [
-        new webpack.HotModuleReplacementPlugin()
-    ],
-    resolve: {
-        plugins: [
-            new OwlResolver('resolve', 'resolved')
-        ]
-    },
-    module: {
-        rules: [
-            {
-                test: /\.css$/,
-                use: [
-                    'style-loader',
-                    'css-loader'
-                ]
-            },
-            {
-                test: /\.(png|svg|jpg|gif)$/,
-                use: [
-                    'file-loader'
-                ]
-            },
-            {
-                test: /\.(woff|woff2|eot|ttf|otf)$/,
-                use: [
-                    'file-loader'
-                ]
-            },
-            {
-                // opal-webpack-loader will compile and include ruby files in the pack
-                test: /.(rb|js.rb)$/,
-                use: [
-                    {
-                        loader: 'opal-webpack-loader',
-                        options: {
-                            // set sourceMap to false to improve performance
-                            sourceMap: true
-                        }
-                    }
-                ]
-            }
-        ]
-    },
-    // configuration for webpack-dev-server
-    devServer: {
-        open: false,
-        lazy: false,
-        port: 3035,
-        hot: true,
-        // hotOnly: true,
-        inline: true,
-        headers: {
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",
-            "Access-Control-Allow-Headers": "X-Requested-With, content-type, Authorization"
-        },
-        watchOptions: {
-            // in case of problems with hot reloading uncomment the following two lines:
-            // aggregateTimeout: 250,
-            // poll: 50,
-            ignored: /\bnode_modules\b/
-        },
-        contentBase: path.resolve(__dirname, 'public')
-        // watchContentBase: true
-    }
-};
-```
-app/javascript/application.js:
-```javascript
-import * as React from 'react';
-import * as ReactDOM from 'react-dom';
-import * as History from 'history';
-import * as ReactRouter from 'react-router';
-import * as ReactRouterDOM from 'react-router-dom';
-import * as ReactRailsUJS from 'react_ujs';
-
-global.React = React;
-global.ReactDOM = ReactDOM;
-global.History = History;
-global.ReactRouter = ReactRouter;
-global.ReactRouterDOM = ReactRouterDOM;
-global.ReactRailsUJS = ReactRailsUJS;
-
-import ruby_code from './ruby_code.rb';
-ruby_code();
-Opal.load('ruby_code');
-
-if (module.hot) {
-    module.hot.accept('./application.js', function() {
-        console.log('Accepting the updated application.js module!');
-        printMe();
-    })
-}
-```
-app/assets/javascripts/ruby_code.rb
-```ruby
-require 'opal'
-require 'opal-autoloader'
-
-puts "Ruby Code Loaded!!"
-```
-package.json needs to start the opal compile server:
-```json
-  "scripts": {
-    "start": "bundle exec opal-webpack-compile-server start webpack-dev-server --config development.js",
-    "build": "bundle exec opal-webpack-compile-server start webpack --config=production.js"
-  },
-```
+See the [configuration templates](https://github.com/isomorfeus/opal-webpack-loader/tree/master/lib/opal-webpack-loader/templates).

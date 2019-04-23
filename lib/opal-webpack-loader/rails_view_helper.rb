@@ -9,5 +9,9 @@ module OpalWebpackLoader
         javascript_include_tag("#{OpalWebpackLoader.client_asset_path}#{path}")
       end
     end
+
+    def application_script_tag
+      javascript_include_tag("#{OpalWebpackLoader.application_js_path}")
+    end
   end
 end

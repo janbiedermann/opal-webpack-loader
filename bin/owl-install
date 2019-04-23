@@ -1,0 +1,8 @@
+#!/usr/bin/env ruby
+require 'erb'
+# require 'active_support/core_ext/string'
+require 'thor'
+require 'oj'
+require_relative '../lib/opal-webpack-loader/installer_cli'
+require_relative '../lib/opal-webpack-loader/version'
+OpalWebpackLoader::Installer::CLI.start(ARGV)
