@@ -10,7 +10,7 @@ RSpec.describe 'owl' do
 
     after do
       Dir.chdir('..') if Dir.pwd.end_with?('railing')
-      # FileUtils.rm_rf('railing') if Dir.exist?('railing')
+      FileUtils.rm_rf('railing') if Dir.exist?('railing')
       Dir.chdir('..')
       Dir.chdir('..')
     end

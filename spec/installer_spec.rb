@@ -58,10 +58,6 @@ RSpec.describe 'owl installer' do
       expect(File.exist?('package.json')).to be true
       expect(File.exist?('Procfile')).to be true
     end
-
-    # it 'doesnt install in a rails app when webpacker gem is used, prints warning' do
-    # TODO
-    # end
   end
 
   context 'structure: :flat' do
@@ -97,6 +93,4 @@ RSpec.describe 'owl installer' do
       expect(File.exist?('Procfile')).to be true
     end
   end
-
-  # TODO tests for iso, pot them in the isomorfeus-installer
 end
