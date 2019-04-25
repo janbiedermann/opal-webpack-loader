@@ -188,6 +188,13 @@ Note 1: HMR works only for files within the project tree. Files outside the proj
 Note 2: When adding a opal ruby file, currently a manual page reload is required for webpack to pick it up. Once its loaded once,
 webpack will hot reload it from then on. ([issue#1](https://github.com/isomorfeus/opal-webpack-loader/issues/1))
 
+### Opal Load Path
+The projects directory for opal ruby files must be in the opal load path. This is done in the initializer for rails apps or in the app_loader.rb,
+for example:
+```ruby
+Opal.append_path(File.realdirpath('app/opal'))
+```
+
 ### View Helper
 in Rails or frameworks that support `javscript_include_tag`, in your app/helpers/application_helper.rb
 ```ruby
