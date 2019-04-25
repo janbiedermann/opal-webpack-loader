@@ -22,7 +22,7 @@ At the [Isomorfeus Framework Project](http://isomorfeus.com)
 ### Requirements
 - webpack 4.30
 - webpack-dev-server 3.3.0
-- es6_import_export branch of opal
+- es6_import_export branch of opal [PR#1832](https://github.com/opal/opal/pull/1832)
 - if you have webpacker gem installed somewhere, it should be a version supporting webpack 4
 - ruby, version 2.5 or higher recommended
 - bundler, latest version recommended
