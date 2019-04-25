@@ -80,7 +80,7 @@ module OpalWebpackLoader
         create_directory(@styles_directory)
         create_common_directories
         install_common_things
-        create_file_from_template('initializer.rb.erb', 'owl_init.rb', {})
+        create_file_from_template('initializer.rb.erb', 'owl_init.rb', { opal_directory: @opal_directory })
         add_gem
         print_message
         puts "Make sure to require the owl initializer, e.g. `require './owl_init'`, in your projects startup file."
@@ -123,7 +123,8 @@ module OpalWebpackLoader
         create_directory(@styles_directory)
         create_common_directories
         install_common_things
-        create_file_from_template('initializer.rb.erb', File.join('config', 'initializers', 'opal_webpack_loader.rb'), {})
+        create_file_from_template('initializer.rb.erb', File.join('config', 'initializers', 'opal_webpack_loader.rb'),
+                                  { opal_directory: @opal_directory })
         add_gem
         print_message
       end
