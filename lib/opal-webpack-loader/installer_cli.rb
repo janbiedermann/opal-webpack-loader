@@ -183,6 +183,7 @@ module OpalWebpackLoader
           package_json["scripts"]["development"] = development_script
           package_json["scripts"]["production_build"] = production_script
           package_json["devDependencies"] = {} unless package_json.has_key?("devDependencies")
+          package_json["devDependencies"]["chokidar"] = gem_package_json["devDependencies"]["chokidar"]
           package_json["devDependencies"]["compression-webpack-plugin"] = gem_package_json["devDependencies"]["compression-webpack-plugin"]
           package_json["devDependencies"]["opal-webpack-loader"] = OpalWebpackLoader::VERSION
           package_json["devDependencies"]["webpack"] = gem_package_json["devDependencies"]["webpack"]
@@ -240,7 +241,28 @@ module OpalWebpackLoader
           js_ssr_entry: File.join(@conf_rel_prefix, @js_entrypoints_directory, 'application_ssr.js'),
           opal_directory: File.join(@conf_rel_prefix, @opal_directory),
           stylesheets_directory: File.join(@conf_rel_prefix, @styles_directory),
+          hmr_hook: ''
         }
+        if @js_entrypoints_directory.start_with?('app')
+          erb_hash[:dev_server_before] = <<~JAVASCRIPT
+                // enable page reload for updates within the app/views directory
+                before: function(app, server) {
+                    chokidar.watch(path.resolve(__dirname, path.join('..', '..', 'app', 'views'))).on('all', function () {
+                        server.sockWrite(server.sockets, 'content-changed');
+                    })
+                },
+          JAVASCRIPT
+        else
+          erb_hash[:dev_server_before] = <<~JAVASCRIPT
+                // uncomment to enable page reload for updates within another directory, which may contain just html files,
+                // for example the 'views' directory:
+                // before: function(app, server) {
+                //     chokidar.watch(path.resolve(__dirname, path.join('..', 'views')).on('all', function () {
+                //         server.sockWrite(server.sockets, 'content-changed');
+                //     })
+                // },
+          JAVASCRIPT
+        end
         create_file_from_template('debug.js.erb', File.join(@webpack_config_directory, 'debug.js'), erb_hash)
         create_file_from_template('development.js.erb', File.join(@webpack_config_directory, 'development.js'), erb_hash)
         create_file_from_template('production.js.erb', File.join(@webpack_config_directory, 'production.js'), erb_hash)
