@@ -1,0 +1,54 @@
+process.env.NODE_ENV = process.env.NODE_ENV || 'development';
+const environment = require('./environment');
+const chokidar = require('chokidar');
+const OwlResolver = require('opal-webpack-loader/resolver');
+
+const owl = {
+    test: /.(rb|js.rb)$/,
+    use: [
+        {
+            loader: 'opal-webpack-loader',
+            options: {
+                sourceMap: false,
+                hmr: true,
+                hmrHook: '<%= hmr_hook %>'
+            }
+        }
+    ]
+};
+
+environment.loaders.append('owlloader', owl);
+
+environment.resolve.plugins.append('owlresolver', new OwlResolver('resolve', 'resolved'));
+
+environment.devServer = {
+    before: function(app, server) {
+        // reload page for changes in app/views
+        chokidar.watch(path.resolve(__dirname, '../../app/views')).on('all', function () {
+            server.sockWrite(server.sockets, 'content-changed');
+        })
+    },
+    open: false,
+    lazy: false,
+    port: 3035,
+    hot: true,
+    // hotOnly: true,
+    inline: true,
+    https: false,
+    disableHostCheck: true,
+    headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",
+        "Access-Control-Allow-Headers": "X-Requested-With, content-type, Authorization"
+    },
+    watchOptions: {
+        // in case of problems with hot reloading uncomment the following two lines:
+        // aggregateTimeout: 250,
+        // poll: 50,
+        ignored: /\bnode_modules\b/
+    },
+    contentBase: path.resolve(__dirname, 'public')
+    // watchContentBase: true
+};
+
+module.exports = environment;
