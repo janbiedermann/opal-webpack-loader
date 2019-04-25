@@ -1,10 +1,11 @@
 'use strict';
 
 const fs = require('fs');
+const path = require('path');
 
 module.exports = class Resolver {
     constructor(source, target) {
-        const owl_cache_path = '.owl_cache/load_paths.json';
+        const owl_cache_path = path.join('.owl_cache', 'load_paths.json');
 
         if (!this.owl_cache_fetched) {
             var owl_cache_from_file = fs.readFileSync(owl_cache_path);
