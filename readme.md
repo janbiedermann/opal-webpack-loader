@@ -226,14 +226,14 @@ OpalWebpackLoader.use_manifest = false
 ```
 If the manifest file should be used, use_manifest should be true.
 ```ruby
-OpalWebpackLoader.manifest_path = File.join(Dir.getwd, 'public', 'packs', 'manifest.json')
+OpalWebpackLoader.manifest_path = File.join(Dir.getwd, 'public', 'assets', 'manifest.json')
 ```
 Sets the path to the webpack (with the [webpack-manifest-plugin](https://www.npmjs.com/package/webpack-manifest-plugin)) generated manifest.json to look up assets.
 ```ruby
-OpalWebpackLoader.client_asset_path = 'http://localhost:3035/packs/'
+OpalWebpackLoader.client_asset_path = 'http://localhost:3035/assets/'
 ```
 The path to prepend to the assets as configured in the webpack config 'publicPath'. 
-In the config example below its `publicPath: 'http://localhost:3025/packs'` so
+In the config example below its `publicPath: 'http://localhost:3025/assets'` so
 client_asset_path should be set to the same.
 
 For **production** use with readily precompiled and compressed assets which contain a fingerprint in the name (webpacks [chunkhash]),
@@ -241,15 +241,15 @@ and if the path in the manifest is the full path to the asset as configured in w
 these settings would work:
 ```ruby
 OpalWebpackLoader.use_manifest = true
-OpalWebpackLoader.manifest_path = File.join(Dir.getwd, 'public', 'packs', 'manifest.json')
+OpalWebpackLoader.manifest_path = File.join(Dir.getwd, 'public', 'assets', 'manifest.json')
 OpalWebpackLoader.client_asset_path = ''
 ```
 
 For **development** use with webpack-dev-server, with no manifest, these settings would work:
 ```ruby
 OpalWebpackLoader.use_manifest = false
-OpalWebpackLoader.manifest_path = File.join(Dir.getwd, 'public', 'packs', 'manifest.json') # doesn't matter, not used
-OpalWebpackLoader.client_asset_path = 'http://localhost:3035/packs/'
+OpalWebpackLoader.manifest_path = File.join(Dir.getwd, 'public', 'assets', 'manifest.json') # doesn't matter, not used
+OpalWebpackLoader.client_asset_path = 'http://localhost:3035/assets/'
 ```
 ### Example webpack configuration
 See the [configuration templates](https://github.com/isomorfeus/opal-webpack-loader/tree/master/lib/opal-webpack-loader/templates).
