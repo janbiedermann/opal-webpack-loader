@@ -2,8 +2,10 @@
 Bundle assets with webpack, resolve and compile opal ruby files and import them in the bundle, without sprockets or the webpacker gem
  (but can be used with both of them too).
 Includes a loader and resolver plugin for webpack.
+
 ### Community and Support
 At the [Isomorfeus Framework Project](http://isomorfeus.com) 
+
 ### Features
 - comes with a installer for rails and other frameworks
 - webpack based build process
@@ -11,9 +13,12 @@ At the [Isomorfeus Framework Project](http://isomorfeus.com)
 - builds are asynchronous and even parallel, depending on how webpack triggers builds
 - opal modules are packaged as es6 modules
 - other webpack features become available, like:
+- source maps
+- hot module reloading
 - tree shaking
 - code splitting
 - lazy loading
+
 ### Requirements
 - webpack 4.30
 - webpack-dev-server 3.3.0
@@ -130,6 +135,54 @@ gem 'opal-webpack-loader'
 ##### Install config
 See the [configuration templates](https://github.com/isomorfeus/opal-webpack-loader/tree/master/lib/opal-webpack-loader/templates)
 and adjust to your preference.
+
+### Source Maps
+
+#### Source Map Demo
+[![SourceMap Demo](https://img.youtube.com/vi/SCmDYu_MLQU/0.jpg)](https://www.youtube.com/watch?v=SCmDYu_MLQU)
+
+#### Source Map configuration
+
+The opal-webpack-loader for webpack supports the following options to enable HMR:
+(These are option for the webpack config, not to be confused with the owl ruby project options further down below)
+```javascript
+    loader: 'opal-webpack-loader',
+    options: {
+        sourceMap: true
+    }
+```
+
+- `sourceMap` : enable (`true`) or disable (`false`) source maps. Optional, default: `false`
+
+Also source maps must be enabled in webpack. See [webpack devtool configuration](https://webpack.js.org/configuration/devtool).
+### Hot Module Reloading
+
+#### HMR Demo
+
+[![HMR Demo](https://img.youtube.com/vi/igF3cUsZrAQ/0.jpg)](https://www.youtube.com/watch?v=igF3cUsZrAQ)
+
+(Recommended to watch in FullHD)
+
+#### HMR Configuration
+
+The opal-webpack-loader for webpack supports the following options to enable HMR:
+(These are option for the webpack config, not to be confused with the owl ruby project options further down below)
+```javascript
+    loader: 'opal-webpack-loader',
+    options: {
+        hmr: true,
+        hmrHook: 'global.Opal.ViewJS["$forcce_update!"]();'
+    }
+```
+
+- `hmr` : enable (`true`) or disable (`false`) hot module reloading. Optional, default: `false`
+- `hmrHook` : A javascript expression as string which will be executed after the new code has been loaded.
+Useful to trigger a render or update for React or ViewJS projects.
+
+Note 1: HMR works only for files within the project tree. Files outside the project tree are not hot reloaded.
+
+Note 2: When adding a opal ruby file, currently a manual page reload is required for webpack to pick it up. Once its loaded once,
+webpack will hot reload it from then on. ([issue#1](https://github.com/isomorfeus/opal-webpack-loader/issues/1))
 
 ### View Helper
 in Rails or frameworks that support `javscript_include_tag`, in your app/helpers/application_helper.rb
