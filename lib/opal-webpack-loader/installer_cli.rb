@@ -216,7 +216,11 @@ module OpalWebpackLoader
             File.write('Procfile', lines.join("\n"))
           end
         else
-          create_file_from_template('Procfile.erb', 'Procfile',{})
+          erb_hash = { web_starter: '' }
+          if @js_entrypoints_directory.start_with?('app')
+            erb_hash[:web_starter] = 'web: bundle exec rails s'
+          end
+          create_file_from_template('Procfile.erb', 'Procfile',erb_hash)
         end
       end
 
