@@ -1,6 +1,7 @@
 // require requirements used below
 const path = require('path');
 const webpack = require('webpack');
+const chokidar = require('chokidar');
 const OwlResolver = require('opal-webpack-loader/resolver'); // to resolve ruby files
 
 module.exports = {
@@ -97,6 +98,11 @@ module.exports = {
                 use: [
                     {
                         loader: 'opal-webpack-loader',
+                        options: {
+                            sourceMap: false,
+                            hmr: true,
+                            hmrHook: '<%= hmr_hook %>'
+                        }
                     }
                 ]
             }
@@ -104,6 +110,7 @@ module.exports = {
     },
     // configuration for webpack-dev-server
     devServer: {
+        <%= dev_server_before %>
         open: false,
         lazy: false,
         port: 3035,
