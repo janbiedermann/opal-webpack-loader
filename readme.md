@@ -175,7 +175,7 @@ The opal-webpack-loader for webpack supports the following options to enable HMR
     loader: 'opal-webpack-loader',
     options: {
         hmr: true,
-        hmrHook: 'global.Opal.ViewJS["$forcce_update!"]();'
+        hmrHook: 'global.Opal.ViewJS["$force_update!"]();'
     }
 ```
 
