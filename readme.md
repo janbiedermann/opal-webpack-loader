@@ -35,13 +35,17 @@ First install the gem:
 gem install 'opal-webpack-loader'
 ```
 ##### Install for Rails like projects
-If your project is a rails project, then within the projects root directory execute:
+If you start a new rails project, the following options are recommended for `rails new`: `--skip-sprockets --skip-javascript`
+
+Then within the projects root directory execute:
 ```bash
 owl-install rails
 ```
 If you have the webpacker gem installed, you need to merge the configuration in the config/webpacker directory.
+A example for config/webpack/development.js is in the
+[templates](https://github.com/isomorfeus/opal-webpack-loader/blob/master/lib/opal-webpack-loader/templates/webpacker_development.js_example).
 
-Please see the message of owl-install. You may need to manually add the following gems to the projects Gemfile:
+Please see the messages of owl-install. You may need to manually add the following gems to the projects Gemfile:
 ```ruby
 gem 'opal', github: 'janbiedermann/opal', branch: 'es6_import_export'
 gem 'opal-webpack-loader', '~> 0.5.1'
