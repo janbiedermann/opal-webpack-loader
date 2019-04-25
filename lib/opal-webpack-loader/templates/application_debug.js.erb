@@ -6,8 +6,4 @@ import './application.js';
 // space additional modules for debugging or helper code
 
 // allow for hot reloading
-if (module.hot) {
-    module.hot.accept('./application_debug.js', function() {
-        console.log('Accepting the updated application_debug.js!');
-    })
-}
+if (module.hot) { module.hot.accept(); }

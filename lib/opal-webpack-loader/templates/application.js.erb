@@ -16,10 +16,5 @@ import init_app from '<%= opal_dir %>/<%= opal_name %>_loader.rb';
 init_app();
 Opal.load('<%= opal_name %>_loader');
 
-
 // allow for hot reloading
-if (module.hot) {
-    module.hot.accept('./application.js', function() {
-        console.log('Accepting the updated application.js!');
-    })
-}
+if (module.hot) { module.hot.accept(); }
