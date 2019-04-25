@@ -1,4 +1,4 @@
-env = defined? Rails ? Rails.env : 'development'
+env = defined?(Rails) ? Rails.env : 'development'
 
 if env != 'development'
   OpalWebpackLoader.client_asset_path = '' # the full path is in the manifest already, like: /packs/website_packs-97fd9c2b7e7bdb112fc1.js
