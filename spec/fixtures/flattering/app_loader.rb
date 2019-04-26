@@ -6,3 +6,4 @@ elsif ENV['FLATTERING_ENV'] && ENV['FLATTERING_ENV'] == 'production'
 else
   Bundler.require(:default, :development)
 end
+require './owl_init'

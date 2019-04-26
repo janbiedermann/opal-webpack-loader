@@ -57,7 +57,7 @@ RSpec.describe 'owl' do
       Dir.chdir('..')
     end
 
-    it 'can install in a roda app' do
+    it 'can run the production build script in a roda app' do
       FileUtils.cp_r(File.join('..', 'fixtures', 'flattering'), File.join('.'))
       expect(Dir.exist?('flattering')).to be true
       Dir.chdir('flattering')
