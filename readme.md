@@ -48,7 +48,7 @@ A example for config/webpack/development.js is in the
 Please see the messages of owl-install. You may need to manually add the following gems to the projects Gemfile:
 ```ruby
 gem 'opal', github: 'janbiedermann/opal', branch: 'es6_import_export'
-gem 'opal-webpack-loader', '0.6.2' # use the most recent released version here
+gem 'opal-webpack-loader', '~> 0.6.2' # use the most recent released version here
 ```
 
 Then:
@@ -139,6 +139,27 @@ gem 'opal-webpack-loader'
 ##### Install config
 See the [configuration templates](https://github.com/isomorfeus/opal-webpack-loader/tree/master/lib/opal-webpack-loader/templates)
 and adjust to your preference.
+
+### General usage
+
+After installing owl with the installer, three scripts are provided in package.json:
+- `development` - runs the webpack-dev-server, use for general development, provides fast reloads, entry is application.js
+- `debug` - runs the webpack-dev-server, use for debugging, provides source maps, entry is application_debug.js. Additional debugging tools may be added there.
+- `production_build` - runs webpack to build assets for production, entry is application.js
+
+These scripts can be run with:
+`yarn run debug` or `npm run debug`
+
+In addition there is a application_ssr.js entry, meant for server side rendering. It builds a separate bundle.
+
+Also a Procfile has been installed, for rails its easy to startup rails and webpack with foreman:
+`foreman start` (`gem install foreman` if you dont have it already). It will start rails and webpack-dev-server with the development script.
+
+For non rails installation check the Procfile and add a starter for your app.
+
+#### Opal Ruby Application files
+For rails installations with the installer they all go into: `app/opal`, for flat installations in the `opal` directory.
+In this directory there already is a `opal_loader.rb` which is the entry point for your app.
 
 ### Source Maps
 
