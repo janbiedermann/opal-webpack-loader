@@ -210,8 +210,8 @@ Note 2: When adding a opal ruby file, currently a manual page reload is required
 webpack will hot reload it from then on. ([issue#1](https://github.com/isomorfeus/opal-webpack-loader/issues/1))
 
 ### Opal Load Path
-The projects directory for opal ruby files must be in the opal load path. This is done in the initializer for rails apps or in the app_loader.rb,
-for example:
+The projects directory for opal ruby files must be in the opal load path. This is done in the initializer for rails apps in
+config/initializers/opal_webpack_loader.rb or in 'owl_init.rb' for non rails apps, for example:
 ```ruby
 Opal.append_path(File.realdirpath('app/opal'))
 ```
@@ -245,10 +245,12 @@ elsif ENV['MY_PROJECT_ENV'] && ENV['MY_PROJECT_ENV'] == 'production'
 else
   Bundler.require(:default, :development)
 end
+require './owl_init.rb' # this is a good place to require the opal-webpack-loader initializer, to get the apps opal load path
 ```
 When this file exists, the compile server will load it and generate Opal load paths accordingly for the resolver.
 
 #### Project configuration options for the view helper
+These setting are in the initializer in config/initializers/opal_webpack_loader.rb for rails like apps, or owl_init.rb for others.
 ```ruby
 OpalWebpackLoader.use_manifest = false
 ```
