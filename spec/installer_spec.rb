@@ -86,6 +86,7 @@ RSpec.describe 'owl installer' do
       expect(File.exist?(File.join('javascripts', 'application_ssr.js'))).to be true
       expect(File.exist?(File.join('opal', 'opal_loader.rb'))).to be true
       expect(File.exist?(File.join('owl_init.rb'))).to be true
+      expect(File.exist?(File.join('app_loader.rb'))).to be true
       expect(File.exist?(File.join('webpack', 'debug.js'))).to be true
       expect(File.exist?(File.join('webpack', 'development.js'))).to be true
       expect(File.exist?(File.join('webpack', 'production.js'))).to be true
