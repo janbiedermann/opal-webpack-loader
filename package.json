@@ -1,6 +1,6 @@
 {
   "name": "opal-webpack-loader",
-  "version": "0.6.4",
+  "version": "0.6.5",
   "description": "A loader for Opal Ruby files for Webpack, including the resolver.",
   "main": "index.js",
   "scripts": {
@@ -11,7 +11,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/janbiedermann/opal-webpack-loader.git"
+    "url": "git+https://github.com/isomorfeus/opal-webpack-loader.git"
   },
   "keywords": [
     "opal",
@@ -23,9 +23,9 @@
   "author": "Jan Biedermann",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/janbiedermann/opal-webpack-loader/issues"
+    "url": "https://github.com/isomorfeus/opal-webpack-loader/issues"
   },
-  "homepage": "https://github.com/janbiedermann/opal-webpack-loader#readme",
+  "homepage": "https://github.com/isomorfeus/opal-webpack-loader#readme",
   "dependencies": {
     "webpack": "^4.30.0",
     "loader-utils": "^1.2.3"
