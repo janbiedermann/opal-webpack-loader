@@ -122,8 +122,8 @@ project_root
 ##### Install the accompanying NPM package:
 one of:
 ```bash
-npm i opal-webpack-loader --save-dev
-yarn add opal-webpack-loader --dev
+npm i opal-webpack-loader
+yarn add opal-webpack-loader
 ```
 ##### Install the gems
 ```bash
