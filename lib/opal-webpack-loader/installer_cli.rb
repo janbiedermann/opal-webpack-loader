@@ -33,6 +33,7 @@ module OpalWebpackLoader
       #     +- spec
       #     +- tmp
       def iso
+        @application_css = '../styles/application.css'
         @asset_output_directory = File.join('public', 'assets')
         @js_entrypoints_directory = File.join('isomorfeus', 'imports')
         @conf_rel_prefix = '..'
@@ -43,6 +44,7 @@ module OpalWebpackLoader
         create_common_directories
         create_isomorfeus_directories
         install_webpack_config
+        create_file_from_template('application.css.erb', File.join('isomorfeus', 'styles', 'application.css'), {})
         create_file_from_template('initializer.rb.erb', File.join('config', 'owl_init.rb'), {})
         add_gem
         print_message
@@ -70,6 +72,7 @@ module OpalWebpackLoader
       TEXT
 
       def flat
+        @application_css = '../styles/application.css'
         @asset_output_directory = File.join('public', 'assets')
         @js_entrypoints_directory = File.join('javascripts')
         @conf_rel_prefix = '..'
@@ -80,11 +83,11 @@ module OpalWebpackLoader
         create_directory(@styles_directory)
         create_common_directories
         install_common_things
+        create_file_from_template('application.css.erb', File.join('styles', 'application.css'), {})
         create_file_from_template('initializer.rb.erb', 'owl_init.rb', { opal_directory: @opal_directory })
         create_file_from_template('app_loader.rb.erb', 'app_loader.rb', {})
         add_gem
         print_message
-        puts "Make sure to require the owl initializer, e.g. `require './owl_init'`, in your projects startup file."
       end
 
       desc "rails", "Install owl configuration into a existing rails project, execute from the projects root directory."
@@ -113,6 +116,7 @@ module OpalWebpackLoader
       TEXT
 
       def rails
+        @application_css = '../stylesheets/application.css'
         @asset_output_directory = File.join('public', 'assets')
         @js_entrypoints_directory = File.join('app', 'assets', 'javascripts')
         @conf_rel_prefix = File.join('..', '..')
@@ -163,7 +167,7 @@ module OpalWebpackLoader
       end
 
       def install_js_entries
-        erb_hash = { opal_dir: File.join(@js_rel_prefix, @opal_directory), opal_name: options[:opal_name] }
+        erb_hash = { opal_dir: File.join(@js_rel_prefix, @opal_directory), opal_name: options[:opal_name], application_css: @application_css }
         create_file_from_template('application.js.erb', File.join(@js_entrypoints_directory, 'application.js'), erb_hash)
         create_file_from_template('application_common.js.erb', File.join(@js_entrypoints_directory, 'application_common.js'),erb_hash)
         create_file_from_template('application_debug.js.erb', File.join(@js_entrypoints_directory, 'application_debug.js'), erb_hash)
@@ -185,13 +189,8 @@ module OpalWebpackLoader
           package_json["scripts"]["development"] = development_script
           package_json["scripts"]["production_build"] = production_script
           package_json["devDependencies"] = {} unless package_json.has_key?("devDependencies")
-          package_json["devDependencies"]["chokidar"] = gem_package_json["devDependencies"]["chokidar"]
-          package_json["devDependencies"]["compression-webpack-plugin"] = gem_package_json["devDependencies"]["compression-webpack-plugin"]
-          package_json["devDependencies"]["opal-webpack-loader"] = OpalWebpackLoader::VERSION
-          package_json["devDependencies"]["webpack"] = gem_package_json["devDependencies"]["webpack"]
-          package_json["devDependencies"]["webpack-cli"] = gem_package_json["devDependencies"]["webpack-cli"]
-          package_json["devDependencies"]["webpack-dev-server"] = gem_package_json["devDependencies"]["webpack-dev-server"]
-          package_json["devDependencies"]["webpack-manifest-plugin"] = gem_package_json["devDependencies"]["webpack-manifest-plugin"]
+          package_json["devDependencies"].merge!(gem_package_json["devDependencies"])
+          package_json["devDependencies"]["opal-webpack-loader"] = "^#{OpalWebpackLoader::VERSION}"
           File.write('package.json', Oj.dump(package_json, mode: :strict))
           puts "Updated package.json, updated scripts and owl dependencies"
         else
