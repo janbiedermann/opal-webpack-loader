@@ -20,19 +20,31 @@ module OpalWebpackCompileServer
   OWCS_SOCKET_PATH = OWL_CACHE_DIR + 'owcs_socket'
 
   class Compiler < EventMachine::Connection
+    def initialize(*args)
+      @received_data = ''
+      super(*args)
+    end
+
     def receive_data(data)
-      if data.start_with?('command:stop')
+      @received_data << data
+
+      return unless @received_data.end_with?("}\x04")
+
+      if @received_data.start_with?('command:stop')
         EventMachine.stop
         exit(0)
       end
 
-      request_hash = Oj.load(data)
-      filename = request_hash['filename']
-      compile_source_map = request_hash['source_map']
+      request_json = Oj.load(@received_data.chop!, {})
+
+      @received_data = ''
+
+      compile_source_map = request_json["source_map"]
+      filename = request_json["filename"]
+      source = request_json["source"]
 
       operation = proc do
         begin
-          source = File.read(filename)
           c = Opal::Compiler.new(source, file: filename, es6_modules: true)
           c.compile
           result = { 'javascript' => c.result }
@@ -45,12 +57,12 @@ module OpalWebpackCompileServer
           result['required_trees'] = c.required_trees
           Oj.dump(result, {})
         rescue Exception => e
-          Oj.dump({ 'error' => { 'name' => e.class, 'message' => e.message, 'backtrace' => e.backtrace } }, {})
+          Oj.dump({ 'error' => { 'name' => e.class, 'message' => e.message, 'backtrace' => e.backtrace.join("\n") } }, {})
         end
       end
 
       callback = proc do |json|
-        self.send_data(json + "\n")
+        self.send_data(json)
         close_connection_after_writing
       end
 

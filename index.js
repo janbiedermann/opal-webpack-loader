@@ -9,16 +9,17 @@ const loaderUtils = require('loader-utils');
 let Owl = {
     c_dir: '.owl_cache',
     lp_cache: path.join('.owl_cache', 'load_paths.json'),
-    socket: path.join('.owl_cache', 'owcs_socket'),
+    socket_path: path.join('.owl_cache', 'owcs_socket'),
+    socket_ready: false,
     options: null
 };
 
-function delegate_compilation(that, callback, meta) {
+function delegate_compilation(that, source, callback, meta) {
     let buffer = Buffer.alloc(0);
-    let request_json = JSON.stringify({ filename: that.resourcePath, source_map: Owl.options.sourceMap });
+    let request_json = JSON.stringify({ filename: that.resourcePath, source_map: Owl.options.sourceMap, source: source });
     // or let the source be compiled by the compile server
-    let socket = net.connect(Owl.socket, function () {
-        socket.write(request_json + '\n'); // triggers compilation
+    let socket = net.connect(Owl.socket_path, function () {
+        socket.write(request_json + "\x04"); // triggers compilation // triggers compilation
     });
     socket.on('data', function (data) {
         buffer = Buffer.concat([buffer, data]);
@@ -26,9 +27,12 @@ function delegate_compilation(that, callback, meta) {
     socket.on('end', function() {
         let compiler_result = JSON.parse(buffer.toString());
         if (typeof compiler_result.error !== 'undefined') {
-            that.emitError(new Error(compiler_result.error.backtrace));
-            that.emitError(new Error(compiler_result.error.message));
-            callback(new Error('opal-webpack-loader: A error occurred during compiling!'));
+            callback(new Error(
+                "opal-webpack-loader: A error occurred during compiling!\n" +
+                compiler_result.error.name + "\n" +
+                compiler_result.error.message + "\n" +
+                compiler_result.error.backtrace
+            ));
         } else {
             for (var i = 0; i < compiler_result.required_trees.length; i++) {
                 that.addContextDependency(path.join(path.dirname(that.resourcePath), compiler_result.required_trees[i]));
@@ -71,14 +75,6 @@ if (module.hot) {
     });
 }
 
-function compile_ruby(source, that, callback, meta) {
-    if (!fs.existsSync(Owl.socket)) {
-        callback(new Error('opal-webpack-loader: opal-webpack-compile-server not running, please start opal-webpack-compile-server'));
-    } else {
-        delegate_compilation(that, callback, meta);
-    }
-}
-
 module.exports = function(source, map, meta) {
     let callback = this.async();
     this.cacheable && this.cacheable();
@@ -88,6 +84,12 @@ module.exports = function(source, map, meta) {
         if (typeof Owl.options.hmrHook === 'undefined' ) { Owl.options.hmrHook = ''; }
         if (typeof Owl.options.sourceMap === 'undefined' ) { Owl.options.sourceMap = false; }
     }
-    // this.addDependency(this.resourcePath);
-    compile_ruby(source, this, callback, meta);
+    if(!Owl.socket_ready) {
+        if (!fs.existsSync(Owl.socket_path)) {
+            callback(new Error('opal-webpack-loader: opal-webpack-compile-server not running, please start opal-webpack-compile-server'));
+        } else {
+            Owl.socket_ready = true;
+        }
+    }
+    delegate_compilation(this, source, callback, meta);
 };
