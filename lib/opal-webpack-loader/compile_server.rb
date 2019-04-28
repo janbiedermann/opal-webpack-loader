@@ -41,7 +41,7 @@ module OpalWebpackCompileServer
 
       compile_source_map = request_json["source_map"]
       filename = request_json["filename"]
-      source = request_json["source"]
+      source = File.read(filename)
 
       operation = proc do
         begin

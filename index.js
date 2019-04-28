@@ -14,9 +14,9 @@ let Owl = {
     options: null
 };
 
-function delegate_compilation(that, source, callback, meta) {
+function delegate_compilation(that, callback, meta) {
     let buffer = Buffer.alloc(0);
-    let request_json = JSON.stringify({ filename: that.resourcePath, source_map: Owl.options.sourceMap, source: source });
+    let request_json = JSON.stringify({ filename: that.resourcePath, source_map: Owl.options.sourceMap });
     // or let the source be compiled by the compile server
     let socket = net.connect(Owl.socket_path, function () {
         socket.write(request_json + "\x04"); // triggers compilation // triggers compilation
@@ -91,5 +91,5 @@ module.exports = function(source, map, meta) {
             Owl.socket_ready = true;
         }
     }
-    delegate_compilation(this, source, callback, meta);
+    delegate_compilation(this, callback, meta);
 };
