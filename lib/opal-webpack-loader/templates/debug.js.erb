@@ -3,6 +3,7 @@ const path = require('path');
 const webpack = require('webpack');
 const chokidar = require('chokidar');
 const OwlResolver = require('opal-webpack-loader/resolver'); // to resolve ruby files
+const ExtraWatchWebpackPlugin = require('extra-watch-webpack-plugin'); // to watch for added ruby files
 
 module.exports = {
     context: path.resolve(__dirname, '<%= opal_directory %>'),
@@ -42,7 +43,11 @@ module.exports = {
     plugins: [
         // both for hot reloading
         new webpack.NamedModulesPlugin(),
-        new webpack.HotModuleReplacementPlugin()
+        new webpack.HotModuleReplacementPlugin(),
+        // watch for added files in opal dir
+        new ExtraWatchWebpackPlugin({
+            dirs: [ path.resolve(__dirname, '<%= opal_directory %>') ]
+        })
     ],
     module: {
         rules: [
@@ -60,8 +65,7 @@ module.exports = {
                     {
                         loader: "css-loader",
                         options: {
-                            sourceMap: true, // set to false to speed up hot reloads
-                            minimize: false // set to false to speed up hot reloads
+                            sourceMap: true // set to false to speed up hot reloads
                         }
                     },
                     {
@@ -86,8 +90,7 @@ module.exports = {
                     {
                         loader: "css-loader",
                         options: {
-                            sourceMap: true, // set to false to speed up hot reloads
-                            minimize: false // set to false to speed up hot reloads
+                            sourceMap: true // set to false to speed up hot reloads
                         }
                     }
                 ]

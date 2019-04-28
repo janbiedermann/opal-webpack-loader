@@ -61,21 +61,7 @@ module.exports = {
             {
                 // loader for .css files
                 test: /.css$/,
-                use: [
-                    {
-                        loader: "style-loader",
-                        options: {
-                            hmr: false
-                        }
-                    },
-                    {
-                        loader: "css-loader",
-                        options: {
-                            sourceMap: false, // set to false to speed up hot reloads
-                            minimize: true // set to false to speed up hot reloads
-                        }
-                    }
-                ]
+                use: [ "style-loader", "css-loader" ]
             },
             {
                 test: /.(png|svg|jpg|gif)$/,
