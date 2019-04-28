@@ -97,7 +97,8 @@ Then:
 yarn install
 bundle install
 ```
-Also make sure to require the owl initializer, e.g. `require './owl_init'`, in your projects startup file.
+The installer produces a `app_loader.rb` which `require './owl_init'`. `app_loader.rb` is used by the compile server to correctly determine opal load
+paths. It should be required by `config.ru`.
 Opal ruby files should then go in the newly created `opal` directory. With the option -o the directory can be named differently, for example:
 ```bash
 owl-install rails -o supersuper
@@ -170,7 +171,7 @@ SCSS is supported too by the default config.
 #### Views
 For rails like applications a watcher for `app/views` is installed by default. The watcher will trigger a page reload when views are changed.
 For flat applications nothing is configured by default, as there are to many ways to generate views, they are not even needed with
-frameworks like isomorfeus. Instead the section for configuring a view watcher is included in the development.js and debug.js webpacker
+frameworks like isomorfeus. Instead the section for configuring a view watcher is included in the development.js and debug.js webpack
 config, but it is commented out. Please see those files and adjust to your liking.
 
 ### Source Maps
