@@ -22,7 +22,6 @@ RSpec.describe 'owl installer' do
       arg_val = %w[rails]
       expect(Dir.exist?(File.join('railing', 'config', 'webpack'))).to be false
       OpalWebpackLoader::Installer::CLI.start(arg_val)
-
       expect(File.exist?(File.join('app', 'assets', 'javascripts', 'application.js'))).to be true
       expect(File.exist?(File.join('app', 'assets', 'javascripts', 'application.js_owl_new'))).to be true
       expect(File.exist?(File.join('app', 'assets', 'javascripts', 'application_common.js'))).to be true
@@ -44,7 +43,6 @@ RSpec.describe 'owl installer' do
       arg_val = %w[rails -o hyperhyper]
       expect(Dir.exist?(File.join('railing', 'config', 'webpack'))).to be false
       OpalWebpackLoader::Installer::CLI.start(arg_val)
-
       expect(File.exist?(File.join('app', 'assets', 'javascripts', 'application.js'))).to be true
       expect(File.exist?(File.join('app', 'assets', 'javascripts', 'application.js_owl_new'))).to be true
       expect(File.exist?(File.join('app', 'assets', 'javascripts', 'application_common.js'))).to be true
@@ -80,6 +78,7 @@ RSpec.describe 'owl installer' do
       Dir.chdir('flattering')
       arg_val = %w[flat]
       OpalWebpackLoader::Installer::CLI.start(arg_val)
+      expect(File.exist?(File.join('styles', 'application.css'))).to be true
       expect(File.exist?(File.join('javascripts', 'application.js'))).to be true
       expect(File.exist?(File.join('javascripts', 'application_common.js'))).to be true
       expect(File.exist?(File.join('javascripts', 'application_debug.js'))).to be true

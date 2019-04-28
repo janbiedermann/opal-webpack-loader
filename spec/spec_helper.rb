@@ -1,6 +1,7 @@
 require 'fileutils'
 require 'oj'
 require 'thor'
+require_relative '../lib/opal-webpack-loader/version'
 require_relative '../lib/opal-webpack-loader/installer_cli'
 
 RSpec.configure do |config|

@@ -2,15 +2,20 @@ require 'spec_helper'
 
 RSpec.describe 'owl' do
   context 'in a rails app' do
+    before :all do
+      `npm pack`
+    end
+
     before do
       Dir.chdir('spec')
       Dir.chdir('test_apps')
       FileUtils.rm_rf('railing') if Dir.exist?('railing')
+      `yarn cache clean`
     end
 
     after do
       Dir.chdir('..') if Dir.pwd.end_with?('railing')
-      FileUtils.rm_rf('railing') if Dir.exist?('railing')
+      # FileUtils.rm_rf('railing') if Dir.exist?('railing')
       Dir.chdir('..')
       Dir.chdir('..')
     end
@@ -31,6 +36,11 @@ RSpec.describe 'owl' do
 
       GEMS
       File.write('Gemfile', gemfile)
+      # add local owl npm package
+      package_json = Oj.load(File.read('package.json'), mode: :strict)
+      package_json["devDependencies"].delete("opal-webpack-loader")
+      File.write('package.json', Oj.dump(package_json, mode: :strict))
+      `yarn add file:../../../opal-webpack-loader-#{OpalWebpackLoader::VERSION}.tgz --dev`
       `yarn install`
       # bundler set some environment things, but we need a clean environment, so things don't get mixed up, use env
       `env -i PATH="#{ENV['PATH']}" bundle install`
@@ -44,15 +54,20 @@ RSpec.describe 'owl' do
   end
 
   context 'in a roda app' do
+    before :all do
+      `npm pack`
+    end
+
     before do
       Dir.chdir('spec')
       Dir.chdir('test_apps')
       FileUtils.rm_rf('flattering') if Dir.exist?('flattering')
+      `yarn cache clean`
     end
 
     after do
       Dir.chdir('..') if Dir.pwd.end_with?('flattering')
-      FileUtils.rm_rf('flattering') if Dir.exist?('flattering')
+      #FileUtils.rm_rf('flattering') if Dir.exist?('flattering')
       Dir.chdir('..')
       Dir.chdir('..')
     end
@@ -72,6 +87,11 @@ RSpec.describe 'owl' do
 
       GEMS
       File.write('Gemfile', gemfile)
+      # add local owl npm package
+      package_json = Oj.load(File.read('package.json'), mode: :strict)
+      package_json["devDependencies"].delete("opal-webpack-loader")
+      File.write('package.json', Oj.dump(package_json, mode: :strict))
+      `yarn add file:../../../opal-webpack-loader-#{OpalWebpackLoader::VERSION}.tgz --dev`
       `yarn install`
       # bundler set some environment things, but we need a clean environment, so things don't get mixed up, use env
       `env -i PATH="#{ENV['PATH']}" bundle install`
