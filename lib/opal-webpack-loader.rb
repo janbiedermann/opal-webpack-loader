@@ -53,8 +53,8 @@ if npm != ''
   if owl_npm_version != OpalWebpackLoader::VERSION
     STDERR.puts "opal-webpack-loader: Incorrect version of npm package found or npm package not installed.\n" +
       "Please install the npm package for opal-webpack-loader:\n" +
-      "\twith npm:\tnpm install opal-webpack-loader@#{OpalWebpackLoader::VERSION} --save-dev\n" +
-      "\tor with yarn:\tyarn add opal-webpack-loader@#{OpalWebpackLoader::VERSION} --dev\n"
+      "\twith npm:\tnpm install opal-webpack-loader@#{OpalWebpackLoader::VERSION}\n" +
+      "\tor with yarn:\tyarn add opal-webpack-loader@#{OpalWebpackLoader::VERSION}\n"
   end
 else
   STDERR.puts "opal-webpack-loader: Unable to check npm package version. Please check your npm installation."
