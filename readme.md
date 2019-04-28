@@ -14,15 +14,16 @@ At the [Isomorfeus Framework Project](http://isomorfeus.com)
 - opal modules are packaged as es6 modules
 - other webpack features become available, like:
 - source maps
-- hot module reloading
+- hot module reloading for opal ruby code and stylesheets and html views
 - tree shaking
 - code splitting
 - lazy loading
+- everything else webpack can do, like loading stylesheets, etc.
 
 ### Requirements
 - webpack 4.30
 - webpack-dev-server 3.3.0
-- es6_import_export branch of opal [PR#1832](https://github.com/opal/opal/pull/1832)
+- es6_import_export branch of opal, [PR#1832](https://github.com/opal/opal/pull/1832)
 - if you have webpacker gem installed somewhere, it should be a version supporting webpack 4
 - ruby, version 2.5 or higher recommended
 - bundler, latest version recommended
@@ -117,7 +118,7 @@ project_root
     +- Procfile         # config file for foreman
 ```
 
-#### Manual installation
+#### Manual Installation
 ##### Install the accompanying NPM package:
 one of:
 ```bash
@@ -136,11 +137,11 @@ gem 'opal', github: 'janbiedermann/opal', branch: 'es6_import_export' # requires
 gem 'opal-autoloader' # recommended
 gem 'opal-webpack-loader'
 ```
-##### Install config
+##### Install the configuration
 See the [configuration templates](https://github.com/isomorfeus/opal-webpack-loader/tree/master/lib/opal-webpack-loader/templates)
 and adjust to your preference.
 
-### General usage
+### General Usage
 
 After installing owl with the installer, three scripts are provided in package.json:
 - `development` - runs the webpack-dev-server, use for general development, provides fast reloads, entry is application.js
@@ -157,16 +158,30 @@ Also a Procfile has been installed, for rails its easy to startup rails and webp
 
 For non rails installation check the Procfile and add a starter for your app.
 
-#### Opal Ruby Application files
+#### Opal Ruby Application Files
 For rails installations with the installer they all go into: `app/opal`, for flat installations in the `opal` directory.
 In this directory there already is a `opal_loader.rb` which is the entry point for your app.
+
+#### Stylesheets
+Stylesheets are hot reloaded too with the default config installed by the installer. Also they are imported into application.js by default.
+For rails like applications stylesheets are in `app/assets/stylesheets/application.css`, for flat applications they are in `styles/application.css`.
+SCSS is supported too by the default config.
+
+#### Views
+For rails like applications a watcher for `app/views` is installed by default. The watcher will trigger a page reload when views are changed.
+For flat applications nothing is configured by default, as there are to many ways to generate views, they are not even needed with
+frameworks like isomorfeus. Instead the section for configuring a view watcher is included in the development.js and debug.js webpacker
+config, but it is commented out. Please see those files and adjust to your liking.
 
 ### Source Maps
 
 #### Source Map Demo
 [![SourceMap Demo](https://img.youtube.com/vi/SCmDYu_MLQU/0.jpg)](https://www.youtube.com/watch?v=SCmDYu_MLQU)
 
-#### Source Map configuration
+It shows a exception during a page load. In the console tab of the browsers developer tools, the error message is then expanded and just by clicking
+on the shown file:line_numer link, the browser shows the ruby source code, where the exception occured.
+
+#### Source Map Configuration
 
 The opal-webpack-loader for webpack supports the following options to enable HMR:
 (These are option for the webpack config, not to be confused with the owl ruby project options further down below)
