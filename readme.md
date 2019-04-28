@@ -222,9 +222,6 @@ Useful to trigger a render or update for React or ViewJS projects.
 
 Note 1: HMR works only for files within the project tree. Files outside the project tree are not hot reloaded.
 
-Note 2: When adding a opal ruby file, currently a manual page reload is required for webpack to pick it up. Once its loaded once,
-webpack will hot reload it from then on. ([issue#1](https://github.com/isomorfeus/opal-webpack-loader/issues/1))
-
 ### Opal Load Path
 The projects directory for opal ruby files must be in the opal load path. This is done in the initializer for rails apps in
 config/initializers/opal_webpack_loader.rb or in 'owl_init.rb' for non rails apps, for example:
