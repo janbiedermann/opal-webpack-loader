@@ -1,38 +1,52 @@
 #!/usr/bin/env ruby
 require 'opal-webpack-loader/compile_server'
+require 'opal-webpack-loader/compile_worker'
+require 'opal-webpack-loader/load_path_manager'
 require 'open3'
+
+at_exit do
+  if OpalWebpackLoader::CompileServer.unlink_socket?
+    if File.exist?(OpalWebpackLoader::CompileServer::OWCS_SOCKET_PATH)
+      File.unlink(OpalWebpackLoader::CompileServer::OWCS_SOCKET_PATH)
+    end
+  end
+end
 
 puts "args: #{ARGV}"
 
 if ARGV[0] == 'stop' || ARGV[0] == 'kill'
-  OpalWebpackCompileServer::Exe.stop
+  OpalWebpackLoader::CompileServer.stop
 else
   if ARGV[0] == 'start'
-    OpalWebpackCompileServer::Exe.stop
-    runargs = ARGV[1..-1]
+    OpalWebpackLoader::CompileServer.stop(false)
+    number_of_workers = ARGV[1].to_i
+    runargs = ARGV[2..-1]
   else
-    runargs = ARGV
+    raise 'arguments must be either "stop" or "start number_of_workers process to run with args"'
+    exit(1)
   end
 
-  pid = fork { OpalWebpackCompileServer::Exe.run }
+  OpalWebpackLoader::LoadPathManager.create_load_paths_cache
+
+  pid = fork { OpalWebpackLoader::CompileServer.new.start(number_of_workers) }
 
   have_socket = false
   start_time = Time.now
   begin
-    until have_socket
-      if File.exist?(OpalWebpackCompileServer::OWCS_SOCKET_PATH)
-        have_socket = true
-      else
-        if Time.now - start_time > 60
-          puts "opal-webpack-compile-server didnt start in time. Exiting"
-          OpalWebpackCompileServer::Exe.stop(false)
-          Process.kill("TERM", pid)
-          exit 1
-        end
-      end
-    end
+    # until have_socket
+    #   if File.exist?(OpalWebpackLoader::CompileServer::OWCS_SOCKET_PATH)
+    #     have_socket = true
+    #   else
+    #     if Time.now - start_time > 60
+    #       puts "opal-webpack-compile-server didnt start in time. Exiting"
+    #       OpalWebpackLoader::CompileServer.stop(false)
+    #       Process.kill("TERM", pid)
+    #       exit 1
+    #     end
+    #   end
+    # end
   rescue Exception => e
-    OpalWebpackCompileServer::Exe.stop(false)
+    OpalWebpackLoader::CompileServer.stop(false)
     puts "opal-webpack-compile-server couldn't start:"
     puts e.backtrace.join("\n")
     puts e.message
@@ -54,7 +68,7 @@ else
 
       thread.join # don't exit until the external process is done
     end
-  rescue Interrupt => e
+  rescue Interrupt
     puts "opal-webpack-compile-server got interrupted. Exiting with drama."
     Process.kill("TERM", pid)
     exit 0

@@ -1,172 +1,141 @@
-require 'oj'
-require 'eventmachine'
-require 'opal/paths'
-require 'opal/source_map'
-require 'source_map'
-require 'opal/compiler'
 require 'socket'
 
-at_exit do
-  if OpalWebpackCompileServer::Exe.unlink_socket?
-    if File.exist?(OpalWebpackCompileServer::OWCS_SOCKET_PATH)
-      File.unlink(OpalWebpackCompileServer::OWCS_SOCKET_PATH)
-    end
-  end
-end
+module OpalWebpackLoader
+  class CompileServer
+    OWL_CACHE_DIR = File.join('.','.owl_cache/')
+    OWL_LP_CACHE = File.join(OWL_CACHE_DIR, 'load_paths.json')
+    OWCS_SOCKET_PATH = File.join(OWL_CACHE_DIR, 'owcs_socket')
+    SIGNALS = %w[QUIT INT TERM TTIN TTOU]
+    TIMEOUT = 15
 
-module OpalWebpackCompileServer
-  OWL_CACHE_DIR = './.owl_cache/'
-  OWL_LP_CACHE = OWL_CACHE_DIR + 'load_paths.json'
-  OWCS_SOCKET_PATH = OWL_CACHE_DIR + 'owcs_socket'
-
-  class Compiler < EventMachine::Connection
-    def initialize(*args)
-      @received_data = ''
-      super(*args)
-    end
-
-    def receive_data(data)
-      @received_data << data
-
-      return unless @received_data.end_with?("}\x04")
-
-      if @received_data.start_with?('command:stop')
-        EventMachine.stop
-        exit(0)
-      end
-
-      request_json = Oj.load(@received_data.chop!, {})
-
-      @received_data = ''
-
-      compile_source_map = request_json["source_map"]
-      filename = request_json["filename"]
-      source = File.read(filename)
-
-      operation = proc do
-        begin
-          c = Opal::Compiler.new(source, file: filename, es6_modules: true)
-          c.compile
-          result = { 'javascript' => c.result }
-          if compile_source_map
-            result['source_map'] = c.source_map.as_json
-            result['source_map']['sourcesContent'] = [source]
-            result['source_map']['file'] = filename
-            result['source_map']['names'] = result['source_map']['names'].map(&:to_s)
-          end
-          result['required_trees'] = c.required_trees
-          Oj.dump(result, {})
-        rescue Exception => e
-          Oj.dump({ 'error' => { 'name' => e.class, 'message' => e.message, 'backtrace' => e.backtrace.join("\n") } }, {})
-        end
-      end
-
-      callback = proc do |json|
-        self.send_data(json)
-        close_connection_after_writing
-      end
-
-      EM.defer(operation, callback)
-    end
-  end
-
-  class LoadPathManager
-    def self.get_load_path_entries(path)
-      path_entries = []
-      return [] unless Dir.exist?(path)
-      dir_entries = Dir.entries(path)
-      dir_entries.each do |entry|
-        next if entry == '.'
-        next if entry == '..'
-        next unless entry
-        absolute_path = File.join(path, entry)
-        if File.directory?(absolute_path)
-          more_path_entries = get_load_path_entries(absolute_path)
-          path_entries.push(*more_path_entries) if more_path_entries.size > 0
-        elsif (absolute_path.end_with?('.rb') || absolute_path.end_with?('.js')) && File.file?(absolute_path)
-          path_entries.push(absolute_path)
-        end
-      end
-      path_entries
-    end
-
-    def self.get_load_paths
-      load_paths = if File.exist?(File.join('bin', 'rails'))
-                     %x{
-                       bundle exec rails runner "puts (Rails.configuration.respond_to?(:assets) ? (Rails.configuration.assets.paths + Opal.paths).uniq : Opal.paths)"
-                     }
-                   else
-                     %x{
-                       bundle exec ruby -e 'if File.exist?("app_loader.rb"); require "./app_loader.rb"; else; require "bundler/setup"; Bundler.require; set :run, false if defined? Sinatra; end; puts Opal.paths'
-                     }
-                   end
-      if $? == 0
-        load_path_lines = load_paths.split("\n")
-        load_path_lines.pop if load_path_lines.last == ''
-
-        load_path_entries = []
-
-        cwd = Dir.pwd
-
-        load_path_lines.each do |path|
-          next if path.start_with?(cwd)
-          more_path_entries = get_load_path_entries(path)
-          load_path_entries.push(*more_path_entries) if more_path_entries.size > 0
-        end
-        cache_obj = { 'opal_load_paths' => load_path_lines, 'opal_load_path_entries' => load_path_entries }
-        Dir.mkdir(OpalWebpackCompileServer::OWL_CACHE_DIR) unless Dir.exist?(OpalWebpackCompileServer::OWL_CACHE_DIR)
-        File.write(OpalWebpackCompileServer::OWL_LP_CACHE, Oj.dump(cache_obj, {}))
-        load_path_lines
-      else
-        raise 'Error getting load paths!'
-        exit(2)
-      end
-    end
-  end
-
-  class Exe
     def self.unlink_socket?
       @unlink
     end
 
-    def self.unlink_on_exit
+    def self.unlink_socket_on_exit
       @unlink = true
     end
 
-    def self.dont_unlink_on_exit
+    def self.dont_unlink_socket_on_exit
       @unlink = false
     end
 
     def self.stop(do_exit = true)
       if File.exist?(OWCS_SOCKET_PATH)
-        dont_unlink_on_exit
+        dont_unlink_socket_on_exit
         begin
           s = UNIXSocket.new(OWCS_SOCKET_PATH)
-          s.send("command:stop\n", 0)
+          s.send("command:stop\x04", 0)
           s.close
         rescue
-          # socket cant be reached so owcs is already dead, delete socket
-          unlink_on_exit
+          # socket cant be reached so owlcs is already dead, delete socket
+          unlink_socket_on_exit
         end
         exit(0) if do_exit
       end
     end
 
-    def self.run
-      if File.exist?(OWCS_SOCKET_PATH) # OWCS already running
-        puts 'Another Opal Webpack Compile Server already running, exiting'
-        dont_unlink_on_exit
-        exit(1)
-      else
-        unlink_on_exit
-        load_paths = OpalWebpackCompileServer::LoadPathManager.get_load_paths
-        if load_paths
-          Opal.append_paths(*load_paths)
-          # Process.daemon(true)
-          EventMachine.run do
-            EventMachine.start_unix_domain_server(OWCS_SOCKET_PATH, OpalWebpackCompileServer::Compiler)
+    def initialize
+      @read_pipe, @write_pipe = IO.pipe
+      @workers = {}
+      @signal_queue = []
+    end
+
+    def start(number_of_workers = 4)
+      $PROGRAM_NAME = 'owl compile server'
+      @number_of_workers = number_of_workers
+      @server_pid = Process.pid
+      $stderr.sync = $stdout.sync = true
+      @socket = UNIXServer.new(OWCS_SOCKET_PATH)
+      spawn_workers
+      SIGNALS.each { |sig| trap_deferred(sig) }
+      trap('CHLD') { @write_pipe.write_nonblock('.') }
+
+      loop do
+        reap_workers
+        case (mode = @signal_queue.shift)
+        when nil
+          kill_runaway_workers
+          spawn_workers
+        when 'QUIT', 'TERM', 'INT'
+          @workers.each_pair do |pid, _worker|
+            Process.kill('TERM', pid)
+          end
+          break
+        when 'TTIN'
+          @number_of_workers += 1
+        when 'TTOU'
+          unless @number_of_workers <= 0
+            Config.workers -= 1
+            kill_worker('QUIT', @workers.keys.max)
           end
         end
+        reap_workers
+        ready = IO.select([@read_pipe], nil, nil, 1) || next
+        ready.first && ready.first.first || next
+        @read_pipe.read_nonblock(1)
+        OpalWebpackLoader::CompileServer.unlink_socket_on_exit
+      end
+    end
+
+    private
+
+    def reap_workers
+      loop do
+        pid, status = Process.waitpid2(-1, Process::WNOHANG) || break
+        reap_worker(pid, status)
+      end
+    rescue Errno::ECHILD
+    end
+
+    def reap_worker(pid, status)
+      worker = @workers.delete(pid)
+      begin
+        worker.tempfile.close
+      rescue
+        nil
+      end
+      puts "OpalWebpackLoader::CompileServer: Reaped worker #{worker.number} (PID:#{pid}) status: #{status.exitstatus}"
+    end
+
+    def kill_worker(signal, pid)
+      Process.kill(signal, pid)
+    rescue Errno::ESRCH
+    end
+
+    def kill_runaway_workers
+      now = Time.now
+      @workers.each_pair do |pid, worker|
+        (now - worker.tempfile.ctime) <= TIMEOUT && next
+        $stderr.puts "worker #{worker.number} (PID:#{pid}) has timed out"
+        kill_worker('KILL', pid)
+      end
+    end
+
+    def init_worker(worker)
+      @write_pipe.close
+      @read_pipe.close
+      @workers.each_pair { |_, w| w.tempfile.close }
+      worker.start
+    end
+
+    def spawn_workers
+      worker_number = -1
+      until (worker_number += 1) == @number_of_workers
+        @workers.value?(worker_number) && next
+        tempfile = Tempfile.new('')
+        tempfile.unlink
+        tempfile.sync = true
+        worker = OpalWebpackLoader::CompileWorker.new(@server_pid, @socket, tempfile, worker_number)
+        pid = fork { init_worker(worker) }
+        @workers[pid] = worker
+      end
+    end
+
+    def trap_deferred(signal)
+      trap(signal) do |_|
+        @signal_queue << signal
+        @write_pipe.write_nonblock('.')
       end
     end
   end
