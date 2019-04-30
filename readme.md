@@ -163,15 +163,15 @@ like `Buffer`, the opal ruby entry file is `opal_loader.rb` in the opal or app/o
 - **Web Worker**: the webpack target is 'webworker' and the javascript entry file for imports is `application_webworker.js` - used to initialize Web
 Workers in the browser, the opal ruby entry file is `opal_webworker_loader.rb` in the opal or app/opal directory of the app.
 
-All 3 targets are build by default. To speed up builds for development, just remove the unneeded targets from the last line of the webpack config
-file `development.js`:
+Only the browser target is build by default. To builds the other target, just add the needed targets to the last line of the webpack config,
+for example to `development.js`:
 default config:
 ```javascript
-module.exports = [ browser, ssr, webworker ];
+module.exports = [ browser ];
 ```
 modified config for faster builds:
 ```javascript
-module.exports = [ browser ];
+module.exports = [ browser, ssr, webworker ];
 ```
 Same works for the `debug.js` and `production.js` webpack config files.
 

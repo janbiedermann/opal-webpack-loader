@@ -242,6 +242,7 @@ module OpalWebpackLoader
       def install_webpack_config
         erb_hash = {
           asset_output_directory: File.join(@conf_rel_prefix, @asset_output_directory),
+          default_targets: 'browser',
           js_entry: File.join(@conf_rel_prefix, @js_entrypoints_directory, 'application.js'),
           js_common_entry: File.join(@conf_rel_prefix, @js_entrypoints_directory, 'application_common.js'),
           js_debug_entry: File.join(@conf_rel_prefix, @js_entrypoints_directory, 'application_debug.js'),
