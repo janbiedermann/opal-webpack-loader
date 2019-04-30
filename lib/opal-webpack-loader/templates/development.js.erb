@@ -5,7 +5,7 @@ const chokidar = require('chokidar');
 const OwlResolver = require('opal-webpack-loader/resolver'); // to resolve ruby files
 const ExtraWatchWebpackPlugin = require('extra-watch-webpack-plugin'); // to watch for added ruby files
 
-module.exports = {
+const common_config = {
     context: path.resolve(__dirname, '<%= opal_directory %>'),
     mode: "development",
     optimization: {
@@ -14,10 +14,6 @@ module.exports = {
     performance: {
         maxAssetSize: 20000000,
         maxEntrypointSize: 20000000
-    },
-    entry: {
-        application: [path.resolve(__dirname, '<%= js_entry %>')],
-        application_ssr: [path.resolve(__dirname, '<%= js_ssr_entry %>')]
     },
     output: {
         // webpack-dev-server keeps the output in memory
@@ -129,8 +125,36 @@ module.exports = {
             // poll: 50,
             ignored: /\bnode_modules\b/
         },
-        contentBase: path.resolve(__dirname, 'public')
-        // watchContentBase: true
+        contentBase: path.resolve(__dirname, 'public'),
+        // watchContentBase: true,
+        // writeToDisk: true,
+        useLocalIp: true
     }
 };
 
+const browser_config = {
+    target: 'web',
+    entry: {
+        application: [path.resolve(__dirname, '<%= js_entry %>')]
+    }
+};
+
+const ssr_config = {
+    target: 'node',
+    entry: {
+        application_ssr: [path.resolve(__dirname, '<%= js_ssr_entry %>')]
+    }
+};
+
+const web_worker_config = {
+    target: 'webworker',
+    entry: {
+        webworker: [path.resolve(__dirname, '<%= js_web_worker_entry %>')]
+    }
+};
+
+const ssr = Object.assign({}, common_config, ssr_config);
+const webworker = Object.assign({}, common_config, web_worker_config);
+const browser = Object.assign({}, common_config, browser_config);
+
+module.exports = [ browser, ssr, webworker ];

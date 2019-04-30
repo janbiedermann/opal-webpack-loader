@@ -162,7 +162,7 @@ module OpalWebpackLoader
         install_webpack_config
         install_package_json
         install_js_entries
-        install_opal_entry
+        install_opal_entries
         install_procfile
       end
 
@@ -172,10 +172,12 @@ module OpalWebpackLoader
         create_file_from_template('application_common.js.erb', File.join(@js_entrypoints_directory, 'application_common.js'),erb_hash)
         create_file_from_template('application_debug.js.erb', File.join(@js_entrypoints_directory, 'application_debug.js'), erb_hash)
         create_file_from_template('application_ssr.js.erb', File.join(@js_entrypoints_directory, 'application_ssr.js'), erb_hash)
+        create_file_from_template('application_web_worker.js.erb', File.join(@js_entrypoints_directory, 'application_web_worker.js'), erb_hash)
       end
 
-      def install_opal_entry
+      def install_opal_entries
         create_file_from_template('opal_loader.rb.erb', File.join(@opal_directory, "#{options[:opal_name]}_loader.rb"), {})
+        create_file_from_template('opal_web_worker_loader.rb.erb', File.join(@opal_directory, "#{options[:opal_name]}_web_worker_loader.rb"), {})
       end
 
       def install_package_json
@@ -244,6 +246,7 @@ module OpalWebpackLoader
           js_common_entry: File.join(@conf_rel_prefix, @js_entrypoints_directory, 'application_common.js'),
           js_debug_entry: File.join(@conf_rel_prefix, @js_entrypoints_directory, 'application_debug.js'),
           js_ssr_entry: File.join(@conf_rel_prefix, @js_entrypoints_directory, 'application_ssr.js'),
+          js_web_worker_entry: File.join(@conf_rel_prefix, @js_entrypoints_directory, 'application_web_worker.js'),
           opal_directory: File.join(@conf_rel_prefix, @opal_directory),
           stylesheets_directory: File.join(@conf_rel_prefix, @styles_directory),
           hmr_hook: ''

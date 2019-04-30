@@ -3,7 +3,7 @@ const OwlResolver = require('opal-webpack-loader/resolver');
 const CompressionPlugin = require("compression-webpack-plugin"); // for gzipping the packs
 const ManifestPlugin = require('webpack-manifest-plugin');  // for generating the manifest
 
-module.exports = {
+const common_config = {
     context: path.resolve(__dirname, '<%= opal_directory %>'),
     mode: "production",
     optimization: {
@@ -12,10 +12,6 @@ module.exports = {
     performance: {
         maxAssetSize: 20000000,
         maxEntrypointSize: 20000000
-    },
-    entry: {
-        application: [path.resolve(__dirname, '<%= js_entry %>')],
-        application_ssr: [path.resolve(__dirname, '<%= js_ssr_entry %>')]
     },
     output: {
         filename: '[name]-[chunkhash].js', // include fingerprint in file name, so browsers get the latest
@@ -92,3 +88,29 @@ module.exports = {
     }
 };
 
+const browser_config = {
+    target: 'web',
+    entry: {
+        application: [path.resolve(__dirname, '<%= js_entry %>')]
+    }
+};
+
+const ssr_config = {
+    target: 'node',
+    entry: {
+        application_ssr: [path.resolve(__dirname, '<%= js_ssr_entry %>')]
+    }
+};
+
+const web_worker_config = {
+    target: 'webworker',
+    entry: {
+        web_worker: [path.resolve(__dirname, '<%= js_web_worker_entry %>')]
+    }
+};
+
+const ssr = Object.assign({}, common_config, ssr_config);
+const web_worker = Object.assign({}, common_config, web_worker_config);
+const browser = Object.assign({}, common_config, browser_config);
+
+module.exports = [ browser, ssr, web_worker ];
