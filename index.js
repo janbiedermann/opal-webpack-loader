@@ -10,6 +10,7 @@ let Owl = {
     c_dir: '.owl_cache',
     lp_cache: path.join('.owl_cache', 'load_paths.json'),
     socket_path: path.join('.owl_cache', 'owcs_socket'),
+    module_start: 'const opal_code = function() {\n  global.Opal.modules[',
     socket_ready: false,
     options: null
 };
@@ -40,7 +41,7 @@ function delegate_compilation(that, callback, meta, request_json) {
             let real_resource_path = path.normalize(that.resourcePath);
             if (Owl.options.hmr && real_resource_path.startsWith(that.rootContext)) {
                 // search for ruby module name in compiled file
-                let start_index = compiler_result.javascript.indexOf('global.Opal.modules[') + 20; // 20 - length of the global... string
+                let start_index = compiler_result.javascript.indexOf(Owl.module_start) + Owl.module_start.length;
                 let end_index = compiler_result.javascript.indexOf(']', start_index);
                 let opal_module_name = compiler_result.javascript.substr(start_index, end_index - start_index);
                 let hmreloader = `
