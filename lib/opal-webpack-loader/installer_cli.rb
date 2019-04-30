@@ -228,15 +228,15 @@ module OpalWebpackLoader
       end
 
       def debug_script
-        "bundle exec opal-webpack-compile-server start webpack-dev-server --config #{File.join(@webpack_config_directory, 'debug.js')}"
+        "bundle exec opal-webpack-compile-server start 4 webpack-dev-server --config #{File.join(@webpack_config_directory, 'debug.js')}"
       end
 
       def development_script
-        "bundle exec opal-webpack-compile-server start webpack-dev-server --config #{File.join(@webpack_config_directory, 'development.js')}"
+        "bundle exec opal-webpack-compile-server start 4 webpack-dev-server --config #{File.join(@webpack_config_directory, 'development.js')}"
       end
 
       def production_script
-        "bundle exec opal-webpack-compile-server start webpack --config=#{File.join(@webpack_config_directory, 'production.js')}"
+        "bundle exec opal-webpack-compile-server start 4 webpack --config=#{File.join(@webpack_config_directory, 'production.js')}"
       end
 
       def install_webpack_config
