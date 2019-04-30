@@ -9,16 +9,16 @@ At the [Isomorfeus Framework Project](http://isomorfeus.com)
 ### Features
 - comes with a installer for rails and other frameworks
 - webpack based build process
-- very fast builds of opal code
-- builds are asynchronous and even parallel, depending on how webpack triggers builds
+- very fast, asynchronous and parallel builds of opal code
 - opal modules are packaged as es6 modules
 - other webpack features become available, like:
-- source maps
-- hot module reloading for opal ruby code and stylesheets and html views
-- tree shaking
-- code splitting
-- lazy loading
-- everything else webpack can do, like loading stylesheets, etc.
+  - source maps
+  - multiple targets: web (for browsers), node (for server side rendering) and webworker (for Web Workers)
+  - hot module reloading for opal ruby code and stylesheets and html views
+  - tree shaking
+  - code splitting
+  - lazy loading
+  - everything else webpack can do, like loading stylesheets, etc.
 
 ### Requirements
 - webpack 4.30
@@ -149,10 +149,31 @@ After installing owl with the installer, three scripts are provided in package.j
 - `debug` - runs the webpack-dev-server, use for debugging, provides source maps, entry is application_debug.js. Additional debugging tools may be added there.
 - `production_build` - runs webpack to build assets for production, entry is application.js
 
-These scripts can be run with:
+These scripts can for example be run with:
 `yarn run debug` or `npm run debug`
 
-In addition there is a application_ssr.js entry, meant for server side rendering. It builds a separate bundle.
+The default config provides several targets and entries:
+
+- **Browser**: the webpack target is 'web' and the javascript entry file for imports is `application.js` - general use for the application with all
+browser features, the opal ruby entry file is `opal_loader.rb` in the opal or app/opal directory of the app.
+- **Server Side Rendering**: the webpack target is `node` and the javascript entry file for imports is `application_ssr.js` - general use for the
+application server side rendering, several Browser features are unavailable, no `window`, no `document`, some node features are available,
+like `Buffer`, the opal ruby entry file is `opal_loader.rb` in the opal or app/opal directory of the app.
+(meant to be used with isomorfeus-speednode, standard ExecJS limitations prevent certain webpack features)
+- **Web Worker**: the webpack target is 'webworker' and the javascript entry file for imports is `application_webworker.js` - used to initialize Web
+Workers in the browser, the opal ruby entry file is `opal_webworker_loader.rb` in the opal or app/opal directory of the app.
+
+All 3 targets are build by default. To speed up builds for development, just remove the unneeded targets from the last line of the webpack config
+file `development.js`:
+default config:
+```javascript
+module.exports = [ browser, ssr, webworker ];
+```
+modified config for faster builds:
+```javascript
+module.exports = [ browser ];
+```
+Same works for the `debug.js` and `production.js` webpack config files.
 
 Also a Procfile has been installed, for rails its easy to startup rails and webpack with foreman:
 `foreman start` (`gem install foreman` if you dont have it already). It will start rails and webpack-dev-server with the development script.
@@ -230,14 +251,14 @@ Opal.append_path(File.realdirpath('app/opal'))
 ```
 
 ### View Helper
-in Rails or frameworks that support `javscript_include_tag`, in your app/helpers/application_helper.rb
+In Rails or frameworks that support `javscript_include_tag`, add to the app/helpers/application_helper.rb
 ```ruby
 module ApplicationHelper
   include OpalWebpackLoader::RailsViewHelper
 ```
 in other frameworks that dont have a `javascript_include_tag`:
 ```ruby
-module ApplicationHelper
+module MyProjectsViewThings
   include OpalWebpackLoader::ViewHelper
 ```
 
