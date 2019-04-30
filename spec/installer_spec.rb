@@ -27,7 +27,9 @@ RSpec.describe 'owl installer' do
       expect(File.exist?(File.join('app', 'assets', 'javascripts', 'application_common.js'))).to be true
       expect(File.exist?(File.join('app', 'assets', 'javascripts', 'application_debug.js'))).to be true
       expect(File.exist?(File.join('app', 'assets', 'javascripts', 'application_ssr.js'))).to be true
+      expect(File.exist?(File.join('app', 'assets', 'javascripts', 'application_web_worker.js'))).to be true
       expect(File.exist?(File.join('app', 'opal', 'opal_loader.rb'))).to be true
+      expect(File.exist?(File.join('app', 'opal', 'opal_web_worker_loader.rb'))).to be true
       expect(File.exist?(File.join('config', 'initializers', 'opal_webpack_loader.rb'))).to be true
       expect(File.exist?(File.join('config', 'webpack', 'debug.js'))).to be true
       expect(File.exist?(File.join('config', 'webpack', 'development.js'))).to be true
@@ -48,7 +50,9 @@ RSpec.describe 'owl installer' do
       expect(File.exist?(File.join('app', 'assets', 'javascripts', 'application_common.js'))).to be true
       expect(File.exist?(File.join('app', 'assets', 'javascripts', 'application_debug.js'))).to be true
       expect(File.exist?(File.join('app', 'assets', 'javascripts', 'application_ssr.js'))).to be true
+      expect(File.exist?(File.join('app', 'assets', 'javascripts', 'application_web_worker.js'))).to be true
       expect(File.exist?(File.join('app', 'hyperhyper', 'hyperhyper_loader.rb'))).to be true
+      expect(File.exist?(File.join('app', 'hyperhyper', 'hyperhyper_web_worker_loader.rb'))).to be true
       expect(File.exist?(File.join('config', 'initializers', 'opal_webpack_loader.rb'))).to be true
       expect(File.exist?(File.join('config', 'webpack', 'debug.js'))).to be true
       expect(File.exist?(File.join('config', 'webpack', 'development.js'))).to be true
