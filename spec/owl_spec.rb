@@ -21,13 +21,12 @@ RSpec.describe 'owl' do
     end
 
     it 'can run the production build script' do
-      `bundle exec rails new railing --skip-git --skip-bundle --skip-sprockets --skip-spring --skip-bootsnap`
+      `bundle exec rails new railing --skip-git --skip-bundle --skip-sprockets --skip-javascript --skip-spring --skip-bootsnap`
       expect(Dir.exist?('railing')).to be true
       Dir.chdir('railing')
       arg_val = %w[rails]
       expect(Dir.exist?(File.join('railing', 'config', 'webpack'))).to be false
       OpalWebpackLoader::Installer::CLI.start(arg_val)
-      FileUtils.mv(File.join('app', 'assets', 'javascripts', 'application.js_owl_new'), File.join('app', 'assets', 'javascripts', 'application.js´'))
       gemfile = File.read('Gemfile')
       gemfile << <<~GEMS
 
