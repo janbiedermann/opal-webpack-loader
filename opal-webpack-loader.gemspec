@@ -21,7 +21,6 @@ Gem::Specification.new do |s|
   s.require_paths  = ['lib']
 
   s.add_dependency 'opal', '~> 0.11.0'
-  s.add_dependency 'eventmachine', '~> 1.2.7'
   s.add_dependency 'oj', '~> 3.6.0'
   s.add_dependency 'thor', '>= 0.19.4'
   s.add_development_dependency 'bundler'
