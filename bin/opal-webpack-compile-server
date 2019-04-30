@@ -1,6 +1,5 @@
 #!/usr/bin/env ruby
 require 'opal-webpack-loader/compile_server'
-require 'opal-webpack-loader/compile_worker'
 require 'opal-webpack-loader/load_path_manager'
 require 'open3'
 
@@ -31,7 +30,10 @@ else
     exit(1)
   end
 
-  OpalWebpackLoader::LoadPathManager.create_load_paths_cache
+  load_paths = OpalWebpackLoader::LoadPathManager.create_load_paths_cache
+  if load_paths
+    Opal.append_paths(*load_paths)
+  end
 
   pid = fork { OpalWebpackLoader::CompileServer.new.start(number_of_workers) }
 
