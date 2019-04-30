@@ -1,8 +1,3 @@
-require 'oj'
-require 'opal/paths'
-require 'opal/source_map'
-require 'source_map'
-require 'opal/compiler'
 require 'socket'
 
 module OpalWebpackLoader

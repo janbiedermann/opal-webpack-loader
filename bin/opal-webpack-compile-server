@@ -1,7 +1,13 @@
 #!/usr/bin/env ruby
-require 'opal-webpack-loader/compile_server'
-require 'opal-webpack-loader/load_path_manager'
 require 'open3'
+require 'oj'
+require 'opal/paths'
+require 'opal/source_map'
+require 'source_map'
+require 'opal/compiler'
+require 'opal-webpack-loader/load_path_manager'
+require 'opal-webpack-loader/compile_worker'
+require 'opal-webpack-loader/compile_server'
 
 at_exit do
   if OpalWebpackLoader::CompileServer.unlink_socket?
