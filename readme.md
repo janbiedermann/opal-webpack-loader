@@ -169,9 +169,9 @@ default config:
 ```javascript
 module.exports = [ browser ];
 ```
-modified config for faster builds:
+modified config with ssr and web_worker targets enabled:
 ```javascript
-module.exports = [ browser, ssr, webworker ];
+module.exports = [ browser, ssr, web_worker ];
 ```
 Same works for the `debug.js` and `production.js` webpack config files.
 
