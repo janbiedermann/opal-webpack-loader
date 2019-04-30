@@ -14,9 +14,8 @@ let Owl = {
     options: null
 };
 
-function delegate_compilation(that, callback, meta) {
+function delegate_compilation(that, callback, meta, request_json) {
     let buffer = Buffer.alloc(0);
-    let request_json = JSON.stringify({ filename: that.resourcePath, source_map: Owl.options.sourceMap });
     // or let the source be compiled by the compile server
     let socket = net.connect(Owl.socket_path, function () {
         socket.write(request_json + "\x04"); // triggers compilation // triggers compilation
@@ -71,7 +70,15 @@ if (module.hot) {
         }
     });
     socket.on('error', function (err) {
-        callback(err);
+        // only with webpack-dev-server running, somehow connecting to the IPC sockets leads to ECONNREFUSED
+        // even though the socket is alive. this happens every once in a while for some seconds
+        // not sure why this happens, but looping here solves it after a while
+        // console.log("connect error for ", that.resourcePath)
+        if (err.syscall === 'connect') {
+            setTimeout(function() {
+                delegate_compilation(that, callback, meta, request_json);
+            }, 100);
+        } else { callback(err); }
     });
 }
 
@@ -91,5 +98,6 @@ module.exports = function(source, map, meta) {
             Owl.socket_ready = true;
         }
     }
-    delegate_compilation(this, callback, meta);
+    let request_json = JSON.stringify({ filename: this.resourcePath, source_map: Owl.options.sourceMap });
+    delegate_compilation(this, callback, meta, request_json);
 };
