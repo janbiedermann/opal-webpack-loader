@@ -9,7 +9,9 @@ At the [Isomorfeus Framework Project](http://isomorfeus.com)
 ### Features
 - comes with a installer for rails and other frameworks
 - webpack based build process
-- very fast, asynchronous and parallel builds of opal code
+- very fast, asynchronous and parallel builds of opal code:
+opal-webpack-loader-0.7.1 compiles all of opal, a bunch of gems and over 19000SLC on a
+Intel® Core™ i7-7700HQ CPU @ 2.80GHz × 8, with 8 workers in around 1850ms
 - opal modules are packaged as es6 modules
 - other webpack features become available, like:
   - source maps
