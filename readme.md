@@ -233,6 +233,17 @@ Also source maps must be enabled in webpack. See [webpack devtool configuration]
 
 (Recommended to watch in FullHD)
 
+#### HMR and Ruby
+
+When a module uses method aliasing and is reloaded, the aliases are applied again, which may lead to a endless recursion of method calls of
+the aliased method once called after hot reloading.
+To prevent that, the alias should be conditional, only be applied if the alias has not been applied before. Or alternatively the original
+method must be restored before aliasing it again.
+Because gems are not hot reloaded, this is not a issue for imported gems, but must be taken care of within the projects code.
+
+Also it must be considered, that other code, which without hot reloading would only execute once during the programs life cycle, possibly will
+execute many times when hot reloaded. "initialization code" should be guarded to prevent it from executing many times.
+
 #### HMR Configuration
 
 The opal-webpack-loader for webpack supports the following options to enable HMR:
