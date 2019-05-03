@@ -192,7 +192,7 @@ module OpalWebpackLoader
           package_json["scripts"]["production_build"] = production_script
           package_json["devDependencies"] = {} unless package_json.has_key?("devDependencies")
           package_json["devDependencies"].merge!(gem_package_json["devDependencies"])
-          package_json["devDependencies"]["opal-webpack-loader"] = "^#{OpalWebpackLoader::VERSION}"
+          package_json["dependencies"]["opal-webpack-loader"] = "^#{OpalWebpackLoader::VERSION}"
           File.write('package.json', Oj.dump(package_json, mode: :strict))
           puts "Updated package.json, updated scripts and owl dependencies"
         else
