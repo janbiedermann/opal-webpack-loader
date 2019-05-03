@@ -16,11 +16,11 @@ Gem::Specification.new do |s|
   TEXT
   s.executables << 'opal-webpack-compile-server'
   s.executables << 'owl-install'
-  s.files          = `git ls-files -- lib`.split("\n")
-  s.test_files     = `git ls-files -- {test,spec,features}/*`.split("\n")
+  s.files          = `git ls-files -- {lib,LICENSE,readme.md}`.split("\n")
+  # s.test_files     = `git ls-files -- {test,spec,features}/*`.split("\n")
   s.require_paths  = ['lib']
 
-  s.add_dependency 'opal', '~> 0.11.0'
+  s.add_dependency 'opal', '>= 0.11.0'
   s.add_dependency 'oj', '~> 3.6.0'
   s.add_dependency 'thor', '>= 0.19.4'
   s.add_development_dependency 'bundler'
