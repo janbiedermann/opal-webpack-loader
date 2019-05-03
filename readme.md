@@ -200,11 +200,11 @@ config, but it is commented out. Please see those files and adjust to your likin
 #### Parallel compilation for speed
 For speed the number of workers for compiling opal ruby files can be adjusted in `package.json` -> "scripts" key:
 Default entries look like:
-`"production_build": "bundle exec opal-webpack-compile-server start 4 webpack --config=#{File.join('webpack', 'production.js')}"`
+`"production_build": "bundle exec opal-webpack-compile-server start 4 webpack --config=config/webpack/production.js"`
 The compile server will start 4 workers for compiling opal files. The recommended number of workers should be 4 for machines with 4 or less cores,
 or equal to the number of cores, for machines with up to 12 cores. More than 12 can't be kept busy by webpack it seems, ymmv.
 Example for 8 cores:
-`"production_build": "bundle exec opal-webpack-compile-server start 8 webpack --config=#{File.join('webpack', 'production.js')}"`
+`"production_build": "bundle exec opal-webpack-compile-server start 8 webpack --config=config/webpack/production.js"`
 ### Source Maps
 
 #### Source Map Demo
