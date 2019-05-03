@@ -216,7 +216,7 @@ on the shown file:line_numer link, the browser shows the ruby source code, where
 #### Source Map Configuration
 
 The opal-webpack-loader for webpack supports the following options to enable HMR:
-(These are option for the webpack config, not to be confused with the owl ruby project options further down below)
+(These are options for the webpack config, not to be confused with the owl ruby project options further down below)
 ```javascript
     loader: 'opal-webpack-loader',
     options: {
@@ -249,7 +249,7 @@ execute many times when hot reloaded. "initialization code" should be guarded to
 #### HMR Configuration
 
 The opal-webpack-loader for webpack supports the following options to enable HMR:
-(These are option for the webpack config, not to be confused with the owl ruby project options further down below)
+(These are options for the webpack config, not to be confused with the owl ruby project options further down below)
 ```javascript
     loader: 'opal-webpack-loader',
     options: {
@@ -262,7 +262,7 @@ The opal-webpack-loader for webpack supports the following options to enable HMR
 - `hmrHook` : A javascript expression as string which will be executed after the new code has been loaded.
 Useful to trigger a render or update for React or ViewJS projects.
 
-Note 1: HMR works only for files within the project tree. Files outside the project tree are not hot reloaded.
+Note: HMR works only for files within the project tree. Files outside the project tree are not hot reloaded.
 
 ### Opal Load Path
 The projects directory for opal ruby files must be in the opal load path. This is done in the initializer for rails apps in
