@@ -65,7 +65,7 @@ owl-install rails -o hyperhyper
 ```
 A directory `app/hyperhyper` will be created, opal files should then go there and will be properly resolved by webpack.
 
-Complete 
+Complete set of directories and files created by the installer for projects with a rails like structure:
 ```
 project_root
     +- app
