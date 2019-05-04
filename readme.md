@@ -25,7 +25,16 @@ Intel® Core™ i7-7700HQ CPU @ 2.80GHz × 8, with 8 workers in around 1850ms
 ### Requirements
 - webpack 4.30
 - webpack-dev-server 3.3.0
-- es6_import_export branch of opal, [PR#1832](https://github.com/opal/opal/pull/1832)
+- one of the es6_import_export branches of opal
+  - [PR#1832](https://github.com/opal/opal/pull/1832), implementing ES6 modules, based on Opal master 1.0.beta,
+  
+    `gem 'opal', github: 'janbiedermann/opal', branch: 'es6_import_export'`
+  - [PR#1969](https://github.com/opal/opal/pull/1969), implementing ES6 modules and changes for 'strict' mode, based on Opal master 1.0.beta,
+  
+    `gem 'opal', github: 'janbiedermann/opal', branch: 'es6_im_ex_strict'`
+    
+    PR#1969 is the continuation of PR#1832. While PR#1832 is sort of "stable", PR#1969 is under development.
+  
 - if you have webpacker gem installed somewhere, it should be a version supporting webpack 4
 - ruby, version 2.5 or higher recommended
 - bundler, latest version recommended
@@ -71,10 +80,17 @@ project_root
     +- app
         +- assets
             +- javascripts  # javascript entries directory
+                +- application.js
+                +- application_common.js
+                +- application_ssr.js
+                +- application_webworker.js
             +- styles       # directory for stylesheets
         +- opal             # directory for opal application files, can be changed with -o
     +- config
         +- webpack          # directory for webpack configuration files
+            +- debug.js
+            +- development.js
+            +- production.js
         +- initializers
             +- opal_webpack_loader.rb  # initializer for owl
     +- package.json         # package config for npm/yarn and their scripts
@@ -112,12 +128,19 @@ Complete set of directories and files created by the installer for projects with
 project_root
     +- owl_init.rb      # initializer for owl
     +- javascripts      # javascript entries directory
+        +- application.js
+        +- application_common.js
+        +- application_ssr.js
+        +- application_webworker.js
     +- opal             # directory for opal application files, can be changed with -o
     +- package.json     # package config for npm/yarn and their scripts
     +- public
         +- assets       # directory for compiled output files
     +- styles           # directory for stylesheets
     +- webpack          # directory for webpack configuration files
+        +- debug.js
+        +- development.js
+        +- production.js
     +- Procfile         # config file for foreman
 ```
 
