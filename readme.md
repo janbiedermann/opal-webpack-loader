@@ -23,18 +23,31 @@ Intel® Core™ i7-7700HQ CPU @ 2.80GHz × 8, with 8 workers in around 1850ms
   - everything else webpack can do, like loading stylesheets, etc.
 
 ### Requirements
+- opal-webpack-loader consists of 2 parts, the npm package and the gem, both are required
 - webpack 4.30
 - webpack-dev-server 3.3.0
 - one of the es6_import_export branches of opal
-  - [PR#1832](https://github.com/opal/opal/pull/1832), implementing ES6 modules, based on Opal master 1.0.beta,
-  
-    `gem 'opal', github: 'janbiedermann/opal', branch: 'es6_import_export'`
-  - [PR#1969](https://github.com/opal/opal/pull/1969), implementing ES6 modules and changes for 'strict' mode, based on Opal master 1.0.beta,
-  
-    `gem 'opal', github: 'janbiedermann/opal', branch: 'es6_im_ex_strict'`
+  - [PR#1832](https://github.com/opal/opal/pull/1832),
+    - implementing ES6 modules, based on Opal master 1.0.beta,
     
-    PR#1969 is the continuation of PR#1832. While PR#1832 is sort of "stable", PR#1969 is under development.
-  
+      `gem 'opal', github: 'janbiedermann/opal', branch: 'es6_import_export'`
+      
+    - implementing ES6 modules, based on Opal 0.11.1.dev
+    
+      `gem 'opal', github: 'janbiedermann/opal', branch: 'es6_import_export', ref: 'e3fdf16e8a657f7d9f9507207848a34953dced8d'`
+      
+  - [PR#1970](https://github.com/opal/opal/pull/1969), implementing ES6 modules and changes for 'strict' mode,
+    based on Opal master 1.0.beta with additional patches for javascripts strict mode,
+    using javascript string primitives
+    
+    `gem 'opal', github: 'janbiedermann/opal', branch: 'es6_modules'`
+    
+  - [PR#1973](https://github.com/opal/opal/pull/1973), implementing ES6 modules and changes for 'strict' mode,
+    based on Opal master 1.0.beta with additional patches for javascripts strict mode,
+    using javascript string objects by default for all strings
+    
+    `gem 'opal', github: 'janbiedermann/opal', branch: 'es6_modules_string'`
+    
 - if you have webpacker gem installed somewhere, it should be a version supporting webpack 4
 - ruby, version 2.5 or higher recommended
 - bundler, latest version recommended
