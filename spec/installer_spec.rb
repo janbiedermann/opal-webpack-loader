@@ -34,6 +34,7 @@ RSpec.describe 'owl installer' do
       expect(File.exist?(File.join('config', 'webpack', 'debug.js'))).to be true
       expect(File.exist?(File.join('config', 'webpack', 'development.js'))).to be true
       expect(File.exist?(File.join('config', 'webpack', 'production.js'))).to be true
+      expect(Dir.exist?(File.join('public', 'assets'))).to be true
       expect(File.exist?('package.json')).to be true
       expect(File.exist?('Procfile')).to be true
     end
@@ -57,6 +58,7 @@ RSpec.describe 'owl installer' do
       expect(File.exist?(File.join('config', 'webpack', 'debug.js'))).to be true
       expect(File.exist?(File.join('config', 'webpack', 'development.js'))).to be true
       expect(File.exist?(File.join('config', 'webpack', 'production.js'))).to be true
+      expect(Dir.exist?(File.join('public', 'assets'))).to be true
       expect(File.exist?('package.json')).to be true
       expect(File.exist?('Procfile')).to be true
     end
@@ -93,8 +95,37 @@ RSpec.describe 'owl installer' do
       expect(File.exist?(File.join('webpack', 'debug.js'))).to be true
       expect(File.exist?(File.join('webpack', 'development.js'))).to be true
       expect(File.exist?(File.join('webpack', 'production.js'))).to be true
+      expect(Dir.exist?(File.join('public', 'assets'))).to be true
       expect(File.exist?('package.json')).to be true
       expect(File.exist?('Procfile')).to be true
+    end
+  end
+
+  context 'for isomorfeus' do
+    before do
+      Dir.chdir('spec')
+      Dir.chdir('test_apps')
+      FileUtils.rm_rf('flattering') if Dir.exist?('flattering')
+    end
+
+    after do
+      Dir.chdir('..') if Dir.pwd.end_with?('flattering')
+      FileUtils.rm_rf('flattering') if Dir.exist?('flattering')
+      Dir.chdir('..')
+      Dir.chdir('..')
+    end
+
+    it 'can install' do
+      FileUtils.cp_r(File.join('..', 'fixtures', 'flattering'), File.join('.'))
+      expect(Dir.exist?('flattering')).to be true
+      Dir.chdir('flattering')
+      arg_val = %w[iso]
+      OpalWebpackLoader::Installer::CLI.start(arg_val)
+      expect(File.exist?(File.join('owl_init.rb'))).to be true
+      expect(File.exist?(File.join('webpack', 'debug.js'))).to be true
+      expect(File.exist?(File.join('webpack', 'development.js'))).to be true
+      expect(File.exist?(File.join('webpack', 'production.js'))).to be true
+      expect(Dir.exist?(File.join('public', 'assets'))).to be true
     end
   end
 end
