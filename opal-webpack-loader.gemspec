@@ -21,11 +21,11 @@ Gem::Specification.new do |s|
   s.require_paths  = ['lib']
 
   s.add_dependency 'opal', '>= 0.11.0'
-  s.add_dependency 'oj', '~> 3.6.0'
+  s.add_dependency 'oj', '~> 3.7.0'
   s.add_dependency 'thor', '>= 0.19.4'
   s.add_development_dependency 'bundler'
   s.add_development_dependency 'rake'
-  s.add_development_dependency 'rails', '~> 5.2.0'
+  s.add_development_dependency 'rails', '~> 5.2.3'
   s.add_development_dependency 'roda', '~> 3.19.0'
   s.add_development_dependency 'rspec', '~> 3.8.0'
 end
