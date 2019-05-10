@@ -41,13 +41,11 @@ module OpalWebpackLoader
         @opal_directory = 'isomorfeus'
         @styles_directory = File.join(@opal_directory, 'styles')
         @webpack_config_directory = 'webpack'
-        create_common_directories
-        create_isomorfeus_directories
+        create_directory(@webpack_config_directory)
+        create_directory(@asset_output_directory)
         install_webpack_config
-        create_file_from_template('application.css.erb', File.join('isomorfeus', 'styles', 'application.css'), {})
-        create_file_from_template('initializer.rb.erb', File.join('config', 'owl_init.rb'), {})
+        create_file_from_template('initializer.rb.erb', File.join('owl_init.rb'), { opal_directory: @opal_directory })
         add_gem
-        print_message
       end
 
       desc "flat", "Install owl configuration into a existing project with a flat structure, execute from the projects root directory."
@@ -80,7 +78,6 @@ module OpalWebpackLoader
         @opal_directory = options[:opal_name]
         @styles_directory = 'styles'
         @webpack_config_directory = 'webpack'
-        create_directory(@styles_directory)
         create_common_directories
         install_common_things
         create_file_from_template('application.css.erb', File.join('styles', 'application.css'), {})
@@ -125,7 +122,6 @@ module OpalWebpackLoader
         @styles_directory = File.join('app', 'assets', 'stylesheets')
         @webpack_config_directory = File.join('config', 'webpack')
         create_directory('app')
-        create_directory(@styles_directory)
         create_common_directories
         install_common_things
         create_file_from_template('initializer.rb.erb', File.join('config', 'initializers', 'opal_webpack_loader.rb'),
@@ -148,14 +144,7 @@ module OpalWebpackLoader
         create_directory(@js_entrypoints_directory)
         create_directory(@opal_directory)
         create_directory(@asset_output_directory)
-      end
-
-      def create_isomorfeus_directories
-        create_directory(File.join('isomorfeus', 'components'))
-        create_directory(File.join('isomorfeus', 'models'))
-        create_directory(File.join('isomorfeus', 'operations'))
-        create_directory(File.join('isomorfeus', 'policies'))
-        create_directory(File.join('isomorfeus', 'styles'))
+        create_directory(@styles_directory)
       end
 
       def install_common_things
@@ -296,11 +285,8 @@ module OpalWebpackLoader
       end
 
       def add_gem
-        # TODO
-        # STDERR.puts File.read('Gemfile')
-        # STDERR.puts OpalWebpackLoader::VERSION
-        # `bundle add opal-webpack-loader -v "#{OpalWebpackLoader::VERSION}" --skip-install`
-        # specifying a version results in a bundler printing a error and not adding the gem
+        # TODO specifying a version results in bundler printing a error and not adding the gem
+        # `bundle add opal-webpack-loader -v "#{OpalWebpackLoader::VERSION}" --skip-install`ß´
       end
 
       def print_message
