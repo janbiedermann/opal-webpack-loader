@@ -5,7 +5,7 @@ module OpalWebpackLoader
     OWL_CACHE_DIR = File.join('.','.owl_cache/')
     OWL_LP_CACHE = File.join(OWL_CACHE_DIR, 'load_paths.json')
     OWCS_SOCKET_PATH = File.join(OWL_CACHE_DIR, 'owcs_socket')
-    SIGNALS = %w[QUIT INT TERM TTIN TTOU]
+    SIGNALS = %w[QUIT INT TERM]
     TIMEOUT = 15
 
     def self.unlink_socket?
@@ -53,7 +53,8 @@ module OpalWebpackLoader
 
       loop do
         reap_workers
-        case (mode = @signal_queue.shift)
+        mode = @signal_queue.shift
+        case mode
         when nil
           kill_runaway_workers
           spawn_workers
@@ -62,13 +63,6 @@ module OpalWebpackLoader
             Process.kill('TERM', pid)
           end
           break
-        when 'TTIN'
-          @number_of_workers += 1
-        when 'TTOU'
-          unless @number_of_workers <= 0
-            Config.workers -= 1
-            kill_worker('QUIT', @workers.keys.max)
-          end
         end
         reap_workers
         ready = IO.select([@read_pipe], nil, nil, 1) || next

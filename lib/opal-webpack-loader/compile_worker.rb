@@ -2,7 +2,7 @@ require 'socket'
 
 module OpalWebpackLoader
   class CompileWorker
-    SIGNALS = %w[QUIT TTIN TTOU]
+    SIGNALS = %w[QUIT]
 
     attr_reader :number, :tempfile
 
