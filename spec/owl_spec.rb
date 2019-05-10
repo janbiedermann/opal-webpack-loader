@@ -39,7 +39,7 @@ RSpec.describe 'owl' do
       package_json = Oj.load(File.read('package.json'), mode: :strict)
       package_json["devDependencies"].delete("opal-webpack-loader")
       File.write('package.json', Oj.dump(package_json, mode: :strict))
-      `yarn add file:../../../opal-webpack-loader-#{OpalWebpackLoader::VERSION}.tgz --dev`
+      `yarn add file:../../../opal-webpack-loader-#{OpalWebpackLoader::VERSION}.tgz`
       `yarn install`
       # bundler set some environment things, but we need a clean environment, so things don't get mixed up, use env
       `env -i PATH="#{ENV['PATH']}" bundle install`
@@ -90,7 +90,7 @@ RSpec.describe 'owl' do
       package_json = Oj.load(File.read('package.json'), mode: :strict)
       package_json["devDependencies"].delete("opal-webpack-loader")
       File.write('package.json', Oj.dump(package_json, mode: :strict))
-      `yarn add file:../../../opal-webpack-loader-#{OpalWebpackLoader::VERSION}.tgz --dev`
+      `yarn add file:../../../opal-webpack-loader-#{OpalWebpackLoader::VERSION}.tgz`
       `yarn install`
       # bundler set some environment things, but we need a clean environment, so things don't get mixed up, use env
       `env -i PATH="#{ENV['PATH']}" bundle install`
