@@ -8,8 +8,8 @@ module.exports = class Resolver {
         const owl_cache_path = path.join('.owl_cache', 'load_paths.json');
 
         if (!this.owl_cache_fetched) {
-            var owl_cache_from_file = fs.readFileSync(owl_cache_path);
-            var owl_cache = JSON.parse(owl_cache_from_file.toString());
+            let owl_cache_from_file = fs.readFileSync(owl_cache_path);
+            let owl_cache = JSON.parse(owl_cache_from_file.toString());
             this.opal_load_paths = owl_cache.opal_load_paths;
             this.opal_load_path_entries = owl_cache.opal_load_path_entries;
             this.owl_cache_fetched = true;
@@ -23,9 +23,9 @@ module.exports = class Resolver {
         const target = resolver.ensureHook(this.target);
         resolver.getHook(this.source).tapAsync("OpalWebpackResolverPlugin", (request, resolveContext, callback) => {
             if (request.request.endsWith('.rb') || request.request.endsWith('.js')) {
-                var absolute_path = this.get_absolute_path(request.path, request.request);
+                let absolute_path = this.get_absolute_path(request.path, request.request);
                 if (absolute_path) {
-                    var result = Object.assign({}, request, {path: absolute_path});
+                    let result = Object.assign({}, request, {path: absolute_path});
                     resolver.doResolve(target, result, "opal-webpack-resolver-plugin found: " + absolute_path, resolveContext, callback);
                 } else {
                     // continue pipeline
@@ -43,10 +43,10 @@ module.exports = class Resolver {
     }
 
     get_absolute_path(path, request) {
-        var logical_filename_rb;
-        var logical_filename_js;
-        var absolute_filename;
-        var module;
+        let logical_filename_rb;
+        let logical_filename_js;
+        let absolute_filename;
+        let module;
 
         // cleanup request, comes like './module.rb', we want '/module.rb'
         if (request.startsWith('./')) {
@@ -67,14 +67,13 @@ module.exports = class Resolver {
             logical_filename_js = module;
         }
 
-        var l = this.opal_load_paths.length;
+        let l = this.opal_load_paths.length;
 
         // in general, to avoid conflicts, we need to lookup .rb first, once all .rb
         // possibilities are checked, check .js
         // try .rb
         // look up known entries
-        for (var i = 0; i < l; i++) {
-
+        for (let i = 0; i < l; i++) {
             absolute_filename = this.opal_load_paths[i] + logical_filename_rb;
             if (this.opal_load_path_entries.includes(absolute_filename)) {
                 // check if file exists?
@@ -85,7 +84,7 @@ module.exports = class Resolver {
         }
 
         // look up file system of app
-        for (var i = 0; i < l; i++) {
+        for (let i = 0; i < l; i++) {
             if (this.opal_load_paths[i].startsWith(process.cwd())) {
                 absolute_filename = this.opal_load_paths[i] + logical_filename_rb;
                 if (fs.existsSync(absolute_filename) && this.is_file(absolute_filename)) {
@@ -104,7 +103,7 @@ module.exports = class Resolver {
 
         // try .js
         // look up known entries
-        for (var i = 0; i < l; i++) {
+        for (let i = 0; i < l; i++) {
             absolute_filename = this.opal_load_paths[i] + logical_filename_js;
             if (this.opal_load_path_entries.includes(absolute_filename)) {
                 // check if file exists?
@@ -115,7 +114,7 @@ module.exports = class Resolver {
         }
 
         // look up file system of app
-        for (var i = 0; i < l; i++) {
+        for (let i = 0; i < l; i++) {
             if (this.opal_load_paths[i].startsWith(process.cwd())) {
                 absolute_filename = this.opal_load_paths[i] + logical_filename_js;
                 if (fs.existsSync(absolute_filename) && this.is_file(absolute_filename)) {
