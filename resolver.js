@@ -26,7 +26,7 @@ module.exports = class Resolver {
                 let absolute_path = this.get_absolute_path(request.path, request.request);
                 if (absolute_path) {
                     let result = Object.assign({}, request, {path: absolute_path});
-                    resolver.doResolve(target, result, "opal-webpack-resolver-plugin found: " + absolute_path, resolveContext, callback);
+                    resolver.doResolve(target, result, null, resolveContext, callback);
                 } else {
                     // continue pipeline
                     return callback();
