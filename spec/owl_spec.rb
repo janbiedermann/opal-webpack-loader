@@ -102,7 +102,7 @@ RSpec.describe 'owl' do
       expect(File.exist?(File.join('public', application_js))).to be true
     end
 
-    it 'can run the production build script in a roda app and execute ruby code in the browser' do
+    it 'can run the production build script in a roda app and execute ruby code in the browser with the es6_modules branch' do
       FileUtils.cp_r(File.join('..', 'fixtures', 'flattering'), File.join('.'))
       expect(Dir.exist?('flattering')).to be true
       Dir.chdir('flattering')
@@ -113,6 +113,39 @@ RSpec.describe 'owl' do
       gemfile << <<~GEMS
 
       gem 'opal', github: 'janbiedermann/opal', branch: 'es6_modules'
+      gem 'opal-webpack-loader', path: '#{File.realpath(File.join('..','..', '..', '..', 'opal-webpack-loader'))}'
+
+      GEMS
+      File.write('Gemfile', gemfile)
+      # add local owl npm package
+      package_json = Oj.load(File.read('package.json'), mode: :strict)
+      package_json["devDependencies"].delete("opal-webpack-loader")
+      File.write('package.json', Oj.dump(package_json, mode: :strict))
+      `yarn add file:../../../opal-webpack-loader-#{OpalWebpackLoader::VERSION}.tgz`
+      `yarn add puppeteer@1.14.0 --dev`
+      `yarn install`
+      # bundler set some environment things, but we need a clean environment, so things don't get mixed up, use env
+      `env -i PATH="#{ENV['PATH']}" bundle install`
+      expect(File.exist?('Gemfile.lock')).to be true
+      `env -i PATH="#{ENV['PATH']}" yarn run production_build`
+      expect(File.exist?(File.join('public', 'assets', 'manifest.json'))).to be true
+      manifest = Oj.load(File.read(File.join('public', 'assets', 'manifest.json')), mode: :strict)
+      application_js = manifest['application.js']
+      expect(File.exist?(File.join('public', application_js))).to be true
+      `env -i PATH="#{ENV['PATH']}" bundle exec rspec`
+    end
+
+    it 'can run the production build script in a roda app and execute ruby code in the browser with the es6_modules_string branch' do
+      FileUtils.cp_r(File.join('..', 'fixtures', 'flattering'), File.join('.'))
+      expect(Dir.exist?('flattering')).to be true
+      Dir.chdir('flattering')
+      arg_val = %w[flat]
+      OpalWebpackLoader::Installer::CLI.start(arg_val)
+
+      gemfile = File.read('Gemfile')
+      gemfile << <<~GEMS
+
+      gem 'opal', github: 'janbiedermann/opal', branch: 'es6_modules_string'
       gem 'opal-webpack-loader', path: '#{File.realpath(File.join('..','..', '..', '..', 'opal-webpack-loader'))}'
 
       GEMS
