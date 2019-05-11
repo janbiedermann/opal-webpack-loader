@@ -59,12 +59,12 @@ gem install 'opal-webpack-loader'
 ```
 
 Continue here:
-- [Install for Rails like projects](https://github.com/isomorfeus/opal-webpack-loader/docs/installation_rails.md)
-- [Install for Cuba, Roda, Sinatra and others with a flat structure](https://github.com/isomorfeus/opal-webpack-loader/docs/installation_flat.md)           
-- [Manual Installation](https://github.com/isomorfeus/opal-webpack-loader/docs/installation_manual.md)
+- [Install for Rails like projects](https://github.com/isomorfeus/opal-webpack-loader/blob/master/docs/installation_rails.md)
+- [Install for Cuba, Roda, Sinatra and others with a flat structure](https://github.com/isomorfeus/opal-webpack-loader/blob/master/docs/installation_flat.md)           
+- [Manual Installation](https://github.com/isomorfeus/opal-webpack-loader/blob/master/docs/installation_manual.md)
 
 ### Example applications
-[are here](https://github.com/isomorfeus/opal-webpack-loader/example_apps)
+[are here](https://github.com/isomorfeus/opal-webpack-loader/tree/master/example_apps/)
 
 ### General Usage
 
