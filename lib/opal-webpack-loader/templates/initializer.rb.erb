@@ -1,7 +1,7 @@
 Opal.append_path(File.realdirpath('<%= opal_directory %>'))
 
-env = defined?(Rails) ? Rails.env : 'development'
-
+env = defined?(Rails) ? Rails.env : ENV['OWL_ENV']
+env = 'development' unless env
 if env != 'development'
   OpalWebpackLoader.client_asset_path = '' # the full path is in the manifest already, like: /assets/application-97fd9c2b7e7bdb112fc1.js
   OpalWebpackLoader.manifest_path = 'public/assets/manifest.json'

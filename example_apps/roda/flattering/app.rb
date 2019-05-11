@@ -3,6 +3,7 @@ require './owl_init'
 
 class App < Roda
   include OpalWebpackLoader::ViewHelper
+  plugin :public, root: 'public'
 
   route do |r|
     r.root do
@@ -18,5 +19,7 @@ class App < Roda
       </html>
       HTML
     end
+
+    r.public
   end
 end
