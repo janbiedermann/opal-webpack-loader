@@ -1,4 +1,5 @@
 require 'socket'
+require 'tempfile'
 
 module OpalWebpackLoader
   class CompileServer
