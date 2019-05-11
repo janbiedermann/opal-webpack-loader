@@ -1,0 +1,2 @@
+webpack: yarn run development
+web: bundle exec rails s
