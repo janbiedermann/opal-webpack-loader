@@ -44,7 +44,7 @@ RSpec.describe 'owl' do
       # bundler set some environment things, but we need a clean environment, so things don't get mixed up, use env
       `env -i PATH="#{ENV['PATH']}" bundle install`
       expect(File.exist?('Gemfile.lock')).to be true
-      `env -i PATH="#{ENV['PATH']}" yarn run production_build`
+      puts `env -i PATH="#{ENV['PATH']}" yarn run production_build`
       expect(File.exist?(File.join('public', 'assets', 'manifest.json'))).to be true
       manifest = Oj.load(File.read(File.join('public', 'assets', 'manifest.json')), mode: :strict)
       application_js = manifest['application.js']
@@ -95,7 +95,7 @@ RSpec.describe 'owl' do
       # bundler set some environment things, but we need a clean environment, so things don't get mixed up, use env
       `env -i PATH="#{ENV['PATH']}" bundle install`
       expect(File.exist?('Gemfile.lock')).to be true
-      `env -i PATH="#{ENV['PATH']}" yarn run production_build`
+      puts `env -i PATH="#{ENV['PATH']}" yarn run production_build`
       expect(File.exist?(File.join('public', 'assets', 'manifest.json'))).to be true
       manifest = Oj.load(File.read(File.join('public', 'assets', 'manifest.json')), mode: :strict)
       application_js = manifest['application.js']
@@ -127,12 +127,14 @@ RSpec.describe 'owl' do
       # bundler set some environment things, but we need a clean environment, so things don't get mixed up, use env
       `env -i PATH="#{ENV['PATH']}" bundle install`
       expect(File.exist?('Gemfile.lock')).to be true
-      `env -i PATH="#{ENV['PATH']}" yarn run production_build`
+      puts `env -i PATH="#{ENV['PATH']}" yarn run production_build`
       expect(File.exist?(File.join('public', 'assets', 'manifest.json'))).to be true
       manifest = Oj.load(File.read(File.join('public', 'assets', 'manifest.json')), mode: :strict)
       application_js = manifest['application.js']
       expect(File.exist?(File.join('public', application_js))).to be true
-      `env -i PATH="#{ENV['PATH']}" bundle exec rspec`
+      test_result = `env -i PATH="#{ENV['PATH']}" bundle exec rspec`
+      puts test_result
+      expect(test_result).not_to include('failure')
     end
 
     it 'can run the production build script in a roda app and execute ruby code in the browser with the es6_modules_string branch' do
@@ -160,12 +162,14 @@ RSpec.describe 'owl' do
       # bundler set some environment things, but we need a clean environment, so things don't get mixed up, use env
       `env -i PATH="#{ENV['PATH']}" bundle install`
       expect(File.exist?('Gemfile.lock')).to be true
-      `env -i PATH="#{ENV['PATH']}" yarn run production_build`
+      puts `env -i PATH="#{ENV['PATH']}" yarn run production_build`
       expect(File.exist?(File.join('public', 'assets', 'manifest.json'))).to be true
       manifest = Oj.load(File.read(File.join('public', 'assets', 'manifest.json')), mode: :strict)
       application_js = manifest['application.js']
       expect(File.exist?(File.join('public', application_js))).to be true
-      `env -i PATH="#{ENV['PATH']}" bundle exec rspec`
+      test_result = `env -i PATH="#{ENV['PATH']}" bundle exec rspec`
+      puts test_result
+      expect(test_result).not_to include('failure')
     end
   end
 end
