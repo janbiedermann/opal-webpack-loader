@@ -26,7 +26,7 @@ Intel® Core™ i7-7700HQ CPU @ 2.80GHz × 8, with 8 workers in around 1850ms
 - opal-webpack-loader consists of 2 parts, the npm package and the gem, both are required
 - webpack 4.30
 - webpack-dev-server 3.3.0
-- one of the es6_import_export branches of opal
+- one of the ES6 modules branches of opal
   - [PR#1832](https://github.com/opal/opal/pull/1832),
     - implementing ES6 modules, based on Opal master 1.0.beta,
     
@@ -37,18 +37,16 @@ Intel® Core™ i7-7700HQ CPU @ 2.80GHz × 8, with 8 workers in around 1850ms
       `gem 'opal', github: 'janbiedermann/opal', branch: 'es6_import_export', ref: 'e3fdf16e8a657f7d9f9507207848a34953dced8d'`
       
   - [PR#1970](https://github.com/opal/opal/pull/1969), implementing ES6 modules and changes for 'strict' mode,
-    based on Opal master 1.0.beta with additional patches for javascripts strict mode,
-    using javascript string primitives
+    based on Opal master 1.0.beta using javascript string primitives
     
     `gem 'opal', github: 'janbiedermann/opal', branch: 'es6_modules'`
     
   - [PR#1973](https://github.com/opal/opal/pull/1973), implementing ES6 modules and changes for 'strict' mode,
-    based on Opal master 1.0.beta with additional patches for javascripts strict mode,
-    using javascript string objects by default for all strings
+    based on Opal master 1.0.beta using javascript string objects by default for all strings
     
     `gem 'opal', github: 'janbiedermann/opal', branch: 'es6_modules_string'`
     
-- if you have webpacker gem installed somewhere, it should be a version supporting webpack 4
+- if you have the webpacker gem installed somewhere, it should be a version supporting webpack 4
 - ruby, version 2.5 or higher recommended
 - bundler, latest version recommended
 
