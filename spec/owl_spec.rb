@@ -134,7 +134,7 @@ RSpec.describe 'owl' do
       expect(File.exist?(File.join('public', application_js))).to be true
       test_result = `env -i PATH="#{ENV['PATH']}" bundle exec rspec`
       puts test_result
-      expect(test_result).not_to include('failure')
+      expect(test_result).to include('1 example, 0 failures')
     end
 
     it 'can run the production build script in a roda app and execute ruby code in the browser with the es6_modules_string branch' do
@@ -169,7 +169,7 @@ RSpec.describe 'owl' do
       expect(File.exist?(File.join('public', application_js))).to be true
       test_result = `env -i PATH="#{ENV['PATH']}" bundle exec rspec`
       puts test_result
-      expect(test_result).not_to include('failure')
+      expect(test_result).to include('1 example, 0 failures')
     end
   end
 end
