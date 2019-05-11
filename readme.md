@@ -127,64 +127,13 @@ The compile server will start 4 workers for compiling opal files. The recommende
 or equal to the number of cores, for machines with up to 12 cores. More than 12 can't be kept busy by webpack it seems, ymmv.
 Example for 8 cores:
 `"production_build": "bundle exec opal-webpack-compile-server start 8 webpack --config=config/webpack/production.js"`
+
 ### Source Maps
 
-#### Source Map Demo
-[![SourceMap Demo](https://img.youtube.com/vi/SCmDYu_MLQU/0.jpg)](https://www.youtube.com/watch?v=SCmDYu_MLQU)
+[Source Maps](https://github.com/isomorfeus/opal-webpack-loader/blob/master/docs/source_maps.md)
 
-It shows a exception during a page load. In the console tab of the browsers developer tools, the error message is then expanded and just by clicking
-on the shown file:line_numer link, the browser shows the ruby source code, where the exception occured.
-
-#### Source Map Configuration
-
-The opal-webpack-loader for webpack supports the following options to enable HMR:
-(These are options for the webpack config, not to be confused with the owl ruby project options further down below)
-```javascript
-    loader: 'opal-webpack-loader',
-    options: {
-        sourceMap: true
-    }
-```
-
-- `sourceMap` : enable (`true`) or disable (`false`) source maps. Optional, default: `false`
-
-Also source maps must be enabled in webpack. See [webpack devtool configuration](https://webpack.js.org/configuration/devtool).
 ### Hot Module Reloading
-
-#### HMR Demo
-
-[![HMR Demo](https://img.youtube.com/vi/igF3cUsZrAQ/0.jpg)](https://www.youtube.com/watch?v=igF3cUsZrAQ)
-
-(Recommended to watch in FullHD)
-
-#### HMR and Ruby
-
-When a module uses method aliasing and is reloaded, the aliases are applied again, which may lead to a endless recursion of method calls of
-the aliased method once called after hot reloading.
-To prevent that, the alias should be conditional, only be applied if the alias has not been applied before. Or alternatively the original
-method must be restored before aliasing it again.
-Because gems are not hot reloaded, this is not a issue for imported gems, but must be taken care of within the projects code.
-
-Also it must be considered, that other code, which without hot reloading would only execute once during the programs life cycle, possibly will
-execute many times when hot reloaded. "initialization code" should be guarded to prevent it from executing many times.
-
-#### HMR Configuration
-
-The opal-webpack-loader for webpack supports the following options to enable HMR:
-(These are options for the webpack config, not to be confused with the owl ruby project options further down below)
-```javascript
-    loader: 'opal-webpack-loader',
-    options: {
-        hmr: true,
-        hmrHook: 'global.Opal.ViewJS["$force_update!"]();'
-    }
-```
-
-- `hmr` : enable (`true`) or disable (`false`) hot module reloading. Optional, default: `false`
-- `hmrHook` : A javascript expression as string which will be executed after the new code has been loaded.
-Useful to trigger a render or update for React or ViewJS projects.
-
-Note: HMR works only for files within the project tree. Files outside the project tree are not hot reloaded.
+[Hot Module Reloading](https://github.com/isomorfeus/opal-webpack-loader/blob/master/docs/hot_module_reloading.md)
 
 ### Opal Load Path
 The projects directory for opal ruby files must be in the opal load path. This is done in the initializer for rails apps in
@@ -258,5 +207,8 @@ OpalWebpackLoader.use_manifest = false
 OpalWebpackLoader.manifest_path = File.join(Dir.getwd, 'public', 'assets', 'manifest.json') # doesn't matter, not used
 OpalWebpackLoader.client_asset_path = 'http://localhost:3035/assets/'
 ```
-### Example webpack configuration
-See the [configuration templates](https://github.com/isomorfeus/opal-webpack-loader/tree/master/lib/opal-webpack-loader/templates).
+
+### Tests
+- clone the repo
+- `bundle install`
+- `bundle exec rspec`
