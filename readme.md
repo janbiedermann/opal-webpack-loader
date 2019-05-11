@@ -6,6 +6,9 @@ Includes a loader and resolver plugin for webpack.
 ### Community and Support
 At the [Isomorfeus Framework Project](http://isomorfeus.com) 
 
+### Tested
+[TravisCI](https://travis-ci.org): [![Build Status](https://travis-ci.org/isomorfeus/opal-webpack-loader.svg?branch=master)](https://travis-ci.org/isomorfeus/opal-webpack-loader)
+
 ### Features
 - comes with a installer for rails and other frameworks
 - webpack based build process
