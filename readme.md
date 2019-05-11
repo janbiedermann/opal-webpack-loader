@@ -57,126 +57,14 @@ First install the gem:
 ```
 gem install 'opal-webpack-loader'
 ```
-##### Install for Rails like projects
-If you start a new rails project, the following options are recommended for `rails new`: `--skip-sprockets --skip-javascript`
 
-Then within the projects root directory execute:
-```bash
-owl-install rails
-```
-If you have the webpacker gem installed, you need to merge the configuration in the config/webpacker directory.
-A example for config/webpack/development.js is in the
-[templates](https://github.com/isomorfeus/opal-webpack-loader/blob/master/lib/opal-webpack-loader/templates/webpacker_development.js_example).
+Continue here:
+- [Install for Rails like projects](https://github.com/isomorfeus/opal-webpack-loader/docs/installation_rails.md)
+- [Install for Cuba, Roda, Sinatra and others with a flat structure](https://github.com/isomorfeus/opal-webpack-loader/docs/installation_flat.md)           
+- [Manual Installation](https://github.com/isomorfeus/opal-webpack-loader/docs/installation_manual.md)
 
-Please see the messages of owl-install. You may need to manually add the following gems to the projects Gemfile:
-```ruby
-gem 'opal', github: 'janbiedermann/opal', branch: 'es6_import_export'
-gem 'opal-webpack-loader', '~> 0.6.2' # use the most recent released version here
-```
-
-Then:
-```bash
-yarn install
-bundle install
-```
-Opal ruby files should then go in the newly created `app/opal` directory. With the option -o the directory can be named differently, for example:
-```bash
-owl-install rails -o hyperhyper
-```
-A directory `app/hyperhyper` will be created, opal files should then go there and will be properly resolved by webpack.
-
-Complete set of directories and files created by the installer for projects with a rails like structure:
-```
-project_root
-    +- app
-        +- assets
-            +- javascripts  # javascript entries directory
-                +- application.js
-                +- application_common.js
-                +- application_ssr.js
-                +- application_webworker.js
-            +- styles       # directory for stylesheets
-        +- opal             # directory for opal application files, can be changed with -o
-    +- config
-        +- webpack          # directory for webpack configuration files
-            +- debug.js
-            +- development.js
-            +- production.js
-        +- initializers
-            +- opal_webpack_loader.rb  # initializer for owl
-    +- package.json         # package config for npm/yarn and their scripts
-    +- public
-        +- assets           # directory for compiled output files
-    +- Procfile             # config file for foreman
-```
-              
-##### Install for Cuba, Roda, Sinatra and others with a flat structure
-```bash
-owl-install flat
-```
-
-Please see the message of owl-install. You may need to manually add the following gems to the projects Gemfile:
-```ruby
-gem 'opal', github: 'janbiedermann/opal', branch: 'es6_import_export'
-gem 'opal-webpack-loader', '~> 0.5.1'
-```
-
-Then:
-```bash
-yarn install
-bundle install
-```
-The installer produces a `app_loader.rb` which `require './owl_init'`. `app_loader.rb` is used by the compile server to correctly determine opal load
-paths. It should be required by `config.ru`.
-Opal ruby files should then go in the newly created `opal` directory. With the option -o the directory can be named differently, for example:
-```bash
-owl-install rails -o supersuper
-```
-A directory `supersuper` will be created, opal files should then go there and will be properly resolved by webpack.
-
-Complete set of directories and files created by the installer for projects with a flat structure:
-```
-project_root
-    +- owl_init.rb      # initializer for owl
-    +- javascripts      # javascript entries directory
-        +- application.js
-        +- application_common.js
-        +- application_ssr.js
-        +- application_webworker.js
-    +- opal             # directory for opal application files, can be changed with -o
-    +- package.json     # package config for npm/yarn and their scripts
-    +- public
-        +- assets       # directory for compiled output files
-    +- styles           # directory for stylesheets
-    +- webpack          # directory for webpack configuration files
-        +- debug.js
-        +- development.js
-        +- production.js
-    +- Procfile         # config file for foreman
-```
-
-#### Manual Installation
-##### Install the accompanying NPM package:
-one of:
-```bash
-npm i opal-webpack-loader
-yarn add opal-webpack-loader
-```
-##### Install the gems
-```bash
-gem install opal-webpack-loader
-```
-or add it to the Gemfile as below and `bundle install`
-```ruby
-source 'https://rubygems.org'
-
-gem 'opal', github: 'janbiedermann/opal', branch: 'es6_import_export' # requires this branch
-gem 'opal-autoloader' # recommended
-gem 'opal-webpack-loader'
-```
-##### Install the configuration
-See the [configuration templates](https://github.com/isomorfeus/opal-webpack-loader/tree/master/lib/opal-webpack-loader/templates)
-and adjust to your preference.
+### Example applications
+[are here](https://github.com/isomorfeus/opal-webpack-loader/example_apps)
 
 ### General Usage
 
