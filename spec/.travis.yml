@@ -1,0 +1,10 @@
+dist: xenial
+lanugage: ruby
+rvm: 2.5.3
+gemfile: ruby/Gemfile
+script: cd ruby; bundle exec rspec
+before_install: nvm install 10.15.3
+env:
+  - LC_ALL=en_US.UTF-8
+notifications:
+  slack: isomorfeus:fkfbTBlQTpTgXaF7e0YOjWCG
