@@ -30,7 +30,7 @@ RSpec.describe 'owl' do
       gemfile = File.read('Gemfile')
       gemfile << <<~GEMS
 
-      gem 'opal', github: 'janbiedermann/opal', branch: 'es6_import_export'
+      gem 'opal', github: 'janbiedermann/opal', branch: 'es6_modules'
       gem 'opal-webpack-loader', path: '#{File.realpath(File.join('..','..', '..', '..', 'opal-webpack-loader'))}'
 
       GEMS
@@ -81,7 +81,7 @@ RSpec.describe 'owl' do
       gemfile = File.read('Gemfile')
       gemfile << <<~GEMS
 
-      gem 'opal', github: 'janbiedermann/opal', branch: 'es6_import_export'
+      gem 'opal', github: 'janbiedermann/opal', branch: 'es6_modules'
       gem 'opal-webpack-loader', path: '#{File.realpath(File.join('..','..', '..', '..', 'opal-webpack-loader'))}'
 
       GEMS
@@ -112,7 +112,7 @@ RSpec.describe 'owl' do
       gemfile = File.read('Gemfile')
       gemfile << <<~GEMS
 
-      gem 'opal', github: 'janbiedermann/opal', branch: 'es6_import_export'
+      gem 'opal', github: 'janbiedermann/opal', branch: 'es6_modules'
       gem 'opal-webpack-loader', path: '#{File.realpath(File.join('..','..', '..', '..', 'opal-webpack-loader'))}'
 
       GEMS
