@@ -65,3 +65,4 @@ Gemfile.lock
 # test apps
 spec/test_apps/*
 !spec/test_apps/.gitkeep
+public/assets
