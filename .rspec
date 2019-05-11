@@ -1,0 +1,1 @@
+--exclude-pattern "fixtures/**/*_spec.rb"
