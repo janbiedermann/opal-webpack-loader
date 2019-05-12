@@ -20,8 +20,9 @@ Gem::Specification.new do |s|
   # s.test_files     = `git ls-files -- {test,spec,features}/*`.split("\n")
   s.require_paths  = ['lib']
 
-  s.add_dependency 'opal', '>= 0.11.0'
-  s.add_dependency 'oj', '>= 3.6.0'
+  s.add_dependency 'opal', '>= 1.0.0'
+  s.add_dependency 'c_lexer'
+  s.add_dependency 'oj', '>= 3.7.0'
   s.add_dependency 'thor', '>= 0.19.4'
   s.add_development_dependency 'bundler'
   s.add_development_dependency 'rake'
