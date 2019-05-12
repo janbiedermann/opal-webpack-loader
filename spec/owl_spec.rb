@@ -44,7 +44,7 @@ RSpec.describe 'owl' do
       # bundler set some environment things, but we need a clean environment, so things don't get mixed up, use env
       `env -i PATH="#{ENV['PATH']}" bundle install`
       expect(File.exist?('Gemfile.lock')).to be true
-      `env -i PATH="#{ENV['PATH']}" yarn run production_build`
+      puts  `env -i PATH="#{ENV['PATH']}" yarn run production_build`
       expect(File.exist?(File.join('public', 'assets', 'manifest.json'))).to be true
       manifest = Oj.load(File.read(File.join('public', 'assets', 'manifest.json')), mode: :strict)
       application_js = manifest['application.js']
@@ -95,7 +95,7 @@ RSpec.describe 'owl' do
       # bundler set some environment things, but we need a clean environment, so things don't get mixed up, use env
       `env -i PATH="#{ENV['PATH']}" bundle install`
       expect(File.exist?('Gemfile.lock')).to be true
-      `env -i PATH="#{ENV['PATH']}" yarn run production_build`
+      puts `env -i PATH="#{ENV['PATH']}" yarn run production_build`
       expect(File.exist?(File.join('public', 'assets', 'manifest.json'))).to be true
       manifest = Oj.load(File.read(File.join('public', 'assets', 'manifest.json')), mode: :strict)
       application_js = manifest['application.js']
@@ -127,7 +127,7 @@ RSpec.describe 'owl' do
       # bundler set some environment things, but we need a clean environment, so things don't get mixed up, use env
       `env -i PATH="#{ENV['PATH']}" bundle install`
       expect(File.exist?('Gemfile.lock')).to be true
-      `env -i PATH="#{ENV['PATH']}" yarn run production_build`
+      puts `env -i PATH="#{ENV['PATH']}" yarn run production_build`
       expect(File.exist?(File.join('public', 'assets', 'manifest.json'))).to be true
       manifest = Oj.load(File.read(File.join('public', 'assets', 'manifest.json')), mode: :strict)
       application_js = manifest['application.js']
@@ -162,7 +162,7 @@ RSpec.describe 'owl' do
       # bundler set some environment things, but we need a clean environment, so things don't get mixed up, use env
       `env -i PATH="#{ENV['PATH']}" bundle install`
       expect(File.exist?('Gemfile.lock')).to be true
-      `env -i PATH="#{ENV['PATH']}" yarn run production_build`
+      puts `env -i PATH="#{ENV['PATH']}" yarn run production_build`
       expect(File.exist?(File.join('public', 'assets', 'manifest.json'))).to be true
       manifest = Oj.load(File.read(File.join('public', 'assets', 'manifest.json')), mode: :strict)
       application_js = manifest['application.js']
