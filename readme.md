@@ -26,21 +26,17 @@ Intel® Core™ i7-7700HQ CPU @ 2.80GHz × 8, with 8 workers in around 1850ms
   - everything else webpack can do, like loading stylesheets, etc.
 
 ### Requirements
-- opal-webpack-loader consists of 2 parts, the npm package and the gem, both are required
+- opal-webpack-loader consists of 2 parts, the npm package and the gem, both are required and must be the same version.
 - webpack 4.30
 - webpack-dev-server 3.3.0
 - one of the ES6 modules branches of opal
-  - [PR#1832](https://github.com/opal/opal/pull/1832), implementing ES6 modules, based on Opal 0.11.1.dev
-    
-    `gem 'opal', github: 'janbiedermann/opal', branch: 'es6_import_export', ref: 'e3fdf16e8a657f7d9f9507207848a34953dced8d'`
-      
-  - [PR#1970](https://github.com/opal/opal/pull/1969), implementing ES6 modules and changes for 'strict' mode,
-    based on Opal master 1.0.beta using javascript string primitives
+  - [PR#1970](https://github.com/opal/opal/pull/1969), (recommended)  implementing ES6 modules and changes for 'strict' mode,
+    based on Opal master 1.0.0 using javascript string primitives
     
     `gem 'opal', github: 'janbiedermann/opal', branch: 'es6_modules'`
     
-  - [PR#1973](https://github.com/opal/opal/pull/1973), implementing ES6 modules and changes for 'strict' mode,
-    based on Opal master 1.0.beta using javascript string objects by default for all strings
+  - [PR#1973](https://github.com/opal/opal/pull/1973), (experimental) implementing ES6 modules and changes for 'strict' mode,
+    based on Opal master 1.0.0 using javascript string objects "mutable strings" by default for all strings
     
     `gem 'opal', github: 'janbiedermann/opal', branch: 'es6_modules_string'`
     
