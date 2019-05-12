@@ -1,6 +1,7 @@
 #!/usr/bin/env ruby
 require 'open3'
 require 'oj'
+require 'c_lexer'
 require 'opal/paths'
 require 'opal/source_map'
 require 'opal/compiler'
@@ -15,8 +16,6 @@ at_exit do
     end
   end
 end
-
-puts "args: #{ARGV}"
 
 if ARGV[0] == 'stop' || ARGV[0] == 'kill'
   OpalWebpackLoader::CompileServer.stop
