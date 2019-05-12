@@ -73,16 +73,13 @@ module OpalWebpackLoader
 
       begin
         c = Opal::Compiler.new(source, file: filename, es6_modules: true)
-        c.compile
-        result = { 'javascript' => c.result }
+        result = { 'javascript' => c.compile }
         if compile_source_map
           result['source_map'] = c.source_map.as_json
-          result['source_map']['sourcesContent'] = [source]
           result['source_map']['file'] = filename
-          result['source_map']['names'] = result['source_map']['names'].map(&:to_s)
         end
         result['required_trees'] = c.required_trees
-        Oj.dump(result, {})
+        Oj.dump(result, mode: :strict)
       rescue Exception => e
         Oj.dump({ 'error' => { 'name' => e.class, 'message' => e.message, 'backtrace' => e.backtrace.join("\n") } }, {})
       end
