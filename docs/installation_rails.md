@@ -11,8 +11,8 @@ A example for config/webpack/development.js is in the
 
 Please see the messages of owl-install. You may need to manually add the following gems to the projects Gemfile:
 ```ruby
-gem 'opal', github: 'janbiedermann/opal', branch: 'es6_import_export'
-gem 'opal-webpack-loader', '~> 0.6.2' # use the most recent released version here
+gem 'opal', github: 'janbiedermann/opal', branch: 'es6_modules'
+gem 'opal-webpack-loader', '~> 0.8.0' # use the most recent released version here
 ```
 
 Then:
