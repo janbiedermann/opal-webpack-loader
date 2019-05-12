@@ -8,3 +8,7 @@ Rakefile
 *.gem
 .idea
 spec
+example_apps
+.github
+.travis.yml
+.rspec
