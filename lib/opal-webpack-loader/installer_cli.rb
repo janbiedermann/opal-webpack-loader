@@ -87,7 +87,7 @@ module OpalWebpackLoader
         print_message
       end
 
-      desc "rails", "Install owl configuration into a existing rails project, execute from the projects root directory."
+      desc "rails", "Install owl configuration into a existing rails project without webpacker, execute from the projects root directory."
       # <<~TEXT
       #   Showing directories and files relevant to owl:
       #     project_root
@@ -124,6 +124,52 @@ module OpalWebpackLoader
         create_directory('app')
         create_common_directories
         install_common_things
+        create_file_from_template('initializer.rb.erb', File.join('config', 'initializers', 'opal_webpack_loader.rb'),
+                                  { opal_directory: @opal_directory })
+        add_gem
+        print_message
+      end
+
+      desc "webpacker", "Install owl configuration into a existing rails project with webpacker, execute from the projects root directory."
+      # <<~TEXT
+      #   Showing directories and files relevant to owl:
+      #     project_root
+      #         +- app
+      #             +- assets
+      #                 +- javascripts  # javascript entries directory
+      #                 +- styles       # directory for stylesheets
+      #             +- opal             # directory for opal application files, can be changed with -o
+      #         +- config
+      #             +- webpack          # directory for webpack configuration files
+      #             +- initializers
+      #                 +- owl.rb       # initializer for owl
+      #         +- node_modules         # directory for node modules
+      #         +- package.json         # package config for npm/yarn and their scripts
+      #         +- public
+      #             +- assets           # directory for compiled output files
+      #         +- Procfile             # config file for foreman
+      #
+      # TEXT
+      option :opal_name, required: false, type: :string, default: 'opal', aliases: '-o', desc: <<~TEXT
+        Set directory name for Opal source files.        
+        Example: owl-installer rails -o isomorfeus  # will use project_root/app/isomorfeus for opal files
+      TEXT
+
+      def webpacker
+        @application_css = '../stylesheets/application.css'
+        @asset_output_directory = File.join('public', 'assets')
+        @js_entrypoints_directory = File.join('app', 'assets', 'javascripts')
+        @conf_rel_prefix = File.join('..', '..')
+        @js_rel_prefix = File.join('..', '..', '..')
+        @opal_directory = File.join('app', options[:opal_name])
+        @styles_directory = File.join('app', 'assets', 'stylesheets')
+        @webpack_config_directory = File.join('config', 'webpack')
+        create_directory('app')
+        create_common_directories
+        install_webpacker_config
+        install_webpacker_package_json
+        install_webpacker_js_entry
+        install_opal_entries
         create_file_from_template('initializer.rb.erb', File.join('config', 'initializers', 'opal_webpack_loader.rb'),
                                   { opal_directory: @opal_directory })
         add_gem
@@ -182,7 +228,7 @@ module OpalWebpackLoader
           package_json["devDependencies"] = {} unless package_json.has_key?("devDependencies")
           package_json["devDependencies"].merge!(gem_package_json["devDependencies"])
           package_json["dependencies"]["opal-webpack-loader"] = "^#{OpalWebpackLoader::VERSION}"
-          File.write('package.json', Oj.dump(package_json, mode: :strict))
+          File.write('package.json', Oj.dump(package_json, mode: :strict, indent: 2))
           puts "Updated package.json, updated scripts and owl dependencies"
         else
           erb_hash = {
@@ -217,15 +263,15 @@ module OpalWebpackLoader
       end
 
       def debug_script
-        "bundle exec opal-webpack-compile-server start 4 webpack-dev-server --config #{File.join(@webpack_config_directory, 'debug.js')}"
+        "webpack-dev-server --config #{File.join(@webpack_config_directory, 'debug.js')}"
       end
 
       def development_script
-        "bundle exec opal-webpack-compile-server start 4 webpack-dev-server --config #{File.join(@webpack_config_directory, 'development.js')}"
+        "webpack-dev-server --config #{File.join(@webpack_config_directory, 'development.js')}"
       end
 
       def production_script
-        "bundle exec opal-webpack-compile-server start 4 webpack --config=#{File.join(@webpack_config_directory, 'production.js')}"
+        "webpack --config=#{File.join(@webpack_config_directory, 'production.js')}"
       end
 
       def install_webpack_config
@@ -264,6 +310,42 @@ module OpalWebpackLoader
         create_file_from_template('debug.js.erb', File.join(@webpack_config_directory, 'debug.js'), erb_hash)
         create_file_from_template('development.js.erb', File.join(@webpack_config_directory, 'development.js'), erb_hash)
         create_file_from_template('production.js.erb', File.join(@webpack_config_directory, 'production.js'), erb_hash)
+      end
+
+      def install_webpacker_config
+        environment_js = File.read(File.join('config', 'webpack', 'environment.js'), mode: 'r')
+        new_environment_js = ''
+        environment_js.lines.each do |line|
+          new_environment_js << line
+          if line.start_with?('const { environment }')
+            new_environment_js << "\n"
+            new_environment_js << File.read(File.join(templates_path, 'webpacker.js'), mode: 'r')
+            new_environment_js << "\n"
+          end
+        end
+        File.write(File.join('config', 'webpack', 'environment.js'), new_environment_js)
+      end
+
+      def install_webpacker_js_entry
+        application_js = File.read(File.join('app', 'javascript', 'packs', 'application.js'), mode: 'r')
+        application_js << <<~JAVASCRIPT
+        
+        // import and load opal ruby files
+        import init_app from '#{options[:opal_name]}_loader.rb';
+        init_app();
+        Opal.load('#{options[:opal_name]}_loader');
+
+        JAVASCRIPT
+        File.write(File.join('app', 'javascript', 'packs', 'application.js'), application_js)
+      end
+
+      def install_webpacker_package_json
+        package_json_file = File.read('package.json')
+        package_json = Oj.load(package_json_file, mode: :strict)
+        package_json["dependencies"]["opal-webpack-loader"] = "^#{OpalWebpackLoader::VERSION}"
+        package_json["dependencies"]["webpack-shell-plugin"] = "0.5.0"
+        File.write('package.json', Oj.dump(package_json, mode: :strict, indent: 2))
+        puts "Updated package.json for opal-webpack-loader"
       end
 
       def templates_path
