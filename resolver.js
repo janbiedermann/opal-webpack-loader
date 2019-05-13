@@ -11,7 +11,7 @@ module.exports = class Resolver {
         if (!this.owl_cache_fetched) {
             let gen_cache_result = child_process.spawnSync("bundle", ["exec", "owl-gen-loadpath-cache"]);
             console.log(gen_cache_result.stdout.toString());
-            if (gen_cache_result.stderr.length > 0) { throw(new Error(gen_cache_result.stderr.toString())); }
+            console.error(gen_cache_result.stderr.toString());
             let owl_cache_from_file = fs.readFileSync(owl_cache_path);
             let owl_cache = JSON.parse(owl_cache_from_file.toString());
             this.opal_load_paths = owl_cache.opal_load_paths;
