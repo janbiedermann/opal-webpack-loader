@@ -2,11 +2,14 @@ require 'spec_helper'
 
 RSpec.describe 'owl installer' do
   context 'structure: :app' do
+    before :all do
+      `npm pack`
+    end
+
     before do
       Dir.chdir('spec')
       Dir.chdir('test_apps')
       FileUtils.rm_rf('railing') if Dir.exist?('railing')
-      `yarn cache clean`
     end
 
     after do
@@ -22,11 +25,6 @@ RSpec.describe 'owl installer' do
       Dir.chdir('railing')
       expect(Dir.exist?(File.join( 'config', 'webpack'))).to be false
       OpalWebpackLoader::Installer::CLI.start(%w[rails])
-      package_json = Oj.load(File.read('package.json'), mode: :strict)
-      package_json["dependencies"].delete("opal-webpack-loader")
-      File.write('package.json', Oj.dump(package_json, mode: :strict, indent: 2))
-      `env -i PATH="#{ENV['PATH']}" yarn add file:../../../opal-webpack-loader-#{OpalWebpackLoader::VERSION}.tgz`
-      `env -i PATH="#{ENV['PATH']}" yarn install`
       expect(File.exist?(File.join('app', 'assets', 'javascripts', 'application.js'))).to be true
       expect(File.exist?(File.join('app', 'assets', 'javascripts', 'application_common.js'))).to be true
       expect(File.exist?(File.join('app', 'assets', 'javascripts', 'application_debug.js'))).to be true
@@ -49,11 +47,6 @@ RSpec.describe 'owl installer' do
       Dir.chdir('railing')
       expect(Dir.exist?(File.join('config', 'webpack'))).to be false
       OpalWebpackLoader::Installer::CLI.start(%w[rails -o hyperhyper])
-      package_json = Oj.load(File.read('package.json'), mode: :strict)
-      package_json["dependencies"].delete("opal-webpack-loader")
-      File.write('package.json', Oj.dump(package_json, mode: :strict, indent: 2))
-      `env -i PATH="#{ENV['PATH']}" yarn add file:../../../opal-webpack-loader-#{OpalWebpackLoader::VERSION}.tgz`
-      `env -i PATH="#{ENV['PATH']}" yarn install`
       expect(File.exist?(File.join('app', 'assets', 'javascripts', 'application.js'))).to be true
       expect(File.exist?(File.join('app', 'assets', 'javascripts', 'application_common.js'))).to be true
       expect(File.exist?(File.join('app', 'assets', 'javascripts', 'application_debug.js'))).to be true
@@ -76,11 +69,6 @@ RSpec.describe 'owl installer' do
       Dir.chdir('railing')
       expect(File.exist?(File.join('config', 'webpack', 'environment.js'))).to be true
       OpalWebpackLoader::Installer::CLI.start(%w[webpacker -o hyperhyper])
-      package_json = Oj.load(File.read('package.json'), mode: :strict)
-      package_json["dependencies"].delete("opal-webpack-loader")
-      File.write('package.json', Oj.dump(package_json, mode: :strict, indent: 2))
-      `env -i PATH="#{ENV['PATH']}" yarn add file:../../../opal-webpack-loader-#{OpalWebpackLoader::VERSION}.tgz`
-      `env -i PATH="#{ENV['PATH']}" yarn install`
       expect(File.exist?(File.join('app', 'javascript', 'packs', 'application.js'))).to be true
       expect(File.exist?(File.join('app', 'hyperhyper', 'hyperhyper_loader.rb'))).to be true
       expect(File.exist?(File.join('app', 'hyperhyper', 'hyperhyper_web_worker_loader.rb'))).to be true
