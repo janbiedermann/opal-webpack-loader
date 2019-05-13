@@ -18,7 +18,7 @@ The installer produces a `app_loader.rb` which `require './owl_init'`. `app_load
 paths. It should be required by `config.ru`.
 Opal ruby files should then go in the newly created `opal` directory. With the option -o the directory can be named differently, for example:
 ```bash
-owl-install rails -o supersuper
+owl-install flat -o supersuper
 ```
 A directory `supersuper` will be created, opal files should then go there and will be properly resolved by webpack.
 
