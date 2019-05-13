@@ -16,14 +16,12 @@ RSpec.describe 'owl installer' do
     end
 
     it 'can install in a rails app without sprockets and webpacker gem' do
-      `bundle exec rails new railing --skip-git --skip-bundle --skip-sprockets --skip-spring --skip-bootsnap`
+      `env -i PATH="#{ENV['PATH']}" rails new railing --skip-git --skip-bundle --skip-sprockets --skip-javascript --skip-spring --skip-bootsnap`
       expect(Dir.exist?('railing')).to be true
       Dir.chdir('railing')
-      arg_val = %w[rails]
-      expect(Dir.exist?(File.join('railing', 'config', 'webpack'))).to be false
-      OpalWebpackLoader::Installer::CLI.start(arg_val)
+      expect(Dir.exist?(File.join( 'config', 'webpack'))).to be false
+      OpalWebpackLoader::Installer::CLI.start(%w[rails])
       expect(File.exist?(File.join('app', 'assets', 'javascripts', 'application.js'))).to be true
-      expect(File.exist?(File.join('app', 'assets', 'javascripts', 'application.js_owl_new'))).to be true
       expect(File.exist?(File.join('app', 'assets', 'javascripts', 'application_common.js'))).to be true
       expect(File.exist?(File.join('app', 'assets', 'javascripts', 'application_debug.js'))).to be true
       expect(File.exist?(File.join('app', 'assets', 'javascripts', 'application_ssr.js'))).to be true
@@ -40,14 +38,12 @@ RSpec.describe 'owl installer' do
     end
 
     it 'can install in a rails app without sprockets and webpacker gem specifying another opal files dir' do
-      `bundle exec rails new railing --skip-git --skip-bundle --skip-sprockets  --skip-spring --skip-bootsnap`
+      `env -i PATH="#{ENV['PATH']}" rails new railing --skip-git --skip-bundle --skip-sprockets --skip-javascript --skip-spring --skip-bootsnap`
       expect(Dir.exist?('railing')).to be true
       Dir.chdir('railing')
-      arg_val = %w[rails -o hyperhyper]
-      expect(Dir.exist?(File.join('railing', 'config', 'webpack'))).to be false
-      OpalWebpackLoader::Installer::CLI.start(arg_val)
+      expect(Dir.exist?(File.join('config', 'webpack'))).to be false
+      OpalWebpackLoader::Installer::CLI.start(%w[rails -o hyperhyper])
       expect(File.exist?(File.join('app', 'assets', 'javascripts', 'application.js'))).to be true
-      expect(File.exist?(File.join('app', 'assets', 'javascripts', 'application.js_owl_new'))).to be true
       expect(File.exist?(File.join('app', 'assets', 'javascripts', 'application_common.js'))).to be true
       expect(File.exist?(File.join('app', 'assets', 'javascripts', 'application_debug.js'))).to be true
       expect(File.exist?(File.join('app', 'assets', 'javascripts', 'application_ssr.js'))).to be true
@@ -61,6 +57,24 @@ RSpec.describe 'owl installer' do
       expect(Dir.exist?(File.join('public', 'assets'))).to be true
       expect(File.exist?('package.json')).to be true
       expect(File.exist?('Procfile')).to be true
+    end
+
+    it 'can install in a rails app without sprockets and with webpacker gem specifying another opal files dir' do
+      `env -i PATH="#{ENV['PATH']}" rails new railing --skip-git --skip-bundle --skip-sprockets --skip-spring --skip-bootsnap --webpack`
+      expect(Dir.exist?('railing')).to be true
+      Dir.chdir('railing')
+      expect(File.exist?(File.join('config', 'webpack', 'environment.js'))).to be true
+      OpalWebpackLoader::Installer::CLI.start(%w[webpacker -o hyperhyper])
+      expect(File.exist?(File.join('app', 'javascript', 'packs', 'application.js'))).to be true
+      expect(File.exist?(File.join('app', 'hyperhyper', 'hyperhyper_loader.rb'))).to be true
+      expect(File.exist?(File.join('app', 'hyperhyper', 'hyperhyper_web_worker_loader.rb'))).to be true
+      expect(File.exist?(File.join('config', 'initializers', 'opal_webpack_loader.rb'))).to be true
+      environment_js = File.read(File.join('config', 'webpack', 'environment.js'))
+      expect(environment_js).to include('// begin # added by the owl-install')
+      expect(File.exist?(File.join('config', 'webpack', 'development.js'))).to be true
+      expect(File.exist?(File.join('config', 'webpack', 'production.js'))).to be true
+      expect(Dir.exist?(File.join('public', 'assets'))).to be true
+      expect(File.exist?('package.json')).to be true
     end
   end
 
