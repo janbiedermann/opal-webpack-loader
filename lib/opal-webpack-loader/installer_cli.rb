@@ -343,7 +343,6 @@ module OpalWebpackLoader
         package_json_file = File.read('package.json')
         package_json = Oj.load(package_json_file, mode: :strict)
         package_json["dependencies"]["opal-webpack-loader"] = "^#{OpalWebpackLoader::VERSION}"
-        package_json["dependencies"]["webpack-shell-plugin"] = "0.5.0"
         File.write('package.json', Oj.dump(package_json, mode: :strict, indent: 2))
         puts "Updated package.json for opal-webpack-loader"
       end
