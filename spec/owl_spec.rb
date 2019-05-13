@@ -21,7 +21,7 @@ RSpec.describe 'owl' do
     end
 
     it 'without webpacker it can run the production build script' do
-      `env -i PATH="#{ENV['PATH']}" rails new railing --skip-git --skip-bundle --skip-sprockets --skip-javascript --skip-spring --skip-bootsnap`
+      `rails new railing --skip-git --skip-bundle --skip-sprockets --skip-javascript --skip-spring --skip-bootsnap`
       expect(Dir.exist?('railing')).to be true
       Dir.chdir('railing')
       expect(Dir.exist?(File.join('config', 'webpack'))).to be false
@@ -51,7 +51,7 @@ RSpec.describe 'owl' do
     end
 
     it 'with webpacker it can run the production build script' do
-      `env -i PATH="#{ENV['PATH']}" rails new railing --skip-git --skip-bundle --skip-sprockets --skip-spring --skip-bootsnap --webpack`
+      `rails new railing --skip-git --skip-bundle --skip-sprockets --skip-spring --skip-bootsnap --webpack`
       expect(Dir.exist?('railing')).to be true
       Dir.chdir('railing')
       expect(File.exist?(File.join( 'config', 'webpack', 'environment.js'))).to be true
