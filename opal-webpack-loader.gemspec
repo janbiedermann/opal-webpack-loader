@@ -16,6 +16,7 @@ Gem::Specification.new do |s|
   TEXT
   s.executables << 'opal-webpack-compile-server'
   s.executables << 'owl-install'
+  s.executables << 'owl-gen-loadpath-cache'
   s.files          = `git ls-files -- {lib,LICENSE,readme.md}`.split("\n")
   # s.test_files     = `git ls-files -- {test,spec,features}/*`.split("\n")
   s.require_paths  = ['lib']
@@ -25,8 +26,10 @@ Gem::Specification.new do |s|
   s.add_dependency 'oj', '>= 3.7.0'
   s.add_dependency 'thor', '>= 0.19.4'
   s.add_development_dependency 'bundler'
+  s.add_development_dependency 'listen'
   s.add_development_dependency 'rake'
   s.add_development_dependency 'rails', '~> 5.2.3'
   s.add_development_dependency 'roda', '~> 3.19.0'
   s.add_development_dependency 'rspec', '~> 3.8.0'
+  s.add_development_dependency 'webpacker', '>= 4.0.0'
 end
