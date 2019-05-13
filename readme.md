@@ -61,7 +61,7 @@ Continue here:
 ### Example applications
 [are here](https://github.com/isomorfeus/opal-webpack-loader/tree/master/example_apps/)
 
-### General Usage
+### General Usage without Webpacker
 
 After installing owl with the installer, three scripts are provided in package.json:
 - `development` - runs the webpack-dev-server, use for general development, provides fast reloads, entry is application.js
