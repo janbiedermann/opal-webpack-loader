@@ -1,4 +1,4 @@
-Opal.append_path(File.realdirpath('opal'))
+Opal.append_path(File.realdirpath('app/opal'))
 
 env = defined?(Rails) ? Rails.env : ENV['OWL_ENV']
 env = 'development' unless env

@@ -1,0 +1,11 @@
+{
+  "name": "railing",
+  "private": true,
+  "dependencies": {
+    "@rails/webpacker": "^4.0.2",
+    "opal-webpack-loader": "^0.8.0"
+  },
+  "devDependencies": {
+    "webpack-dev-server": "^3.3.1"
+  }
+}

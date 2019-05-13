@@ -5,7 +5,7 @@ const ManifestPlugin = require('webpack-manifest-plugin');  // for generating th
 const TerserPlugin = require('terser-webpack-plugin');
 
 const common_config = {
-    context: path.resolve(__dirname, '../opal'),
+    context: path.resolve(__dirname, '../../app/opal'),
     mode: "production",
     optimization: {
         minimize: true, // minimize
@@ -21,7 +21,7 @@ const common_config = {
     },
     output: {
         filename: '[name]-[chunkhash].js', // include fingerprint in file name, so browsers get the latest
-        path: path.resolve(__dirname, '../public/assets'),
+        path: path.resolve(__dirname, '../../public/assets'),
         publicPath: '/assets/'
     },
     resolve: {
@@ -55,7 +55,7 @@ const common_config = {
                     {
                         loader: "sass-loader",
                         options: {
-                            includePath: [path.resolve(__dirname, '../styles')],
+                            includePath: [path.resolve(__dirname, '../../app/assets/stylesheets')],
                             sourceMap: false // set to false to speed up hot reloads
                         }
                     }
@@ -91,21 +91,21 @@ const common_config = {
 const browser_config = {
     target: 'web',
     entry: {
-        application: [path.resolve(__dirname, '../javascripts/application.js')]
+        application: [path.resolve(__dirname, '../../app/assets/javascripts/application.js')]
     }
 };
 
 const ssr_config = {
     target: 'node',
     entry: {
-        application_ssr: [path.resolve(__dirname, '../javascripts/application_ssr.js')]
+        application_ssr: [path.resolve(__dirname, '../../app/assets/javascripts/application_ssr.js')]
     }
 };
 
 const web_worker_config = {
     target: 'webworker',
     entry: {
-        web_worker: [path.resolve(__dirname, '../javascripts/application_web_worker.js')]
+        web_worker: [path.resolve(__dirname, '../../app/assets/javascripts/application_web_worker.js')]
     }
 };
 
