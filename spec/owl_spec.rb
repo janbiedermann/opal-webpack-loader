@@ -15,7 +15,7 @@ RSpec.describe 'owl' do
 
     after do
       Dir.chdir('..') if Dir.pwd.end_with?('railing')
-      # FileUtils.rm_rf('railing') if Dir.exist?('railing')
+      FileUtils.rm_rf('railing') if Dir.exist?('railing')
       Dir.chdir('..')
       Dir.chdir('..')
     end
@@ -37,7 +37,7 @@ RSpec.describe 'owl' do
       # add local owl npm package
       package_json = Oj.load(File.read('package.json'), mode: :strict)
       package_json["dependencies"].delete("opal-webpack-loader")
-      File.write('package.json', Oj.dump(package_json, mode: :strict))
+      File.write('package.json', Oj.dump(package_json, mode: :strict, indent: 2))
       `env -i PATH="#{ENV['PATH']}" yarn add file:../../../opal-webpack-loader-#{OpalWebpackLoader::VERSION}.tgz`
       `env -i PATH="#{ENV['PATH']}" yarn install`
       # bundler set some environment things, but we need a clean environment, so things don't get mixed up, use env
@@ -65,6 +65,9 @@ RSpec.describe 'owl' do
 
       GEMS
       File.write('Gemfile', gemfile)
+      package_json = Oj.load(File.read('package.json'), mode: :strict)
+      package_json["dependencies"].delete("opal-webpack-loader")
+      File.write('package.json', Oj.dump(package_json, mode: :strict, indent: 2))
       # add local owl npm package
       `env -i PATH="#{ENV['PATH']}" yarn add file:../../../opal-webpack-loader-#{OpalWebpackLoader::VERSION}.tgz`
       # bundler set some environment things, but we need a clean environment, so things don't get mixed up, use env
