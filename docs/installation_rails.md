@@ -1,25 +1,32 @@
-##### Install for Rails like projects
+### Install for Rails like projects
+
+#### With the Webpacker Gem
+Within the projects root directory execute:
+```bash
+owl-install webpacker
+```
+
+It configures all the required things and merges a basic configuration to `config/webpack/environment.js`. Adjust that file to your preference.
+Opal ruby files should then go in the newly created `app/opal` directory. With the option -o the directory can be named differently, for example:
+```bash
+owl-install rails -o hyperhyper
+```
+A directory `app/hyperhyper` will be created, opal files should then go there and will be properly resolved by webpack.
+
+The entry file for imports is `app/javascript/packs/application.js`.
+
+The `OpalWebpackLoader::RailsViewHelper` is not needed.
+
+Continue below, section "For Both".
+
+#### Without the Webpacker Gem
 If you start a new rails project, the following options are recommended for `rails new`: `--skip-sprockets --skip-javascript`
 
 Then within the projects root directory execute:
 ```bash
 owl-install rails
 ```
-If you have the webpacker gem installed, you need to merge the configuration in the config/webpacker directory.
-A example for config/webpack/development.js is in the
-[templates](https://github.com/isomorfeus/opal-webpack-loader/blob/master/lib/opal-webpack-loader/templates/webpacker_development.js_example).
 
-Please see the messages of owl-install. You may need to manually add the following gems to the projects Gemfile:
-```ruby
-gem 'opal', github: 'janbiedermann/opal', branch: 'es6_modules'
-gem 'opal-webpack-loader', '~> 0.8.0' # use the most recent released version here
-```
-
-Then:
-```bash
-yarn install
-bundle install
-```
 Opal ruby files should then go in the newly created `app/opal` directory. With the option -o the directory can be named differently, for example:
 ```bash
 owl-install rails -o hyperhyper
@@ -50,3 +57,20 @@ project_root
         +- assets           # directory for compiled output files
     +- Procfile             # config file for foreman
 ```
+
+Continue below, section "For Both".
+
+#### For Both
+
+Please see the messages of owl-install. You may need to manually add the following gems to the projects Gemfile:
+```ruby
+gem 'opal', github: 'janbiedermann/opal', branch: 'es6_modules'
+gem 'opal-webpack-loader', '~> 0.8.0' # use the most recent released version here
+```
+
+Then:
+```bash
+yarn install
+bundle install
+```
+
