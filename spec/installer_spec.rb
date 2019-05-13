@@ -6,6 +6,7 @@ RSpec.describe 'owl installer' do
       Dir.chdir('spec')
       Dir.chdir('test_apps')
       FileUtils.rm_rf('railing') if Dir.exist?('railing')
+      `yarn cache clean`
     end
 
     after do

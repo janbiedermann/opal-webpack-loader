@@ -11,6 +11,7 @@ RSpec.describe 'owl' do
       Dir.chdir('test_apps')
       FileUtils.rm_rf('railing') if Dir.exist?('railing')
       `yarn cache clean`
+      `env -i PATH="#{ENV['PATH']}" yarn cache clean`
     end
 
     after do
