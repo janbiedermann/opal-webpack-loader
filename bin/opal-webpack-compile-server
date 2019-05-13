@@ -23,18 +23,13 @@ else
   if ARGV[0] == 'start'
     OpalWebpackLoader::CompileServer.stop(false)
     number_of_workers = ARGV[1].to_i
-    if number_of_workers == 0
-      number_of_workers == 4
-      runargs = ARGV[1..-1]
-    else
-      runargs = ARGV[2..-1]
-    end
+    number_of_workers == 4 if number_of_workers == 0
   else
-    raise 'arguments must be either "stop" or "start number_of_workers process_to_run --with args"'
+    raise 'arguments must be either "stop" or "start number_of_workers"'
     exit(1)
   end
 
-  load_paths = OpalWebpackLoader::LoadPathManager.create_load_paths_cache
+  load_paths = OpalWebpackLoader::LoadPathManager.read_load_paths_cache
   if load_paths
     Opal.append_paths(*load_paths)
   end
@@ -49,7 +44,7 @@ else
         have_socket = true
       else
         if Time.now - start_time > 60
-          puts "opal-webpack-compile-server didnt start in time. Exiting"
+          STDERR.puts "opal-webpack-compile-server didnt start in time. Exiting"
           OpalWebpackLoader::CompileServer.stop(false)
           Process.kill("TERM", pid)
           exit 1
@@ -58,29 +53,17 @@ else
     end
   rescue Exception => e
     OpalWebpackLoader::CompileServer.stop(false)
-    puts "opal-webpack-compile-server couldn't start:"
-    puts e.backtrace.join("\n")
-    puts e.message
+    STDERR.puts "opal-webpack-compile-server couldn't start:"
+    STDERR.puts e.backtrace.join("\n")
+    STDERR.puts e.message
     Process.kill("TERM", pid)
     exit 1
   end
 
   begin
-    # see: http://stackoverflow.com/a/1162850/83386
-    Open3.popen3(*runargs) do |stdin, stdout, stderr, thread|
-      # read each stream from a new thread
-      { :out => stdout, :err => stderr }.each do |key, stream|
-        Thread.new do
-          until (raw_line = stream.gets).nil? do
-            puts raw_line
-          end
-        end
-      end
-
-      thread.join # don't exit until the external process is done
-    end
+    Process.waitpid(pid)
   rescue Interrupt
-    puts "opal-webpack-compile-server got interrupted. Exiting with drama."
+    STDERR.puts "opal-webpack-compile-server got interrupted. Exiting with drama."
     Process.kill("TERM", pid)
     exit 0
   end

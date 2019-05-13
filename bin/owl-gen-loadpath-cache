@@ -1,0 +1,6 @@
+#!/usr/bin/env ruby
+require 'oj'
+require 'opal/paths'
+require 'opal-webpack-loader/compile_server'
+require 'opal-webpack-loader/load_path_manager'
+OpalWebpackLoader::LoadPathManager.create_load_paths_cache
