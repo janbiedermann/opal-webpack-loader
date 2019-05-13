@@ -1,6 +1,7 @@
 'use strict';
 
 const fs = require('fs');
+const child_process = require('child_process');
 const path = require('path');
 
 module.exports = class Resolver {
@@ -8,6 +9,9 @@ module.exports = class Resolver {
         const owl_cache_path = path.join('.owl_cache', 'load_paths.json');
 
         if (!this.owl_cache_fetched) {
+            let gen_cache_result = child_process.spawnSync("bundle", ["exec", "owl-gen-loadpath-cache"]);
+            console.log(gen_cache_result.stdout.toString());
+            if (gen_cache_result.stderr.length > 0) { throw(new Error(gen_cache_result.stderr.toString())); }
             let owl_cache_from_file = fs.readFileSync(owl_cache_path);
             let owl_cache = JSON.parse(owl_cache_from_file.toString());
             this.opal_load_paths = owl_cache.opal_load_paths;

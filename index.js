@@ -1,9 +1,17 @@
 'use strict';
 
+const child_process = require('child_process');
 const fs = require('fs');
 const net = require('net');
+const os = require('os');
 const path = require('path');
+const process = require('process');
 const loaderUtils = require('loader-utils');
+
+process.on('exit', function(code) {
+    console.log("opal-webpack-loader: stopping compile server");
+    child_process.spawnSync("bundle", ["exec", "opal-webpack-compile-server stop"]);
+});
 
 // keep some global state
 let Owl = {
@@ -11,6 +19,7 @@ let Owl = {
     lp_cache: path.join('.owl_cache', 'load_paths.json'),
     socket_path: path.join('.owl_cache', 'owcs_socket'),
     module_start: 'const opal_code = function() {\n  global.Opal.modules[',
+    compile_server_starting: false,
     socket_ready: false,
     options: null
 };
@@ -83,6 +92,21 @@ if (module.hot) {
     });
 }
 
+function wait_for_socket_and_delegate(that, callback, meta, request_json) {
+    if (Owl.socket_ready) {
+        delegate_compilation(that, callback, meta, request_json);
+    } else {
+        if (fs.existsSync(Owl.socket_path)) {
+            Owl.socket_ready = true;
+            delegate_compilation(that, callback, meta, request_json);
+        } else {
+            setTimeout(function() {
+                wait_for_socket_and_delegate(that, callback, meta, request_json);
+            }, 50);
+        }
+    }
+}
+
 module.exports = function(source, map, meta) {
     let callback = this.async();
     this.cacheable && this.cacheable();
@@ -92,13 +116,17 @@ module.exports = function(source, map, meta) {
         if (typeof Owl.options.hmrHook === 'undefined' ) { Owl.options.hmrHook = ''; }
         if (typeof Owl.options.sourceMap === 'undefined' ) { Owl.options.sourceMap = false; }
     }
-    if(!Owl.socket_ready) {
+    if(!Owl.socket_ready && !Owl.compile_server_starting) {
         if (!fs.existsSync(Owl.socket_path)) {
-            callback(new Error('opal-webpack-loader: opal-webpack-compile-server not running, please start opal-webpack-compile-server'));
+            console.log("opal-webpack-loader: starting compile server");
+            Owl.compile_server_starting = true;
+            let compile_server = child_process.spawn("bundle", ["exec", "opal-webpack-compile-server", "start", os.cpus().length.toString()],
+                { detached: true, stdio: 'ignore' });
+            compile_server.unref();
         } else {
-            Owl.socket_ready = true;
+            throw(new Error("opal-webpack-loader: compile server socket in use by another process"));
         }
     }
     let request_json = JSON.stringify({ filename: this.resourcePath, source_map: Owl.options.sourceMap });
-    delegate_compilation(this, callback, meta, request_json);
+    wait_for_socket_and_delegate(this, callback, meta, request_json);
 };
