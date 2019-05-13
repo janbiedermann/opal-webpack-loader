@@ -55,7 +55,7 @@ gem install 'opal-webpack-loader'
 
 Continue here:
 - [Install for Rails like projects](https://github.com/isomorfeus/opal-webpack-loader/blob/master/docs/installation_rails.md)
-- [Install for Cuba, Roda, Sinatra and others with a flat structure](https://github.com/isomorfeus/opal-webpack-loader/blob/master/docs/installation_flat.md)           
+- [Install for Cuba, Roda, Sinatra and other projects with a flat structure](https://github.com/isomorfeus/opal-webpack-loader/blob/master/docs/installation_flat.md)           
 - [Manual Installation](https://github.com/isomorfeus/opal-webpack-loader/blob/master/docs/installation_manual.md)
 
 ### Example applications
@@ -115,13 +115,8 @@ frameworks like isomorfeus. Instead the section for configuring a view watcher i
 config, but it is commented out. Please see those files and adjust to your liking.
 
 #### Parallel compilation for speed
-For speed the number of workers for compiling opal ruby files can be adjusted in `package.json` -> "scripts" key:
-Default entries look like:
-`"production_build": "bundle exec opal-webpack-compile-server start 4 webpack --config=config/webpack/production.js"`
-The compile server will start 4 workers for compiling opal files. The recommended number of workers should be 4 for machines with 4 or less cores,
-or equal to the number of cores, for machines with up to 12 cores. More than 12 can't be kept busy by webpack it seems, ymmv.
-Example for 8 cores:
-`"production_build": "bundle exec opal-webpack-compile-server start 8 webpack --config=config/webpack/production.js"`
+
+Since version 0.8.0 the number of CPUs is automatically determined and a appropriate number of of compile server workers is started automatically.
 
 ### Source Maps
 

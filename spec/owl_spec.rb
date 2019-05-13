@@ -52,7 +52,7 @@ RSpec.describe 'owl' do
     end
 
     it 'with webpacker it can run the production build script' do
-      # using the --webpack option for rails doesnt work, need to "manually" install webpacker
+      # using the --webpack option for rails doesnt work here, need to "manually" install webpacker
       `rails new railing --skip-git --skip-bundle --skip-sprockets --skip-spring --skip-bootsnap`
       expect(Dir.exist?('railing')).to be true
       Dir.chdir('railing')

@@ -24,6 +24,13 @@ else
     OpalWebpackLoader::CompileServer.stop(false)
     number_of_workers = ARGV[1].to_i
     number_of_workers == 4 if number_of_workers == 0
+    if ARGV[2]
+      raise <<~MSG
+      Please change the scripts in package.json to only start webpack:\n
+      eg. from: "debug": "bundle exec opal-webpack-compile-server start 8 webpack --config=config/webpack/test.js"
+      to just:  "debug": "webpack --config=config/webpack/test.js"
+      MSG
+    end
   else
     raise 'arguments must be either "stop" or "start number_of_workers"'
     exit(1)

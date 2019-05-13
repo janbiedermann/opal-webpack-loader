@@ -2,10 +2,6 @@ require 'spec_helper'
 
 RSpec.describe 'owl installer' do
   context 'structure: :app' do
-    before :all do
-      `npm pack`
-    end
-
     before do
       Dir.chdir('spec')
       Dir.chdir('test_apps')
@@ -64,7 +60,7 @@ RSpec.describe 'owl installer' do
     end
 
     it 'can install in a rails app without sprockets and with webpacker gem specifying another opal files dir' do
-      # using the --webpack option for rails doesnt work, need to "manually" install webpacker
+      # using the --webpack option for rails doesnt work here, need to "manually" install webpacker
       `rails new railing --skip-git --skip-bundle --skip-sprockets --skip-spring --skip-bootsnap`
       expect(Dir.exist?('railing')).to be true
       Dir.chdir('railing')
