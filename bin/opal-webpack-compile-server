@@ -24,6 +24,7 @@ else
     OpalWebpackLoader::CompileServer.stop(false)
     number_of_workers = ARGV[1].to_i
     number_of_workers == 4 if number_of_workers == 0
+    number_of_workers == 16 if number_of_workers > 16
     if ARGV[2]
       raise <<~MSG
       Please change the scripts in package.json to only start webpack:\n
