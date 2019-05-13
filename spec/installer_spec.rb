@@ -64,11 +64,17 @@ RSpec.describe 'owl installer' do
     end
 
     it 'can install in a rails app without sprockets and with webpacker gem specifying another opal files dir' do
-      `env -i PATH="#{ENV['PATH']}" gem install rails`
-      `env -i PATH="#{ENV['PATH']}" gem install webpacker`
-      `env -i PATH="#{ENV['PATH']}" rails new railing --skip-git --skip-bundle --skip-sprockets --skip-spring --skip-bootsnap --webpack`
+      # using the --webpack option for rails doesnt work, need to "manually" install webpacker
+      `rails new railing --skip-git --skip-bundle --skip-sprockets --skip-spring --skip-bootsnap`
       expect(Dir.exist?('railing')).to be true
       Dir.chdir('railing')
+      gemfile = File.read('Gemfile')
+      gemfile << <<~GEMS
+      gem 'webpacker'
+      GEMS
+      File.write('Gemfile', gemfile)
+      `env -i PATH="#{ENV['PATH']}" bundle install`
+      `env -i PATH="#{ENV['PATH']}" bundle exec rails webpacker:install`
       expect(File.exist?(File.join('config', 'webpack', 'environment.js'))).to be true
       OpalWebpackLoader::Installer::CLI.start(%w[webpacker -o hyperhyper])
       expect(File.exist?(File.join('app', 'javascript', 'packs', 'application.js'))).to be true
