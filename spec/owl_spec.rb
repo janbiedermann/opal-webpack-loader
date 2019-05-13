@@ -190,7 +190,7 @@ RSpec.describe 'owl' do
       File.write('Gemfile', gemfile)
       # add local owl npm package
       package_json = Oj.load(File.read('package.json'), mode: :strict)
-      package_json["devDependencies"].delete("opal-webpack-loader")
+      package_json["dependencies"].delete("opal-webpack-loader")
       File.write('package.json', Oj.dump(package_json, mode: :strict))
       `env -i PATH="#{ENV['PATH']}" yarn add file:../../../opal-webpack-loader-#{OpalWebpackLoader::VERSION}.tgz`
       `env -i PATH="#{ENV['PATH']}" yarn add puppeteer@1.14.0 --dev`
