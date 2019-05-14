@@ -44,6 +44,7 @@ module OpalWebpackLoader
         create_directory(@webpack_config_directory)
         create_directory(@asset_output_directory)
         install_webpack_config
+        install_gitignore
         create_file_from_template('initializer.rb.erb', File.join('owl_init.rb'), { opal_directory: @opal_directory })
         add_gem
       end
@@ -170,6 +171,7 @@ module OpalWebpackLoader
         install_webpacker_package_json
         install_webpacker_js_entry
         install_opal_entries
+        install_gitignore
         create_file_from_template('initializer.rb.erb', File.join('config', 'initializers', 'opal_webpack_loader.rb'),
                                   { opal_directory: @opal_directory })
         add_gem
@@ -199,6 +201,17 @@ module OpalWebpackLoader
         install_js_entries
         install_opal_entries
         install_procfile
+        install_gitignore
+      end
+
+      def install_gitignore
+        if File.exist?('.gitignore')
+          gitignore = File.read('.gitignore', more: 'r')
+          unless gitignore.include?('.owl_cache')
+            gitignore << "\n.owl_cache\n"
+            File.write('.gitignore', gitignore)
+          end
+        end
       end
 
       def install_js_entries
