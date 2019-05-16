@@ -9,8 +9,7 @@ const process = require('process');
 const loaderUtils = require('loader-utils');
 
 process.on('exit', function(code) {
-    console.log("opal-webpack-loader: stopping compile server");
-    child_process.spawnSync("bundle", ["exec", "opal-webpack-compile-server stop"]);
+    child_process.spawnSync("bundle", ["exec", "opal-webpack-compile-server", "stop"]);
 });
 
 // keep some global state
@@ -118,7 +117,6 @@ module.exports = function(source, map, meta) {
     }
     if(!Owl.socket_ready && !Owl.compile_server_starting) {
         if (!fs.existsSync(Owl.socket_path)) {
-            console.log("opal-webpack-loader: starting compile server");
             Owl.compile_server_starting = true;
             let compile_server = child_process.spawn("bundle", ["exec", "opal-webpack-compile-server", "start", os.cpus().length.toString()],
                 { detached: true, stdio: 'ignore' });
