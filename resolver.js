@@ -5,11 +5,11 @@ const child_process = require('child_process');
 const path = require('path');
 
 module.exports = class Resolver {
-    constructor(source, target) {
+    constructor(source, target, filter = []) {
         const owl_cache_path = path.join('.owl_cache', 'load_paths.json');
 
         if (!this.owl_cache_fetched) {
-            let gen_cache_result = child_process.spawnSync("bundle", ["exec", "owl-gen-loadpath-cache"]);
+            let gen_cache_result = child_process.spawnSync("bundle", ["exec", "owl-gen-loadpath-cache"].concat(filter));
             console.log(gen_cache_result.stdout.toString());
             console.error(gen_cache_result.stderr.toString());
             let owl_cache_from_file = fs.readFileSync(owl_cache_path);
