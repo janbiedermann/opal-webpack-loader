@@ -59,7 +59,7 @@ else
     Opal.append_paths(*load_paths)
   end
 
-  pid = fork { OpalWebpackLoader::CompileServer.new(modules_to_require).start(number_of_workers) }
+  pid = fork { OpalWebpackLoader::CompileServer.new.start(number_of_workers) }
 
   have_socket = false
   start_time = Time.now
