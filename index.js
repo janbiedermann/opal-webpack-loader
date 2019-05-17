@@ -114,11 +114,26 @@ module.exports = function(source, map, meta) {
         if (typeof Owl.options.hmr === 'undefined' ) { Owl.options.hmr = false; }
         if (typeof Owl.options.hmrHook === 'undefined' ) { Owl.options.hmrHook = ''; }
         if (typeof Owl.options.sourceMap === 'undefined' ) { Owl.options.sourceMap = false; }
+        if (typeof Owl.options.includePaths === 'undefined' ) { Owl.options.includePaths = null; }
+        if (typeof Owl.options.requireModules === 'undefined' ) { Owl.options.requireModules = null; }
     }
     if(!Owl.socket_ready && !Owl.compile_server_starting) {
         if (!fs.existsSync(Owl.socket_path)) {
             Owl.compile_server_starting = true;
-            let compile_server = child_process.spawn("bundle", ["exec", "opal-webpack-compile-server", "start", os.cpus().length.toString()],
+            let options = ["exec", "opal-webpack-compile-server", "start", os.cpus().length.toString()];
+            if (Owl.options.includePaths) {
+                for (let i = 0; i < Owl.options.includePaths.length; i++) {
+                    options.push('-I');
+                    options.push(Owl.options.includePaths[i]);
+                }
+            }
+            if (Owl.options.requireModules) {
+                for (let i = 0; i < Owl.options.requireModules.length; i++) {
+                    options.push('-r');
+                    options.push(Owl.options.requireModules[i]);
+                }
+            }
+            let compile_server = child_process.spawn("bundle", options,
                 { detached: true, stdio: 'ignore' });
             compile_server.unref();
         } else {

@@ -2,6 +2,7 @@
 require 'open3'
 require 'oj'
 require 'c_lexer'
+require 'optparse'
 require 'opal/paths'
 require 'opal/source_map'
 require 'opal/compiler'
@@ -17,6 +18,22 @@ at_exit do
   end
 end
 
+modules_to_require = []
+
+OptionParser.new do |opts|
+  opts.on('-r', '--require MODULE', 'require the module before starting the compile server') do |m|
+    modules_to_require << m
+  end
+
+  opts.on('-I', '--include DIR', 'Append a load path (may be used more than once)') do |i|
+    $:.unshift(File.expand_path(i))
+  end
+end.parse!
+
+modules_to_require.each do |mod|
+  require mod
+end
+
 if ARGV[0] == 'stop' || ARGV[0] == 'kill'
   OpalWebpackLoader::CompileServer.stop
 else
@@ -25,7 +42,7 @@ else
     number_of_workers = ARGV[1].to_i
     number_of_workers == 4 if number_of_workers == 0
     number_of_workers == 16 if number_of_workers > 16
-    if ARGV[2]
+    if ARGV[2] && ARGV[2].start_with?('webpack')
       raise <<~MSG
       Please change the scripts in package.json to only start webpack:\n
       eg. from: "debug": "bundle exec opal-webpack-compile-server start 8 webpack --config=config/webpack/test.js"
@@ -42,7 +59,7 @@ else
     Opal.append_paths(*load_paths)
   end
 
-  pid = fork { OpalWebpackLoader::CompileServer.new.start(number_of_workers) }
+  pid = fork { OpalWebpackLoader::CompileServer.new(modules_to_require).start(number_of_workers) }
 
   have_socket = false
   start_time = Time.now
