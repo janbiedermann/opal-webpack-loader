@@ -19,14 +19,29 @@ at_exit do
 end
 
 modules_to_require = []
+compiler_options = {}
 
 OptionParser.new do |opts|
-  opts.on('-r', '--require MODULE', 'require the module before starting the compile server') do |m|
+  opts.on('-r', '--require MODULE', 'Require the module before starting the compile server.') do |m|
     modules_to_require << m
   end
 
   opts.on('-I', '--include DIR', 'Append a load path (may be used more than once)') do |i|
     $:.unshift(File.expand_path(i))
+  end
+
+  opts.on('-d', '--dynamic-require-severity SEVERITY', 'Compiler option, one of: error, warning, ignore.') do |s|
+    if %w[error warning ignore].include?(s)
+      compiler_options[:dynamic_require_severity] = s.to_sym
+    end
+  end
+
+  opts.on('-t', '--true FLAG', 'Set compiler flag to true.' ) do |f|
+    compiler_options[f.to_sym] = true
+  end
+
+  opts.on('-f', '--false FLAG', 'Set compiler flag to false.' ) do |f|
+    compiler_options[f.to_sym] = false
   end
 end.parse!
 
@@ -59,7 +74,7 @@ else
     Opal.append_paths(*load_paths)
   end
 
-  pid = fork { OpalWebpackLoader::CompileServer.new.start(number_of_workers) }
+  pid = fork { OpalWebpackLoader::CompileServer.new.start(number_of_workers, compiler_options) }
 
   have_socket = false
   start_time = Time.now

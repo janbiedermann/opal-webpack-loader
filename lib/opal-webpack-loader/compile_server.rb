@@ -42,13 +42,13 @@ module OpalWebpackLoader
       @signal_queue = []
     end
 
-    def start(number_of_workers = 4)
+    def start(number_of_workers = 4, compiler_options)
       $PROGRAM_NAME = 'owl compile server'
       @number_of_workers = number_of_workers
       @server_pid = Process.pid
       $stderr.sync = $stdout.sync = true
       @socket = UNIXServer.new(OWCS_SOCKET_PATH)
-      spawn_workers
+      spawn_workers(compiler_options)
       SIGNALS.each { |sig| trap_deferred(sig) }
       trap('CHLD') { @write_pipe.write_nonblock('.') }
 
@@ -58,7 +58,7 @@ module OpalWebpackLoader
         case mode
         when nil
           kill_runaway_workers
-          spawn_workers
+          spawn_workers(compiler_options)
         when 'QUIT', 'TERM', 'INT'
           @workers.each_pair do |pid, _worker|
             Process.kill('TERM', pid)
@@ -114,14 +114,14 @@ module OpalWebpackLoader
       worker.start
     end
 
-    def spawn_workers
+    def spawn_workers(compiler_options)
       worker_number = -1
       until (worker_number += 1) == @number_of_workers
         @workers.value?(worker_number) && next
         tempfile = Tempfile.new('')
         tempfile.unlink
         tempfile.sync = true
-        worker = OpalWebpackLoader::CompileWorker.new(@server_pid, @socket, tempfile, worker_number)
+        worker = OpalWebpackLoader::CompileWorker.new(@server_pid, @socket, tempfile, worker_number, compiler_options)
         pid = fork { init_worker(worker) }
         @workers[pid] = worker
       end

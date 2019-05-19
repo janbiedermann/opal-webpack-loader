@@ -197,7 +197,8 @@ OpalWebpackLoader.use_manifest = false
 OpalWebpackLoader.manifest_path = File.join(Dir.getwd, 'public', 'assets', 'manifest.json') # doesn't matter, not used
 OpalWebpackLoader.client_asset_path = 'http://localhost:3035/assets/'
 ```
-
+### Advanced Options
+[Advanced Options](https://github.com/isomorfeus/opal-webpack-loader/blob/master/docs/advanced_options.md)
 ### Tests
 - clone the repo
 - `bundle install`

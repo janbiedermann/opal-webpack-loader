@@ -6,11 +6,12 @@ module OpalWebpackLoader
 
     attr_reader :number, :tempfile
 
-    def initialize(master_pid, socket, tempfile, number)
+    def initialize(master_pid, socket, tempfile, number, compiler_options)
       @master_pid = master_pid
       @socket     = socket
       @tempfile   = tempfile
       @number     = number
+      @compiler_options = compiler_options.merge(es6_modules: true)
     end
 
     def ==(other_number)
@@ -72,7 +73,7 @@ module OpalWebpackLoader
       source = File.read(filename)
 
       begin
-        c = Opal::Compiler.new(source, file: filename, es6_modules: true)
+        c = Opal::Compiler.new(source, @compiler_options.merge(file: filename))
         result = { 'javascript' => c.compile }
         if compile_source_map
           result['source_map'] = c.source_map.as_json
