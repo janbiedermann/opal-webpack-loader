@@ -20,7 +20,8 @@ let Owl = {
     module_start: 'const opal_code = function() {\n  global.Opal.modules[',
     compile_server_starting: false,
     socket_ready: false,
-    options: null
+    options: null,
+    socket_wait_counter: 0
 };
 
 function delegate_compilation(that, callback, meta, request_json) {
@@ -100,46 +101,69 @@ function wait_for_socket_and_delegate(that, callback, meta, request_json) {
             delegate_compilation(that, callback, meta, request_json);
         } else {
             setTimeout(function() {
+                if (Owl.socket_wait_counter > 600) { throw new Error('opal-webpack-loader: Unable to connect to compile server!'); }
                 wait_for_socket_and_delegate(that, callback, meta, request_json);
             }, 50);
         }
     }
 }
 
+function start_compile_server() {
+    if (!fs.existsSync(Owl.socket_path)) {
+        Owl.compile_server_starting = true;
+        let options = ["exec", "opal-webpack-compile-server", "start", os.cpus().length.toString()];
+        if (Owl.options.includePaths) {
+            for (let i = 0; i < Owl.options.includePaths.length; i++) {
+                options.push('-I');
+                options.push(Owl.options.includePaths[i]);
+            }
+        }
+        if (Owl.options.requireModules) {
+            for (let i = 0; i < Owl.options.requireModules.length; i++) {
+                options.push('-r');
+                options.push(Owl.options.requireModules[i]);
+            }
+        }
+        if (Owl.options.dynamicRequireSeverity) {
+            options.push('-d');
+            options.push(Owl.options.dynamicRequireSeverity);
+        }
+        if (Owl.options.compilerFlagsOn) {
+            for (let i = 0; i < Owl.options.compilerFlagsOn.length; i++) {
+                options.push('-t');
+                options.push(Owl.options.compilerFlagsOn[i]);
+            }
+        }
+        if (Owl.options.compilerFlagsOff) {
+            for (let i = 0; i < Owl.options.compilerFlagsOn.length; i++) {
+                options.push('-f');
+                options.push(Owl.options.compilerFlagsOn[i]);
+            }
+        }
+        let compile_server = child_process.spawn("bundle", options, { detached: true, stdio: 'ignore' });
+        compile_server.unref();
+    } else {
+        throw(new Error("opal-webpack-loader: compile server socket in use by another process"));
+    }
+}
+
+function initialize_options(that) {
+    Owl.options = loaderUtils.getOptions(that);
+    if (typeof Owl.options.hmr === 'undefined') { Owl.options.hmr = false; }
+    if (typeof Owl.options.hmrHook === 'undefined') { Owl.options.hmrHook = ''; }
+    if (typeof Owl.options.sourceMap === 'undefined') { Owl.options.sourceMap = false; }
+    if (typeof Owl.options.includePaths === 'undefined') { Owl.options.includePaths = null; }
+    if (typeof Owl.options.requireModules === 'undefined') { Owl.options.requireModules = null; }
+    if (typeof Owl.options.dynamicRequireSeverity === 'undefined') { Owl.options.dynamicRequireSeverity = null; }
+    if (typeof Owl.options.compilerFlagsOn === 'undefined') { Owl.options.compilerFlagsOn = null; }
+    if (typeof Owl.options.compilerFlagsOff === 'undefined') { Owl.options.compilerFlagsOff = null; }
+}
+
 module.exports = function(source, map, meta) {
     let callback = this.async();
     this.cacheable && this.cacheable();
-    if (!Owl.options) {
-        Owl.options = loaderUtils.getOptions(this);
-        if (typeof Owl.options.hmr === 'undefined' ) { Owl.options.hmr = false; }
-        if (typeof Owl.options.hmrHook === 'undefined' ) { Owl.options.hmrHook = ''; }
-        if (typeof Owl.options.sourceMap === 'undefined' ) { Owl.options.sourceMap = false; }
-        if (typeof Owl.options.includePaths === 'undefined' ) { Owl.options.includePaths = null; }
-        if (typeof Owl.options.requireModules === 'undefined' ) { Owl.options.requireModules = null; }
-    }
-    if(!Owl.socket_ready && !Owl.compile_server_starting) {
-        if (!fs.existsSync(Owl.socket_path)) {
-            Owl.compile_server_starting = true;
-            let options = ["exec", "opal-webpack-compile-server", "start", os.cpus().length.toString()];
-            if (Owl.options.includePaths) {
-                for (let i = 0; i < Owl.options.includePaths.length; i++) {
-                    options.push('-I');
-                    options.push(Owl.options.includePaths[i]);
-                }
-            }
-            if (Owl.options.requireModules) {
-                for (let i = 0; i < Owl.options.requireModules.length; i++) {
-                    options.push('-r');
-                    options.push(Owl.options.requireModules[i]);
-                }
-            }
-            let compile_server = child_process.spawn("bundle", options,
-                { detached: true, stdio: 'ignore' });
-            compile_server.unref();
-        } else {
-            throw(new Error("opal-webpack-loader: compile server socket in use by another process"));
-        }
-    }
+    if (!Owl.options) { initialize_options(this); }
+    if (!Owl.socket_ready && !Owl.compile_server_starting) { start_compile_server(); }
     let request_json = JSON.stringify({ filename: this.resourcePath, source_map: Owl.options.sourceMap });
     wait_for_socket_and_delegate(this, callback, meta, request_json);
 };
