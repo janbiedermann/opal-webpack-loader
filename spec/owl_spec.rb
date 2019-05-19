@@ -206,5 +206,38 @@ RSpec.describe 'owl' do
       test_result = `env -i PATH="#{ENV['PATH']}" bundle exec rspec`
       expect(test_result).to include('1 example, 0 failures')
     end
+
+    it 'can run the production build script in a roda app and execute ruby code in the browser with the es6_modules_1_1 branch' do
+      FileUtils.cp_r(File.join('..', 'fixtures', 'flattering'), File.join('.'))
+      expect(Dir.exist?('flattering')).to be true
+      Dir.chdir('flattering')
+      OpalWebpackLoader::Installer::CLI.start(%w[flat])
+
+      gemfile = File.read('Gemfile')
+      gemfile << <<~GEMS
+
+      gem 'opal', github: 'janbiedermann/opal', branch: 'es6_modules_1_1'
+      gem 'opal-webpack-loader', path: '#{File.realpath(File.join('..','..', '..', '..', 'opal-webpack-loader'))}'
+
+      GEMS
+      File.write('Gemfile', gemfile)
+      # add local owl npm package
+      package_json = Oj.load(File.read('package.json'), mode: :strict)
+      package_json["dependencies"].delete("opal-webpack-loader")
+      File.write('package.json', Oj.dump(package_json, mode: :strict))
+      `env -i PATH="#{ENV['PATH']}" yarn add file:../../../opal-webpack-loader-#{OpalWebpackLoader::VERSION}.tgz`
+      `env -i PATH="#{ENV['PATH']}" yarn add puppeteer@1.14.0 --dev`
+      `env -i PATH="#{ENV['PATH']}" yarn install`
+      # bundler set some environment things, but we need a clean environment, so things don't get mixed up, use env
+      `env -i PATH="#{ENV['PATH']}" bundle install`
+      expect(File.exist?('Gemfile.lock')).to be true
+      puts `env -i PATH="#{ENV['PATH']}" yarn run production_build`
+      expect(File.exist?(File.join('public', 'assets', 'manifest.json'))).to be true
+      manifest = Oj.load(File.read(File.join('public', 'assets', 'manifest.json')), mode: :strict)
+      application_js = manifest['application.js']
+      expect(File.exist?(File.join('public', application_js))).to be true
+      test_result = `env -i PATH="#{ENV['PATH']}" bundle exec rspec`
+      expect(test_result).to include('1 example, 0 failures')
+    end
   end
 end
