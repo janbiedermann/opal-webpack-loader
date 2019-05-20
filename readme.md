@@ -41,6 +41,11 @@ Intel® Core™ i7-7700HQ CPU @ 2.80GHz × 8, with 8 workers in around 1850ms
     
     `gem 'opal', github: 'janbiedermann/opal', branch: 'es6_modules_string'`
     
+  - [PR#1976](https://github.com/opal/opal/pull/1976), (experimental) implementing ES6 modules and changes for 'strict' mode,
+    based on Opal master 1.1.0 using javascript string primitives and providing nice features like `require_lazy 'my_module'`
+    
+    `gem 'opal', github: 'janbiedermann/opal', branch: 'es6_modules_1_1'`
+    
 - if you have the webpacker gem installed somewhere, it should be a version supporting webpack 4
 - ruby, version 2.5 or higher recommended
 - bundler, latest version recommended
