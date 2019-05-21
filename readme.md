@@ -1,4 +1,11 @@
-# opal-webpack-loader
+<h1 align="center">
+  <img src="https://raw.githubusercontent.com/isomorfeus/opal-webpack-loader/master/docs/owl.png" 
+  align="center" title="Opal logo by Elia Schito combined with Webpack Logo" width="111" height="125" />
+  <br/>
+  opal-webpack-loader<br/>
+  <img src="https://img.shields.io/badge/Opal-Ruby%20💛%20JavaScript%20💛%20Webpack-yellow.svg?logo=ruby&style=social&logoColor=777"/>
+</h1>
+
 Bundle assets with webpack, resolve and compile opal ruby files and import them in the bundle, without sprockets or the webpacker gem
  (but can be used with both of them too).
 Includes a loader and resolver plugin for webpack.
