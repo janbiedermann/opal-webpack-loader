@@ -16,7 +16,7 @@ RSpec.describe 'owl installer' do
     end
 
     it 'can install in a rails app without sprockets and webpacker gem' do
-      `rails new railing --skip-git --skip-bundle --skip-sprockets --skip-javascript --skip-spring --skip-bootsnap`
+      system('rails new railing --skip-git --skip-bundle --skip-sprockets --skip-javascript --skip-spring --skip-bootsnap')
       expect(Dir.exist?('railing')).to be true
       Dir.chdir('railing')
       expect(Dir.exist?(File.join( 'config', 'webpack'))).to be false
@@ -38,7 +38,7 @@ RSpec.describe 'owl installer' do
     end
 
     it 'can install in a rails app without sprockets and webpacker gem specifying another opal files dir' do
-      `rails new railing --skip-git --skip-bundle --skip-sprockets --skip-javascript --skip-spring --skip-bootsnap`
+      system('rails new railing --skip-git --skip-bundle --skip-sprockets --skip-javascript --skip-spring --skip-bootsnap')
       expect(Dir.exist?('railing')).to be true
       Dir.chdir('railing')
       expect(Dir.exist?(File.join('config', 'webpack'))).to be false
@@ -61,7 +61,7 @@ RSpec.describe 'owl installer' do
 
     it 'can install in a rails app without sprockets and with webpacker gem specifying another opal files dir' do
       # using the --webpack option for rails doesnt work here, need to "manually" install webpacker
-      `rails new railing --skip-git --skip-bundle --skip-sprockets --skip-spring --skip-bootsnap`
+      system('rails new railing --skip-git --skip-bundle --skip-sprockets --skip-spring --skip-bootsnap')
       expect(Dir.exist?('railing')).to be true
       Dir.chdir('railing')
       gemfile = File.read('Gemfile')
@@ -69,8 +69,8 @@ RSpec.describe 'owl installer' do
       gem 'webpacker'
       GEMS
       File.write('Gemfile', gemfile)
-      `env -i PATH="#{ENV['PATH']}" bundle install`
-      `env -i PATH="#{ENV['PATH']}" bundle exec rails webpacker:install`
+      system('env -i PATH=$PATH bundle install')
+      system('env -i PATH=$PATH bundle exec rails webpacker:install')
       expect(File.exist?(File.join('config', 'webpack', 'environment.js'))).to be true
       OpalWebpackLoader::Installer::CLI.start(%w[webpacker -o hyperhyper])
       expect(File.exist?(File.join('app', 'javascript', 'packs', 'application.js'))).to be true
