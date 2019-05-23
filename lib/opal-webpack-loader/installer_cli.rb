@@ -43,10 +43,11 @@ module OpalWebpackLoader
         @webpack_config_directory = 'webpack'
         create_directory(@webpack_config_directory)
         create_directory(@asset_output_directory)
+        FileUtils.touch(File.join(@asset_output_directory, '.keep'))
         install_webpack_config
         install_gitignore
         create_file_from_template('initializer.rb.erb', File.join('owl_init.rb'), { opal_directory: @opal_directory })
-        add_gem
+        # add_gem
       end
 
       desc "flat", "Install owl configuration into a existing project with a flat structure, execute from the projects root directory."
@@ -192,6 +193,7 @@ module OpalWebpackLoader
         create_directory(@js_entrypoints_directory)
         create_directory(@opal_directory)
         create_directory(@asset_output_directory)
+        FileUtils.touch(File.join(@asset_output_directory, '.gitkeep'))
         create_directory(@styles_directory)
       end
 
