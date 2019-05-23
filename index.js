@@ -8,9 +8,15 @@ const path = require('path');
 const process = require('process');
 const loaderUtils = require('loader-utils');
 
-process.on('exit', function(code) {
-    child_process.spawnSync("bundle", ["exec", "opal-webpack-compile-server", "stop"]);
-});
+let is_stopping = false;
+function handle_exit() {
+    if (!is_stopping) {
+        is_stopping = true;
+        child_process.spawnSync("bundle", ["exec", "opal-webpack-compile-server", "stop"]);
+    }
+}
+process.on('exit', function(code) { handle_exit(); });
+process.on('SIGTERM', function(signal) { handle_exit(); });
 
 // keep some global state
 let Owl = {
