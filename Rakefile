@@ -16,14 +16,14 @@ end
 console.log("#{version}");
   JAVASCRIPT
              )
-  `chmod +x npm_bin/opal-webpack-loader-npm-version`
-  `npm pack`
-  `gem build opal-webpack-loader`
+  system('chmod +x npm_bin/opal-webpack-loader-npm-version')
+  system('npm pack')
+  system('gem build opal-webpack-loader')
 end
 
 task :push_packages, [:npm_otp] do |_, args|
   package_json = Oj.load(File.read('package.json'), {})
   version = package_json['version']
-  puts `npm publish opal-webpack-loader-#{version}.tgz --otp=#{args[:npm_otp]}`
-  puts `gem push opal-webpack-loader-#{version}.gem`
+  system("npm publish opal-webpack-loader-#{version}.tgz --otp=#{args[:npm_otp]}")
+  system("gem push opal-webpack-loader-#{version}.gem")
 end
