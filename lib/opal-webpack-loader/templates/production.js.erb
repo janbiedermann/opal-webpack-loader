@@ -1,7 +1,7 @@
 const path = require('path');
 const OwlResolver = require('opal-webpack-loader/resolver');
 const CompressionPlugin = require("compression-webpack-plugin"); // for gzipping the packs
-const ManifestPlugin = require('webpack-manifest-plugin');  // for generating the manifest
+const WebpackAssetsManifest = require('webpack-assets-manifest');
 const TerserPlugin = require('terser-webpack-plugin');
 
 const common_config = {
@@ -10,9 +10,7 @@ const common_config = {
     optimization: {
         minimize: true, // minimize
         minimizer: [
-            new TerserPlugin({
-                cache: true
-            })
+            new TerserPlugin({ cache: true })
         ]
     },
     performance: {
@@ -31,7 +29,7 @@ const common_config = {
     },
     plugins: [
         new CompressionPlugin({ test: /^((?!application_ssr).)*$/, cache: true }), // gzip compress, exclude application_ssr.js
-        new ManifestPlugin({ fileName: 'manifest.json' }) // generate manifest
+        new WebpackAssetsManifest({ publicPath: true }) // generate manifest
     ],
     module: {
         rules: [
@@ -41,9 +39,7 @@ const common_config = {
                     { loader: "cache-loader" },
                     {
                         loader: "style-loader",
-                        options: {
-                            hmr: false
-                        }
+                        options: { hmr: false }
                     },
                     {
                         loader: "css-loader",

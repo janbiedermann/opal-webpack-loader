@@ -32,9 +32,7 @@ const common_config = {
         new webpack.NamedModulesPlugin(),
         new webpack.HotModuleReplacementPlugin(),
         // watch for added files in opal dir
-        new ExtraWatchWebpackPlugin({
-            dirs: [ path.resolve(__dirname, '<%= opal_directory %>') ]
-        })
+        new ExtraWatchWebpackPlugin({ dirs: [ path.resolve(__dirname, '<%= opal_directory %>') ] })
     ],
     module: {
         rules: [
@@ -46,18 +44,12 @@ const common_config = {
                     { loader: "cache-loader" },
                     {
                         loader: "style-loader",
-                        options: {
-                            hmr: true
-                        }
+                        options: { hmr: true }
                     },
-                    {
-                        loader: "css-loader"
-                    },
+                    { loader: "css-loader" },
                     {
                         loader: "sass-loader",
-                        options: {
-                            includePaths: [path.resolve(__dirname, '<%= stylesheets_directory %>')],
-                        }
+                        options: { includePaths: [path.resolve(__dirname, '<%= stylesheets_directory %>')] }
                     }
                 ]
             },
@@ -68,13 +60,9 @@ const common_config = {
                     { loader: "cache-loader" },
                     {
                         loader: "style-loader",
-                        options: {
-                            hmr: true
-                        }
+                        options: { hmr: true }
                     },
-                    {
-                        loader: "css-loader"
-                    }
+                    { loader: "css-loader" }
                 ]
             },
             {
@@ -121,8 +109,6 @@ const common_config = {
             ignored: /\bnode_modules\b/
         },
         contentBase: path.resolve(__dirname, 'public'),
-        // watchContentBase: true,
-        // writeToDisk: true,
         useLocalIp: false
     }
 };

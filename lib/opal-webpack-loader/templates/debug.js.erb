@@ -41,9 +41,7 @@ const common_config = {
         new webpack.NamedModulesPlugin(),
         new webpack.HotModuleReplacementPlugin(),
         // watch for added files in opal dir
-        new ExtraWatchWebpackPlugin({
-            dirs: [ path.resolve(__dirname, '<%= opal_directory %>') ]
-        })
+        new ExtraWatchWebpackPlugin({ dirs: [ path.resolve(__dirname, '<%= opal_directory %>') ] })
     ],
     module: {
         rules: [
@@ -55,15 +53,11 @@ const common_config = {
                     { loader: "cache-loader" },
                     {
                         loader: "style-loader",
-                        options: {
-                            hmr: true
-                        }
+                        options: { hmr: true }
                     },
                     {
                         loader: "css-loader",
-                        options: {
-                            sourceMap: true // set to false to speed up hot reloads
-                        }
+                        options: { sourceMap: true }
                     },
                     {
                         loader: "sass-loader",
@@ -81,15 +75,11 @@ const common_config = {
                     { loader: "cache-loader" },
                     {
                         loader: "style-loader",
-                        options: {
-                            hmr: true
-                        }
+                        options: { hmr: true }
                     },
                     {
                         loader: "css-loader",
-                        options: {
-                            sourceMap: true // set to false to speed up hot reloads
-                        }
+                        options: { sourceMap: true }
                     }
                 ]
             },
@@ -137,8 +127,6 @@ const common_config = {
             ignored: /\bnode_modules\b/
         },
         contentBase: path.resolve(__dirname, 'public'),
-        // watchContentBase: true,
-        // writeToDisk: true, // TODO this may need to be activated for ssr to work in development
         useLocalIp: false
     }
 };
