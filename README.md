@@ -166,14 +166,14 @@ a file `app_loader.rb` in the projects root can be created which just loads all 
 Usually it would just setup bundler with the appropriate options, for example:
 ```ruby
 require 'bundler/setup'
-if ENV['MY_PROJECT_ENV'] && ENV['MY_PROJECT_ENV'] == 'test'
+if ENV['RACK_ENV'] && ENV['RACK_ENV'] == 'test'
   Bundler.require(:default, :test)
-elsif ENV['MY_PROJECT_ENV'] && ENV['MY_PROJECT_ENV'] == 'production'
+elsif ENV['RACK_ENV'] && ENV['RACK_ENV'] == 'production'
   Bundler.require(:default, :production)
 else
   Bundler.require(:default, :development)
 end
-require './owl_init.rb' # this is a good place to require the opal-webpack-loader initializer, to get the apps opal load path
+Opal.append_path(File.realdirpath('opal')) # this is a good place to add the directory with opal files to the opal load path
 ```
 When this file exists, the compile server will load it and generate Opal load paths accordingly for the resolver.
 
