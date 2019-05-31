@@ -14,7 +14,7 @@ class App < Roda
           #{owl_script_tag 'application.js'}
         </head>
         <body>
-          <div>Hello world!</div>
+          <div>Hello World!</div>
         </body>
       </html>
       HTML
