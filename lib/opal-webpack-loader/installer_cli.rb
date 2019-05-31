@@ -41,6 +41,7 @@ module OpalWebpackLoader
         @opal_directory = 'isomorfeus'
         @styles_directory = File.join(@opal_directory, 'styles')
         @webpack_config_directory = 'webpack'
+        @default_targets = 'browser, ssr'
         create_directory(@webpack_config_directory)
         create_directory(@asset_output_directory)
         FileUtils.touch(File.join(@asset_output_directory, '.keep'))
@@ -80,6 +81,7 @@ module OpalWebpackLoader
         @opal_directory = options[:opal_name]
         @styles_directory = 'styles'
         @webpack_config_directory = 'webpack'
+        @default_targets = 'browser'
         create_common_directories
         install_common_things
         create_file_from_template('application.css.erb', File.join('styles', 'application.css'), {})
@@ -123,6 +125,7 @@ module OpalWebpackLoader
         @opal_directory = File.join('app', options[:opal_name])
         @styles_directory = File.join('app', 'assets', 'stylesheets')
         @webpack_config_directory = File.join('config', 'webpack')
+        @default_targets = 'browser'
         create_directory('app')
         create_common_directories
         install_common_things
@@ -166,6 +169,7 @@ module OpalWebpackLoader
         @opal_directory = File.join('app', options[:opal_name])
         @styles_directory = File.join('app', 'assets', 'stylesheets')
         @webpack_config_directory = File.join('config', 'webpack')
+        @default_targets = 'browser'
         create_directory('app')
         create_common_directories
         install_webpacker_config
@@ -292,7 +296,7 @@ module OpalWebpackLoader
       def install_webpack_config
         erb_hash = {
           asset_output_directory: File.join(@conf_rel_prefix, @asset_output_directory),
-          default_targets: 'browser',
+          default_targets: @default_targets,
           js_entry: File.join(@conf_rel_prefix, @js_entrypoints_directory, 'application.js'),
           js_common_entry: File.join(@conf_rel_prefix, @js_entrypoints_directory, 'application_common.js'),
           js_debug_entry: File.join(@conf_rel_prefix, @js_entrypoints_directory, 'application_debug.js'),
