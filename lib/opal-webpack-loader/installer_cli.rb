@@ -42,6 +42,7 @@ module OpalWebpackLoader
         @styles_directory = File.join(@opal_directory, 'styles')
         @webpack_config_directory = 'webpack'
         @default_targets = 'browser, ssr'
+        @hmr_hook = 'Opal.Isomorfeus.$force_render()'
         create_directory(@webpack_config_directory)
         create_directory(@asset_output_directory)
         FileUtils.touch(File.join(@asset_output_directory, '.keep'))
@@ -82,6 +83,7 @@ module OpalWebpackLoader
         @styles_directory = 'styles'
         @webpack_config_directory = 'webpack'
         @default_targets = 'browser'
+        @hmr_hook = ''
         create_common_directories
         install_common_things
         create_file_from_template('application.css.erb', File.join('styles', 'application.css'), {})
@@ -126,6 +128,7 @@ module OpalWebpackLoader
         @styles_directory = File.join('app', 'assets', 'stylesheets')
         @webpack_config_directory = File.join('config', 'webpack')
         @default_targets = 'browser'
+        @hmr_hook = ''
         create_directory('app')
         create_common_directories
         install_common_things
@@ -170,6 +173,7 @@ module OpalWebpackLoader
         @styles_directory = File.join('app', 'assets', 'stylesheets')
         @webpack_config_directory = File.join('config', 'webpack')
         @default_targets = 'browser'
+        @hmr_hook = ''
         create_directory('app')
         create_common_directories
         install_webpacker_config
@@ -304,7 +308,7 @@ module OpalWebpackLoader
           js_web_worker_entry: File.join(@conf_rel_prefix, @js_entrypoints_directory, 'application_web_worker.js'),
           opal_directory: File.join(@conf_rel_prefix, @opal_directory),
           stylesheets_directory: File.join(@conf_rel_prefix, @styles_directory),
-          hmr_hook: ''
+          hmr_hook: @hmr_hook
         }
         if @js_entrypoints_directory.start_with?('app')
           erb_hash[:dev_server_before] = <<~JAVASCRIPT
