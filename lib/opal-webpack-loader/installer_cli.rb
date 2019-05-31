@@ -46,7 +46,7 @@ module OpalWebpackLoader
         FileUtils.touch(File.join(@asset_output_directory, '.keep'))
         install_webpack_config
         install_gitignore
-        create_file_from_template('initializer.rb.erb', File.join('owl_init.rb'), { opal_directory: @opal_directory })
+        create_file_from_template('initializer.rb.erb', File.join('owl_init.rb'), { opal_load_path: '' })
         # add_gem
       end
 
@@ -83,8 +83,8 @@ module OpalWebpackLoader
         create_common_directories
         install_common_things
         create_file_from_template('application.css.erb', File.join('styles', 'application.css'), {})
-        create_file_from_template('initializer.rb.erb', 'owl_init.rb', { opal_directory: @opal_directory })
-        create_file_from_template('app_loader.rb.erb', 'app_loader.rb', {})
+        create_file_from_template('initializer.rb.erb', 'owl_init.rb', { opal_load_path: '' })
+        create_file_from_template('app_loader.rb.erb', 'app_loader.rb', { opal_directory: @opal_directory })
         add_gem
         print_message
       end
@@ -127,7 +127,7 @@ module OpalWebpackLoader
         create_common_directories
         install_common_things
         create_file_from_template('initializer.rb.erb', File.join('config', 'initializers', 'opal_webpack_loader.rb'),
-                                  { opal_directory: @opal_directory })
+                                  { opal_load_path: "Opal.append_path(File.realdirpath('#{@opal_directory}'))" })
         add_gem
         print_message
       end
@@ -174,7 +174,7 @@ module OpalWebpackLoader
         install_opal_entries
         install_gitignore
         create_file_from_template('initializer.rb.erb', File.join('config', 'initializers', 'opal_webpack_loader.rb'),
-                                  { opal_directory: @opal_directory })
+                                  { opal_load_path: "Opal.append_path(File.realdirpath('#{@opal_directory}'))" })
         add_gem
         print_message
       end

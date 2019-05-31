@@ -1,11 +1,9 @@
 require 'bundler/setup'
-# change OWL_ENV to the projects name env, like MY_PROJECT_ENV
-env_name = 'OWL_ENV'
-if ENV[env_name] && ENV[env_name] == 'test'
+if ENV['RACK_ENV'] && ENV['RACK_ENV'] == 'test'
   Bundler.require(:default, :test)
-elsif ENV[env_name] && ENV[env_name] == 'production'
+elsif ENV['RACK_ENV'] && ENV['RACK_ENV'] == 'production'
   Bundler.require(:default, :production)
 else
   Bundler.require(:default, :development)
 end
-require './owl_init'
+Opal.append_path(File.realdirpath('<%= opal_directory %>'))
