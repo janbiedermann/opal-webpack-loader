@@ -66,7 +66,8 @@ Continue here:
 - [Manual Installation](https://github.com/isomorfeus/opal-webpack-loader/blob/master/docs/installation_manual.md)
 
 ### Example applications
-[are here](https://github.com/isomorfeus/opal-webpack-loader/tree/master/example_apps/)
+- [Are here](https://github.com/isomorfeus/opal-webpack-loader/tree/master/example_apps/)
+- A minimal webpack only example from @sunrick is [here](https://github.com/sunrick/opal-hello-world-webpack).
 
 ### General Usage without Webpacker
 
