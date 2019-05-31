@@ -41,7 +41,8 @@ module OpalWebpackLoader
         @opal_directory = 'isomorfeus'
         @styles_directory = File.join(@opal_directory, 'styles')
         @webpack_config_directory = 'webpack'
-        @default_targets = 'browser, ssr'
+        @dev_default_targets = 'browser'
+        @pro_default_targets = 'browser, ssr'
         @hmr_hook = 'Opal.Isomorfeus.$force_render()'
         create_directory(@webpack_config_directory)
         create_directory(@asset_output_directory)
@@ -82,7 +83,8 @@ module OpalWebpackLoader
         @opal_directory = options[:opal_name]
         @styles_directory = 'styles'
         @webpack_config_directory = 'webpack'
-        @default_targets = 'browser'
+        @dev_default_targets = 'browser'
+        @pro_default_targets = 'browser'
         @hmr_hook = ''
         create_common_directories
         install_common_things
@@ -127,7 +129,8 @@ module OpalWebpackLoader
         @opal_directory = File.join('app', options[:opal_name])
         @styles_directory = File.join('app', 'assets', 'stylesheets')
         @webpack_config_directory = File.join('config', 'webpack')
-        @default_targets = 'browser'
+        @dev_default_targets = 'browser'
+        @pro_default_targets = 'browser'
         @hmr_hook = ''
         create_directory('app')
         create_common_directories
@@ -172,7 +175,8 @@ module OpalWebpackLoader
         @opal_directory = File.join('app', options[:opal_name])
         @styles_directory = File.join('app', 'assets', 'stylesheets')
         @webpack_config_directory = File.join('config', 'webpack')
-        @default_targets = 'browser'
+        @dev_default_targets = 'browser'
+        @pro_default_targets = 'browser'
         @hmr_hook = ''
         create_directory('app')
         create_common_directories
@@ -300,7 +304,7 @@ module OpalWebpackLoader
       def install_webpack_config
         erb_hash = {
           asset_output_directory: File.join(@conf_rel_prefix, @asset_output_directory),
-          default_targets: @default_targets,
+          default_targets: @dev_default_targets,
           js_entry: File.join(@conf_rel_prefix, @js_entrypoints_directory, 'application.js'),
           js_common_entry: File.join(@conf_rel_prefix, @js_entrypoints_directory, 'application_common.js'),
           js_debug_entry: File.join(@conf_rel_prefix, @js_entrypoints_directory, 'application_debug.js'),
@@ -332,6 +336,7 @@ module OpalWebpackLoader
         end
         create_file_from_template('debug.js.erb', File.join(@webpack_config_directory, 'debug.js'), erb_hash)
         create_file_from_template('development.js.erb', File.join(@webpack_config_directory, 'development.js'), erb_hash)
+        erb_hash[:default_targets] = @pro_default_targets
         create_file_from_template('production.js.erb', File.join(@webpack_config_directory, 'production.js'), erb_hash)
       end
 
