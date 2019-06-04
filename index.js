@@ -40,7 +40,7 @@ function delegate_compilation(that, callback, meta, request_json) {
         buffer = Buffer.concat([buffer, data]);
     });
     socket.on('end', function() {
-        let compiler_result = JSON.parse(buffer.toString());
+        let compiler_result = JSON.parse(buffer.toString('utf8'));
         if (typeof compiler_result.error !== 'undefined') {
             callback(new Error(
                 "opal-webpack-loader: A error occurred during compiling!\n" +
