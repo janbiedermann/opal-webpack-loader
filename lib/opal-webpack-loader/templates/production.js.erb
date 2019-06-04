@@ -8,10 +8,7 @@ const common_config = {
     context: path.resolve(__dirname, '<%= opal_directory %>'),
     mode: "production",
     optimization: {
-        minimize: true, // minimize
-        minimizer: [
-            new TerserPlugin({ cache: true })
-        ]
+        minimize: true // minimize
     },
     performance: {
         maxAssetSize: 20000000,
@@ -28,7 +25,7 @@ const common_config = {
         ]
     },
     plugins: [
-        new CompressionPlugin({ test: /^((?!application_ssr).)*$/, cache: true }), // gzip compress, exclude application_ssr.js
+        new CompressionPlugin({ test: /^((?!application_ssr).)*$/ }), // gzip compress, exclude application_ssr.js
         new WebpackAssetsManifest({ publicPath: true }) // generate manifest
     ],
     module: {
@@ -36,7 +33,6 @@ const common_config = {
             {
                 test: /.scss$/,
                 use: [
-                    { loader: "cache-loader" },
                     {
                         loader: "style-loader",
                         options: { hmr: false }
@@ -60,17 +56,16 @@ const common_config = {
             {
                 // loader for .css files
                 test: /.css$/,
-                use: [ "cache-loader", "style-loader", "css-loader" ]
+                use: [ "style-loader", "css-loader" ]
             },
             {
                 test: /.(png|svg|jpg|gif|woff|woff2|eot|ttf|otf)$/,
-                use: [ "cache-loader", "file-loader" ]
+                use: [ "file-loader" ]
             },
             {
                 // opal-webpack-loader will compile and include ruby files in the pack
                 test: /.(rb|js.rb)$/,
                 use: [
-                    { loader: "cache-loader" },
                     {
                         loader: 'opal-webpack-loader',
                         options: {
