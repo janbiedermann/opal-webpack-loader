@@ -3,9 +3,6 @@ require 'tempfile'
 
 module OpalWebpackLoader
   class CompileServer
-    OWL_CACHE_DIR = File.join('.','.owl_cache/')
-    OWL_LP_CACHE = File.join(OWL_CACHE_DIR, 'load_paths.json')
-    OWCS_SOCKET_PATH = File.join(OWL_CACHE_DIR, 'owcs_socket')
     SIGNALS = %w[QUIT INT TERM]
     TIMEOUT = 15
 
@@ -21,11 +18,11 @@ module OpalWebpackLoader
       @unlink = false
     end
 
-    def self.stop(do_exit = true)
-      if File.exist?(OWCS_SOCKET_PATH)
+    def self.stop(socket_path, do_exit = true)
+      if File.exist?(socket_path)
         dont_unlink_socket_on_exit
         begin
-          s = UNIXSocket.new(OWCS_SOCKET_PATH)
+          s = UNIXSocket.new(socket_path)
           s.send("command:stop\x04", 0)
           s.close
         rescue
@@ -42,12 +39,12 @@ module OpalWebpackLoader
       @signal_queue = []
     end
 
-    def start(number_of_workers = 4, compiler_options)
+    def start(number_of_workers = 4, compiler_options, socket_path)
       $PROGRAM_NAME = 'owl compile server'
       @number_of_workers = number_of_workers
       @server_pid = Process.pid
       $stderr.sync = $stdout.sync = true
-      @socket = UNIXServer.new(OWCS_SOCKET_PATH)
+      @socket = UNIXServer.new(socket_path)
       spawn_workers(compiler_options)
       SIGNALS.each { |sig| trap_deferred(sig) }
       trap('CHLD') { @write_pipe.write_nonblock('.') }

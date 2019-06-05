@@ -8,27 +8,34 @@ const path = require('path');
 const process = require('process');
 const loaderUtils = require('loader-utils');
 
-let is_stopping = false;
-function handle_exit() {
-    if (!is_stopping) {
-        is_stopping = true;
-        child_process.spawnSync("bundle", ["exec", "opal-webpack-compile-server", "stop"]);
-    }
-}
-process.on('exit', function(code) { handle_exit(); });
-process.on('SIGTERM', function(signal) { handle_exit(); });
-
 // keep some global state
 let Owl = {
-    c_dir: '.owl_cache',
-    lp_cache: path.join('.owl_cache', 'load_paths.json'),
-    socket_path: path.join('.owl_cache', 'owcs_socket'),
+    load_paths_cache: null,
+    socket_path: null,
     module_start: 'const opal_code = function() {\n  global.Opal.modules[',
     compile_server_starting: false,
     socket_ready: false,
     options: null,
-    socket_wait_counter: 0
+    socket_wait_counter: 0,
+    is_stopping: false
 };
+
+function handle_exit() {
+    if (!Owl.is_stopping) {
+        Owl.is_stopping = true;
+        try { fs.unlinkSync(Owl.load_paths_cache); } catch (err) { }
+        try {
+            if (fs.existsSync(Owl.socket_path)) {
+                // this doesnt seem to return, so anything below it is not executed
+                child_process.spawnSync("bundle", ["exec", "opal-webpack-compile-server", "stop", "-s", Owl.socket_path], {timeout: 10000});
+            }
+        } catch (err) { }
+        try { fs.unlinkSync(Owl.socket_path); } catch (err) { }
+        try { fs.rmdirSync(process.env.OWL_TMPDIR); } catch (err) { }
+    }
+}
+process.on('exit', function(code) { handle_exit(); });
+process.on('SIGTERM', function(signal) { handle_exit(); });
 
 function delegate_compilation(that, callback, meta, request_json) {
     let buffer = Buffer.alloc(0);
@@ -115,9 +122,11 @@ function wait_for_socket_and_delegate(that, callback, meta, request_json) {
 }
 
 function start_compile_server() {
+    Owl.socket_path = path.join(process.env.OWL_TMPDIR, 'owcs_socket');
     if (!fs.existsSync(Owl.socket_path)) {
         Owl.compile_server_starting = true;
-        let options = ["exec", "opal-webpack-compile-server", "start", os.cpus().length.toString()];
+        Owl.load_paths_cache = path.join(process.env.OWL_TMPDIR, 'load_paths.json');
+        let options = ["exec", "opal-webpack-compile-server", "start", os.cpus().length.toString(), "-l", Owl.load_paths_cache, "-s", Owl.socket_path];
         if (Owl.options.includePaths) {
             for (let i = 0; i < Owl.options.includePaths.length; i++) {
                 options.push('-I');

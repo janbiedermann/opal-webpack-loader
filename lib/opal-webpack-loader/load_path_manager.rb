@@ -25,12 +25,14 @@ module OpalWebpackLoader
       path_entries
     end
 
-    def self.read_load_paths_cache
-      load_paths_cache = Oj.load(File.read(OpalWebpackLoader::CompileServer::OWL_LP_CACHE), mode: :strict)
+    def self.read_load_paths_cache(json_path)
+      load_paths_cache = Oj.load(File.read(json_path), mode: :strict)
       load_paths_cache['opal_load_paths']
     end
 
-    def self.create_load_paths_cache(filter)
+    def self.create_load_paths_cache(args)
+      cache_path = args[0]
+      filter = args[1..-1]
       load_paths = if File.exist?(File.join('bin', 'rails'))
                      %x{
                          bundle exec rails runner "puts (Rails.configuration.respond_to?(:assets) ? (Rails.configuration.assets.paths + Opal.paths).uniq : Opal.paths)"
@@ -54,8 +56,7 @@ module OpalWebpackLoader
           load_path_entries.push(*more_path_entries) if more_path_entries.size > 0
         end
         cache_obj = { 'opal_load_paths' => load_path_lines, 'opal_load_path_entries' => load_path_entries }
-        Dir.mkdir(OpalWebpackLoader::CompileServer::OWL_CACHE_DIR) unless Dir.exist?(OpalWebpackLoader::CompileServer::OWL_CACHE_DIR)
-        File.write(OpalWebpackLoader::CompileServer::OWL_LP_CACHE, Oj.dump(cache_obj, mode: :strict, indent: 2))
+        File.write(cache_path, Oj.dump(cache_obj, mode: :strict, indent: 2))
         load_path_lines
       else
         raise 'Error getting load paths!'

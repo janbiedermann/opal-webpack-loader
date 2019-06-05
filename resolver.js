@@ -2,14 +2,33 @@
 
 const fs = require('fs');
 const child_process = require('child_process');
+const os = require('os');
 const path = require('path');
+const process = require('process');
+
+function handle_exit() {
+    try { fs.unlinkSync(path.join(process.env.OWL_TMPDIR, 'load_paths.json')); } catch (err) { }
+    let socket_path = path.join(process.env.OWL_TMPDIR, 'owcs_socket');
+    try {
+        if (fs.existsSync(socket_path)) {
+            // this doesnt seem to return, so anything below it is not executed
+            child_process.spawnSync("bundle", ["exec", "opal-webpack-compile-server", "stop", "-s", socket_path], {timeout: 10000});
+        }
+    } catch (err) { }
+    try { fs.unlinkSync(socket_path); } catch (err) { }
+    try { fs.rmdirSync(process.env.OWL_TMPDIR); } catch (err) { }
+}
+process.on('exit', function(code) { handle_exit(); });
+process.on('SIGTERM', function(signal) { handle_exit(); });
+
 
 module.exports = class Resolver {
     constructor(source, target, filter = []) {
-        const owl_cache_path = path.join('.owl_cache', 'load_paths.json');
+        process.env.OWL_TMPDIR = fs.mkdtempSync(path.join(os.tmpdir(), 'opal-webpack-loader-'));
+        const owl_cache_path = path.join(process.env.OWL_TMPDIR, 'load_paths.json');
 
         if (!this.owl_cache_fetched) {
-            let gen_cache_result = child_process.spawnSync("bundle", ["exec", "owl-gen-loadpath-cache"].concat(filter));
+            let gen_cache_result = child_process.spawnSync("bundle", ["exec", "owl-gen-loadpath-cache", owl_cache_path].concat(filter));
             console.log(gen_cache_result.stdout.toString());
             console.error(gen_cache_result.stderr.toString());
             let owl_cache_from_file = fs.readFileSync(owl_cache_path);

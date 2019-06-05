@@ -10,16 +10,9 @@ require 'opal-webpack-loader/load_path_manager'
 require 'opal-webpack-loader/compile_worker'
 require 'opal-webpack-loader/compile_server'
 
-at_exit do
-  if OpalWebpackLoader::CompileServer.unlink_socket?
-    if File.exist?(OpalWebpackLoader::CompileServer::OWCS_SOCKET_PATH)
-      File.unlink(OpalWebpackLoader::CompileServer::OWCS_SOCKET_PATH)
-    end
-  end
-end
-
 modules_to_require = []
 compiler_options = {}
+compile_server_options = {}
 
 OptionParser.new do |opts|
   opts.on('-r', '--require MODULE', 'Require the module before starting the compile server.') do |m|
@@ -43,17 +36,33 @@ OptionParser.new do |opts|
   opts.on('-f', '--false FLAG', 'Set compiler flag to false.' ) do |f|
     compiler_options[f.to_sym] = false
   end
+
+  opts.on('-l', '--load-paths-cache PATH', 'Path to load path cache json') do |l|
+    compile_server_options[:load_paths_cache] = l
+  end
+
+  opts.on('-s', '--socket-path PATH', 'Path of the socket the compile server should create.') do |s|
+    compile_server_options[:socket_path] = s
+  end
 end.parse!
 
 modules_to_require.each do |mod|
   require mod
 end
 
+at_exit do
+  if OpalWebpackLoader::CompileServer.unlink_socket?
+    if File.exist?(compile_server_options[:socket_path])
+      File.unlink(compile_server_options[:socket_path])
+    end
+  end
+end
+
 if ARGV[0] == 'stop' || ARGV[0] == 'kill'
-  OpalWebpackLoader::CompileServer.stop
+  OpalWebpackLoader::CompileServer.stop(compile_server_options[:socket_path])
 else
   if ARGV[0] == 'start'
-    OpalWebpackLoader::CompileServer.stop(false)
+    OpalWebpackLoader::CompileServer.stop(compile_server_options[:socket_path],false)
     number_of_workers = ARGV[1].to_i
     number_of_workers == 4 if number_of_workers == 0
     number_of_workers == 16 if number_of_workers > 16
@@ -69,18 +78,18 @@ else
     exit(1)
   end
 
-  load_paths = OpalWebpackLoader::LoadPathManager.read_load_paths_cache
+  load_paths = OpalWebpackLoader::LoadPathManager.read_load_paths_cache(compile_server_options[:load_paths_cache])
   if load_paths
     Opal.append_paths(*load_paths)
   end
 
-  pid = fork { OpalWebpackLoader::CompileServer.new.start(number_of_workers, compiler_options) }
+  pid = fork { OpalWebpackLoader::CompileServer.new.start(number_of_workers, compiler_options, compile_server_options[:socket_path]) }
 
   have_socket = false
   start_time = Time.now
   begin
     until have_socket
-      if File.exist?(OpalWebpackLoader::CompileServer::OWCS_SOCKET_PATH)
+      if File.exist?(compile_server_options[:socket_path])
         have_socket = true
       else
         if Time.now - start_time > 60

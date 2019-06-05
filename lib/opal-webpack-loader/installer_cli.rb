@@ -298,7 +298,7 @@ module OpalWebpackLoader
       end
 
       def production_script
-        "webpack --config=#{File.join(@webpack_config_directory, 'production.js')}"
+        "parallel-webpack --config=#{File.join(@webpack_config_directory, 'production.js')}"
       end
 
       def install_webpack_config
