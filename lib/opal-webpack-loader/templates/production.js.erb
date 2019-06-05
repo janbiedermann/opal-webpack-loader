@@ -1,17 +1,15 @@
 const path = require('path');
 const OwlResolver = require('opal-webpack-loader/resolver');
 const CompressionPlugin = require("compression-webpack-plugin"); // for gzipping the packs
-const WebpackAssetsManifest = require('webpack-assets-manifest');
 const TerserPlugin = require('terser-webpack-plugin');
+const WebpackAssetsManifest = require('webpack-assets-manifest');
 
 const common_config = {
     context: path.resolve(__dirname, '<%= opal_directory %>'),
     mode: "production",
     optimization: {
         minimize: true, // minimize
-        minimizer: [
-            new TerserPlugin({ cache: true })
-        ]
+        minimizer: [new TerserPlugin({ parallel: true, cache: true })]
     },
     performance: {
         maxAssetSize: 20000000,
@@ -29,7 +27,7 @@ const common_config = {
     },
     plugins: [
         new CompressionPlugin({ test: /^((?!application_ssr).)*$/, cache: true }), // gzip compress, exclude application_ssr.js
-        new WebpackAssetsManifest({ publicPath: true }) // generate manifest
+        new WebpackAssetsManifest({ publicPath: true, merge: true }) // generate manifest
     ],
     module: {
         rules: [
@@ -86,23 +84,17 @@ const common_config = {
 
 const browser_config = {
     target: 'web',
-    entry: {
-        application: [path.resolve(__dirname, '<%= js_entry %>')]
-    }
+    entry: { application: [path.resolve(__dirname, '<%= js_entry %>')] }
 };
 
 const ssr_config = {
     target: 'node',
-    entry: {
-        application_ssr: [path.resolve(__dirname, '<%= js_ssr_entry %>')]
-    }
+    entry: { application_ssr: [path.resolve(__dirname, '<%= js_ssr_entry %>')] }
 };
 
 const web_worker_config = {
     target: 'webworker',
-    entry: {
-        web_worker: [path.resolve(__dirname, '<%= js_web_worker_entry %>')]
-    }
+    entry: { web_worker: [path.resolve(__dirname, '<%= js_web_worker_entry %>')] }
 };
 
 const browser = Object.assign({}, common_config, browser_config);
