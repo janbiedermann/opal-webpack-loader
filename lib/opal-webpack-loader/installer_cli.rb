@@ -16,7 +16,6 @@ module OpalWebpackLoader
       #         +- imports # javascript entrypoints, import other components etc.
       #              +- application.js
       #              +- application_common.js
-      #              +- application_debug.js
       #              +- application_ssr.js
       #         +- isomorfeus_loader.rb
       #         +- models
@@ -232,7 +231,6 @@ module OpalWebpackLoader
         erb_hash = { opal_dir: File.join(@js_rel_prefix, @opal_directory), opal_name: options[:opal_name], application_css: @application_css }
         create_file_from_template('application.js.erb', File.join(@js_entrypoints_directory, 'application.js'), erb_hash)
         create_file_from_template('application_common.js.erb', File.join(@js_entrypoints_directory, 'application_common.js'),erb_hash)
-        create_file_from_template('application_debug.js.erb', File.join(@js_entrypoints_directory, 'application_debug.js'), erb_hash)
         create_file_from_template('application_ssr.js.erb', File.join(@js_entrypoints_directory, 'application_ssr.js'), erb_hash)
         create_file_from_template('application_web_worker.js.erb', File.join(@js_entrypoints_directory, 'application_web_worker.js'), erb_hash)
       end
@@ -307,7 +305,6 @@ module OpalWebpackLoader
           default_targets: @dev_default_targets,
           js_entry: File.join(@conf_rel_prefix, @js_entrypoints_directory, 'application.js'),
           js_common_entry: File.join(@conf_rel_prefix, @js_entrypoints_directory, 'application_common.js'),
-          js_debug_entry: File.join(@conf_rel_prefix, @js_entrypoints_directory, 'application_debug.js'),
           js_ssr_entry: File.join(@conf_rel_prefix, @js_entrypoints_directory, 'application_ssr.js'),
           js_web_worker_entry: File.join(@conf_rel_prefix, @js_entrypoints_directory, 'application_web_worker.js'),
           opal_directory: File.join(@conf_rel_prefix, @opal_directory),

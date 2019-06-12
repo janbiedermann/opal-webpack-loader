@@ -23,7 +23,6 @@ RSpec.describe 'owl installer' do
       OpalWebpackLoader::Installer::CLI.start(%w[rails])
       expect(File.exist?(File.join('app', 'assets', 'javascripts', 'application.js'))).to be true
       expect(File.exist?(File.join('app', 'assets', 'javascripts', 'application_common.js'))).to be true
-      expect(File.exist?(File.join('app', 'assets', 'javascripts', 'application_debug.js'))).to be true
       expect(File.exist?(File.join('app', 'assets', 'javascripts', 'application_ssr.js'))).to be true
       expect(File.exist?(File.join('app', 'assets', 'javascripts', 'application_web_worker.js'))).to be true
       expect(File.exist?(File.join('app', 'opal', 'opal_loader.rb'))).to be true
@@ -45,7 +44,6 @@ RSpec.describe 'owl installer' do
       OpalWebpackLoader::Installer::CLI.start(%w[rails -o hyperhyper])
       expect(File.exist?(File.join('app', 'assets', 'javascripts', 'application.js'))).to be true
       expect(File.exist?(File.join('app', 'assets', 'javascripts', 'application_common.js'))).to be true
-      expect(File.exist?(File.join('app', 'assets', 'javascripts', 'application_debug.js'))).to be true
       expect(File.exist?(File.join('app', 'assets', 'javascripts', 'application_ssr.js'))).to be true
       expect(File.exist?(File.join('app', 'assets', 'javascripts', 'application_web_worker.js'))).to be true
       expect(File.exist?(File.join('app', 'hyperhyper', 'hyperhyper_loader.rb'))).to be true
@@ -109,7 +107,6 @@ RSpec.describe 'owl installer' do
       expect(File.exist?(File.join('styles', 'application.css'))).to be true
       expect(File.exist?(File.join('javascripts', 'application.js'))).to be true
       expect(File.exist?(File.join('javascripts', 'application_common.js'))).to be true
-      expect(File.exist?(File.join('javascripts', 'application_debug.js'))).to be true
       expect(File.exist?(File.join('javascripts', 'application_ssr.js'))).to be true
       expect(File.exist?(File.join('opal', 'opal_loader.rb'))).to be true
       expect(File.exist?(File.join('owl_init.rb'))).to be true
