@@ -34,3 +34,8 @@ The opal-webpack-loader for webpack supports the following options to enable HMR
 Useful to trigger a render or update for React or ViewJS projects.
 
 Note: HMR works only for files within the project tree. Files outside the project tree are not hot reloaded.
+
+#### HMR and RubyMine
+
+Recommended Settings for RubyMine when sing HMR:
+[![RubyMine Settings](https://github.com/isomorfeus/opal-webpack-loader/blob/master/docs/RubyMine_settings.png?raw=true)]
