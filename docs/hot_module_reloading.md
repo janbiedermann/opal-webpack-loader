@@ -38,4 +38,4 @@ Note: HMR works only for files within the project tree. Files outside the projec
 #### HMR and RubyMine
 
 Recommended Settings for RubyMine when sing HMR:
-[![RubyMine Settings](https://github.com/isomorfeus/opal-webpack-loader/blob/master/docs/RubyMine_settings.png?raw=true)]
+![RubyMine Settings](https://github.com/isomorfeus/opal-webpack-loader/blob/master/docs/RubyMine_settings.png?raw=true)
