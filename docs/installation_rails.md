@@ -58,6 +58,9 @@ project_root
     +- Procfile             # config file for foreman
 ```
 
+To load the compiled asset files the `owl_include_tag` view helper must be used. Please see the sections "View Helper" and 
+"Project configuration options for the view helper" in the main README.
+
 Continue below, section "For Both".
 
 #### For Both
