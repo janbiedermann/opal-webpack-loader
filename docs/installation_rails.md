@@ -68,7 +68,7 @@ Continue below, section "For Both".
 Please see the messages of owl-install. You may need to manually add the following gems to the projects Gemfile:
 ```ruby
 gem 'opal', github: 'janbiedermann/opal', branch: 'es6_modules_1_1' # use the recommend branch of the main README
-gem 'opal-webpack-loader', '~> 0.8.0' # use the most recent released version here
+gem 'opal-webpack-loader', '~> 0.9.2' # use the most recent released version here
 ```
 
 Then:
