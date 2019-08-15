@@ -400,7 +400,7 @@ module OpalWebpackLoader
         
           Add the following lines to your Gemfile:
 
-            gem 'opal', github: 'janbiedermann/opal', branch: 'es6_modules'
+            gem 'opal', github: 'janbiedermann/opal', branch: 'es6_modules_1_1'
             gem 'opal-webpack-loader', '~> #{OpalWebpackLoader::VERSION}'
 
           owl currently works only with above opal branch. If you have a existing "gem 'opal'", please replace it with above line.
