@@ -68,23 +68,37 @@ function delegate_compilation(that, callback, meta, request_json) {
                 let opal_module_name = compiler_result.javascript.substr(start_index, end_index - start_index);
                 let hmreloader = `
 if (module.hot) {
-    let initially_loaded = false;
-    if (typeof global.Opal !== 'undefined') {
-        if (typeof global.Opal.modules !== 'undefined') {
-            if (typeof global.Opal.modules[${opal_module_name}] === 'function') {
-                initially_loaded = true;
-            }
+    let already_loaded = false;
+    if (typeof global.Opal !== 'undefined' && typeof global.Opal.modules !== 'undefined') {
+        if (typeof global.Opal.modules[${opal_module_name}] === 'function') {
+            already_loaded = true;
         }
     }
-    if (initially_loaded) {
-        module.hot.accept();
-        opal_code();
+    module.hot.accept();
+    opal_code();
+    if (already_loaded) {
         try {
             global.Opal.load.call(global.Opal, ${opal_module_name});
             ${Owl.options.hmrHook}
         } catch (err) {
             console.error(err.message);
         }
+    } else {
+        var fun = function() {
+            try {
+                global.Opal.load.call(global.Opal, ${opal_module_name});
+                console.log('${opal_module_name} loaded');
+                try {
+                    ${Owl.options.hmrHook}
+                } catch (err) {
+                    console.error(err.message);
+                }
+            } catch (err) {
+                console.log('Deferring load of ${opal_module_name}');
+                setTimeout(fun, 100);
+            }
+        }
+        fun();
     }
 }`;
                 result = [compiler_result.javascript, hmreloader].join("\n");
