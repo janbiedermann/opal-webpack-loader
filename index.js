@@ -84,18 +84,23 @@ if (module.hot) {
             console.error(err.message);
         }
     } else {
+        var start = new Date();
         var fun = function() {
             try {
                 global.Opal.load.call(global.Opal, ${opal_module_name});
-                console.log('${opal_module_name} loaded');
+                console.log('${opal_module_name}: loaded');
                 try {
                     ${Owl.options.hmrHook}
                 } catch (err) {
                     console.error(err.message);
                 }
             } catch (err) {
-                console.log('Deferring load of ${opal_module_name}');
-                setTimeout(fun, 100);
+                if ((new Date() - start) > 10000) {
+                    console.log('${opal_module_name}: load timed out');
+                } else {
+                    console.log('${opal_module_name}: deferring load');
+                    setTimeout(fun, 100);
+                }
             }
         }
         fun();
