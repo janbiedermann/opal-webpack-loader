@@ -47,7 +47,6 @@ module OpalWebpackLoader
         create_directory(@asset_output_directory)
         FileUtils.touch(File.join(@asset_output_directory, '.keep'))
         install_webpack_config
-        install_gitignore
         create_file_from_template('initializer.rb.erb', File.join('owl_init.rb'), { opal_load_path: '' })
         # add_gem
       end
@@ -69,7 +68,7 @@ module OpalWebpackLoader
       #
       # TEXT
       option :opal_name, required: false, type: :string, default: 'opal', aliases: '-o', desc: <<~TEXT
-        Set directory name for Opal source files.         
+        Set directory name for Opal source files.
         Example: owl-installer rails -o isomorfeus  # will use project_root/app/isomorfeus for opal files
       TEXT
 
@@ -115,7 +114,7 @@ module OpalWebpackLoader
       #
       # TEXT
       option :opal_name, required: false, type: :string, default: 'opal', aliases: '-o', desc: <<~TEXT
-        Set directory name for Opal source files.        
+        Set directory name for Opal source files.
         Example: owl-installer rails -o isomorfeus  # will use project_root/app/isomorfeus for opal files
       TEXT
 
@@ -161,7 +160,7 @@ module OpalWebpackLoader
       #
       # TEXT
       option :opal_name, required: false, type: :string, default: 'opal', aliases: '-o', desc: <<~TEXT
-        Set directory name for Opal source files.        
+        Set directory name for Opal source files.
         Example: owl-installer rails -o isomorfeus  # will use project_root/app/isomorfeus for opal files
       TEXT
 
@@ -183,7 +182,6 @@ module OpalWebpackLoader
         install_webpacker_package_json
         install_webpacker_js_entry
         install_opal_entries
-        install_gitignore
         create_file_from_template('initializer.rb.erb', File.join('config', 'initializers', 'opal_webpack_loader.rb'),
                                   { opal_load_path: "Opal.append_path(File.realdirpath('#{@opal_directory}'))" })
         add_gem
@@ -214,17 +212,6 @@ module OpalWebpackLoader
         install_js_entries
         install_opal_entries
         install_procfile
-        install_gitignore
-      end
-
-      def install_gitignore
-        if File.exist?('.gitignore')
-          gitignore = File.read('.gitignore', more: 'r')
-          unless gitignore.include?('.owl_cache')
-            gitignore << "\n.owl_cache\n"
-            File.write('.gitignore', gitignore)
-          end
-        end
       end
 
       def install_js_entries
@@ -354,7 +341,7 @@ module OpalWebpackLoader
       def install_webpacker_js_entry
         application_js = File.read(File.join('app', 'javascript', 'packs', 'application.js'), mode: 'r')
         application_js << <<~JAVASCRIPT
-        
+
         // import and load opal ruby files
         import init_app from '#{options[:opal_name]}_loader.rb';
         init_app();
@@ -397,7 +384,7 @@ module OpalWebpackLoader
 
       def print_message
         puts <<~TEXT
-        
+
           Add the following lines to your Gemfile:
 
             gem 'opal', github: 'janbiedermann/opal', branch: 'es6_modules_1_1'
@@ -414,7 +401,7 @@ module OpalWebpackLoader
           or:
 
             npm install
-          
+
           and then:
 
             bundle install
