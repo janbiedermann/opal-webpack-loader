@@ -127,16 +127,14 @@ if (module.hot) {
 function wait_for_socket_and_delegate(that, callback, meta, request_json) {
     if (Owl.socket_ready) {
         delegate_compilation(that, callback, meta, request_json);
+    } else if (fs.existsSync(Owl.socket_path)) {
+        Owl.socket_ready = true;
+        delegate_compilation(that, callback, meta, request_json);
     } else {
-        if (fs.existsSync(Owl.socket_path)) {
-            Owl.socket_ready = true;
-            delegate_compilation(that, callback, meta, request_json);
-        } else {
-            setTimeout(function() {
-                if (Owl.socket_wait_counter > 600) { throw new Error('opal-webpack-loader: Unable to connect to compile server!'); }
-                wait_for_socket_and_delegate(that, callback, meta, request_json);
-            }, 50);
-        }
+        setTimeout(function() {
+            if (Owl.socket_wait_counter > 600) { throw new Error('opal-webpack-loader: Unable to connect to compile server!'); }
+            wait_for_socket_and_delegate(that, callback, meta, request_json);
+        }, 50);
     }
 }
 
