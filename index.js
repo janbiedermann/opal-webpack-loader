@@ -52,7 +52,7 @@ function delegate_compilation(that, callback, meta, request_json) {
     let buffer = Buffer.alloc(0);
     // or let the source be compiled by the compile server
     let socket = net.connect(Owl.socket_path, function () {
-        socket.write(request_json + "\x04"); // triggers compilation // triggers compilation
+        socket.write(request_json + "\x04"); // triggers compilation
     });
     socket.on('data', function (data) {
         buffer = Buffer.concat([buffer, data]);
