@@ -4,7 +4,7 @@ const chokidar = require('chokidar');
 const OwlResolver = require('opal-webpack-loader/resolver');
 
 const owl = {
-    test: /.(rb|js.rb)$/,
+    test: /(\.js)?\.rb$/,
     use: [
         {
             loader: 'opal-webpack-loader',
