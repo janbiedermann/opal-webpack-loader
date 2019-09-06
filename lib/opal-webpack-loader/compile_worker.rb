@@ -78,7 +78,7 @@ module OpalWebpackLoader
 
       Oj.dump(result, mode: :strict)
     rescue Exception => e
-      Oj.dump({ 'error' => { 'name' => e.class, 'message' => e.message, 'backtrace' => e.backtrace.join("\n") } }, {})
+      Oj.dump(error: {name: e.class, message: e.message, backtrace: e.backtrace.join("\n")}, {})
     end
 
     class CachedCompiler
