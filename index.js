@@ -20,6 +20,17 @@ let Owl = {
     is_stopping: false
 };
 
+const default_options = {
+    hmr: false,
+    hmrHook: '',
+    sourceMap: false,
+    includePaths: null,
+    requireModules: null,
+    dynamicRequireSeverity: null,
+    compilerFlagsOn: null,
+    compilerFlagsOff: null,
+};
+
 function handle_exit() {
     if (!Owl.is_stopping) {
         Owl.is_stopping = true;
@@ -160,21 +171,17 @@ function start_compile_server() {
 }
 
 function initialize_options(that) {
-    Owl.options = loaderUtils.getOptions(that);
-    if (typeof Owl.options.hmr === 'undefined') { Owl.options.hmr = false; }
-    if (typeof Owl.options.hmrHook === 'undefined') { Owl.options.hmrHook = ''; }
-    if (typeof Owl.options.sourceMap === 'undefined') { Owl.options.sourceMap = false; }
-    if (typeof Owl.options.includePaths === 'undefined') { Owl.options.includePaths = null; }
-    if (typeof Owl.options.requireModules === 'undefined') { Owl.options.requireModules = null; }
-    if (typeof Owl.options.dynamicRequireSeverity === 'undefined') { Owl.options.dynamicRequireSeverity = null; }
-    if (typeof Owl.options.compilerFlagsOn === 'undefined') { Owl.options.compilerFlagsOn = null; }
-    if (typeof Owl.options.compilerFlagsOff === 'undefined') { Owl.options.compilerFlagsOff = null; }
+    const options = loaderUtils.getOptions(that);
+    Object.keys(default_options).forEach(
+        (key) => if (option[key] === undefined) option[key] = default_options[key];
+    )
+    return options;
 }
 
 module.exports = function(source, map, meta) {
     let callback = this.async();
     this.cacheable && this.cacheable();
-    if (!Owl.options) { initialize_options(this); }
+    if (!Owl.options) { Owl.options = initialize_options(this); }
     if (!Owl.socket_ready && !Owl.compile_server_starting) { start_compile_server(); }
     let request_json = JSON.stringify({ filename: this.resourcePath, source_map: Owl.options.sourceMap });
     wait_for_socket_and_delegate(this, callback, meta, request_json);
