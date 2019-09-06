@@ -1,4 +1,5 @@
 require 'socket'
+require 'digest/sha1'
 
 module OpalWebpackLoader
   class CompileWorker
@@ -11,7 +12,7 @@ module OpalWebpackLoader
       @socket     = socket
       @tempfile   = tempfile
       @number     = number
-      @compiler_options = compiler_options.merge(es6_modules: true)
+      @compiler   = CachedCompiler.new(compiler_options.merge(es6_modules: true))
     end
 
     def ==(other_number)
@@ -65,24 +66,47 @@ module OpalWebpackLoader
 
     private
 
-    def compile(request)
+    def handle_request(request)
       request_json = Oj.load(request.chop!, {})
 
-      compile_source_map = request_json["source_map"]
-      filename = request_json["filename"]
-      source = File.read(filename)
+      result = @compiler.compile(
+        filename: request_json["filename"],
+        source: File.read(filename),
+      ).tap do |result|
+        result.merge('source_map' => nil) unless request_json["source_map"]
+      end
 
-      begin
-        c = Opal::Compiler.new(source, @compiler_options.merge(file: filename))
-        result = { 'javascript' => c.compile }
-        if compile_source_map
-          result['source_map'] = c.source_map.as_json
-          result['source_map']['file'] = filename
+      Oj.dump(result, mode: :strict)
+    rescue Exception => e
+      Oj.dump({ 'error' => { 'name' => e.class, 'message' => e.message, 'backtrace' => e.backtrace.join("\n") } }, {})
+    end
+
+    class CachedCompiler
+      def initialize(compiler_options)
+        @compiler_options = compiler_options
+      end
+
+      def cache
+        @cache ||= {}
+      end
+
+      def compile(filename:, source:)
+        options = @compiler_options.merge(file: filename)
+        digest = Digest::SHA1.hexdigest(source)
+        cached_digest, cached_result = cache[filename]
+
+        if cached_digest == digest
+          cached_result
+        else
+          compiler = Opal::Compiler.new(source, options)
+          result = {
+            javascript: compiler.compile,
+            source_map: compiler.source_map.as_json.merge(file: filename),
+            required_trees: compiler.required_trees,
+          }
+          cache[filename] = [digest, result]
+          result
         end
-        result['required_trees'] = c.required_trees
-        Oj.dump(result, mode: :strict)
-      rescue Exception => e
-        Oj.dump({ 'error' => { 'name' => e.class, 'message' => e.message, 'backtrace' => e.backtrace.join("\n") } }, {})
       end
     end
   end
