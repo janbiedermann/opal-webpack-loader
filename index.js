@@ -146,34 +146,14 @@ function start_compile_server() {
         Owl.compile_server_starting = true;
         Owl.load_paths_cache = path.join(process.env.OWL_TMPDIR, 'load_paths.json');
         let options = ["exec", "opal-webpack-compile-server", "start", os.cpus().length.toString(), "-l", Owl.load_paths_cache, "-s", Owl.socket_path];
-        if (Owl.options.includePaths) {
-            for (let i = 0; i < Owl.options.includePaths.length; i++) {
-                options.push('-I');
-                options.push(Owl.options.includePaths[i]);
-            }
-        }
-        if (Owl.options.requireModules) {
-            for (let i = 0; i < Owl.options.requireModules.length; i++) {
-                options.push('-r');
-                options.push(Owl.options.requireModules[i]);
-            }
-        }
-        if (Owl.options.dynamicRequireSeverity) {
-            options.push('-d');
-            options.push(Owl.options.dynamicRequireSeverity);
-        }
-        if (Owl.options.compilerFlagsOn) {
-            for (let i = 0; i < Owl.options.compilerFlagsOn.length; i++) {
-                options.push('-t');
-                options.push(Owl.options.compilerFlagsOn[i]);
-            }
-        }
-        if (Owl.options.compilerFlagsOff) {
-            for (let i = 0; i < Owl.options.compilerFlagsOn.length; i++) {
-                options.push('-f');
-                options.push(Owl.options.compilerFlagsOn[i]);
-            }
-        }
+
+        if (Owl.options.dynamicRequireSeverity) options.push('-d', Owl.options.dynamicRequireSeverity);
+
+        (Owl.options.includePaths || []).forEach((path) => options.push('-I', path));
+        (Owl.options.requireModules || []).forEach((requiredModule) => options.push('-r', requiredModule));
+        (Owl.options.compilerFlagsOn || []).forEach((flagOn) => options.push('-t', flagOn));
+        (Owl.options.compilerFlagsOff || []).forEach((flagOff) => options.push('-f', flagOff));
+
         let compile_server = child_process.spawn("bundle", options, { detached: true, stdio: 'ignore' });
         compile_server.unref();
     } else {
