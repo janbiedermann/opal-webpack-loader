@@ -173,7 +173,7 @@ function start_compile_server() {
 function initialize_options(that) {
     const options = loaderUtils.getOptions(that);
     Object.keys(default_options).forEach(
-        (key) => { if (options[key] === undefined) options[key] = default_options[key]; }
+        (key) => { if (typeof options[key] === 'undefined') options[key] = default_options[key]; }
     );
     return options;
 }
