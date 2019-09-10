@@ -48,7 +48,7 @@ module OpalWebpackLoader
               Process.kill('TERM', @master_pid)
               exit(0)
             else
-              result = compile(request)
+              result = handle_request(request)
               client.write result
               client.flush
               client.close
@@ -68,9 +68,9 @@ module OpalWebpackLoader
 
     def handle_request(request)
       request_json = Oj.load(request.chop!, {})
-
+      filename = request_json["filename"]
       result = @compiler.compile(
-        filename: request_json["filename"],
+        filename: filename,
         source: File.read(filename),
       ).tap do |result|
         result.merge('source_map' => nil) unless request_json["source_map"]
@@ -101,7 +101,7 @@ module OpalWebpackLoader
           compiler = Opal::Compiler.new(source, options)
           result = {
             'javascript' => compiler.compile,
-            'source_map' =>  compiler.source_map.as_json.merge(file: filename),
+            'source_map' =>  compiler.source_map.as_json.merge('file' => filename),
             'required_trees' => compiler.required_trees,
           }
           cache[filename] = [digest, result]
