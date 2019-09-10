@@ -100,9 +100,9 @@ module OpalWebpackLoader
         else
           compiler = Opal::Compiler.new(source, options)
           result = {
-            javascript: compiler.compile,
-            source_map: compiler.source_map.as_json.merge(file: filename),
-            required_trees: compiler.required_trees,
+            'javascript' => compiler.compile,
+            'source_map' =>  compiler.source_map.as_json.merge(file: filename),
+            'required_trees' => compiler.required_trees,
           }
           cache[filename] = [digest, result]
           result
