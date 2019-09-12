@@ -1,8 +1,8 @@
-dist: xenial
+dist: bionic
 lanugage: ruby
-rvm: 2.5.3
+rvm: 2.6.3
 gemfile: Gemfile
 script: bundle exec rspec
-before_install: nvm install 10.15.3
+before_install: nvm install 10.16.3
 notifications:
   slack: isomorfeus:fkfbTBlQTpTgXaF7e0YOjWCG
