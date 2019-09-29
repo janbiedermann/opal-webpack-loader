@@ -66,7 +66,7 @@ module OpalWebpackLoader
     private
 
     def compile(request)
-      request_json = Oj.load(request.chop!, {})
+      request_json = Oj.load(request.chop!, mode: :strict)
 
       compile_source_map = request_json["source_map"]
       filename = request_json["filename"]
@@ -82,7 +82,7 @@ module OpalWebpackLoader
         result['required_trees'] = c.required_trees
         Oj.dump(result, mode: :strict)
       rescue Exception => e
-        Oj.dump({ 'error' => { 'name' => e.class, 'message' => e.message, 'backtrace' => e.backtrace.join("\n") } }, {})
+        Oj.dump({ 'error' => { 'name' => e.class, 'message' => e.message, 'backtrace' => e.backtrace.join("\n") } }, mode: :strict)
       end
     end
   end
