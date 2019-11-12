@@ -79,43 +79,53 @@ function delegate_compilation(that, callback, meta, request_json) {
                 let opal_module_name = compiler_result.javascript.substr(start_index, end_index - start_index);
                 let hmreloader = `
 if (module.hot) {
-    let already_loaded = false;
-    if (typeof global.Opal !== 'undefined' && typeof global.Opal.modules !== 'undefined') {
-        if (typeof global.Opal.modules[${opal_module_name}] === 'function') {
-            already_loaded = true;
+    if (typeof global.Opal !== 'undefined' && typeof Opal.require_table !== "undefined" && Opal.require_table['corelib/module']) {
+        let already_loaded = false;
+        if (typeof global.Opal.modules !== 'undefined') {
+            if (typeof global.Opal.modules[${opal_module_name}] === 'function') {
+                already_loaded = true;
+            }
+        }
+        opal_code();
+        if (already_loaded) {
+            try {
+                if (Opal.require_table[${opal_module_name}]) {
+                    global.Opal.load.call(global.Opal, ${opal_module_name});
+                } else {
+                    global.Opal.require.call(global.Opal, ${opal_module_name});
+                }
+                ${Owl.options.hmrHook}
+            } catch (err) {
+                console.error(err.message);
+            }
+        } else {
+            var start = new Date();
+            var fun = function() {
+                try {
+                    if (Opal.require_table[${opal_module_name}]) {
+                        global.Opal.load.call(global.Opal, ${opal_module_name});
+                    } else {
+                        global.Opal.require.call(global.Opal, ${opal_module_name});
+                    }
+                    console.log('${opal_module_name}: loaded');
+                    try {
+                        ${Owl.options.hmrHook}
+                    } catch (err) {
+                        console.error(err.message);
+                    }
+                } catch (err) {
+                    if ((new Date() - start) > 10000) {
+                        console.log('${opal_module_name}: load timed out');
+                    } else {
+                        console.log('${opal_module_name}: deferring load');
+                        setTimeout(fun, 100);
+                    }
+                }
+            }
+            fun();
         }
     }
     module.hot.accept();
-    opal_code();
-    if (already_loaded) {
-        try {
-            global.Opal.load.call(global.Opal, ${opal_module_name});
-            ${Owl.options.hmrHook}
-        } catch (err) {
-            console.error(err.message);
-        }
-    } else {
-        var start = new Date();
-        var fun = function() {
-            try {
-                global.Opal.load.call(global.Opal, ${opal_module_name});
-                console.log('${opal_module_name}: loaded');
-                try {
-                    ${Owl.options.hmrHook}
-                } catch (err) {
-                    console.error(err.message);
-                }
-            } catch (err) {
-                if ((new Date() - start) > 10000) {
-                    console.log('${opal_module_name}: load timed out');
-                } else {
-                    console.log('${opal_module_name}: deferring load');
-                    setTimeout(fun, 100);
-                }
-            }
-        }
-        fun();
-    }
 }`;
                 result = [compiler_result.javascript, hmreloader].join("\n");
             } else { result = compiler_result.javascript; }
