@@ -35,8 +35,8 @@ Intel® Core™ i7-7700HQ CPU @ 2.80GHz × 8, with 8 workers in around 1850ms
 
 ### Requirements
 - opal-webpack-loader consists of 2 parts, the npm package and the gem, both are required and must be the same version.
-- webpack 4.39
-- webpack-dev-server 3.8.0
+- webpack ^4.41
+- webpack-dev-server ^3.9.0
 - one of the ES6 modules branches of opal
   - [PR#1973](https://github.com/opal/opal/pull/1973), (experimental) implementing ES6 modules and changes for 'strict' mode,
     based on Opal master 1.0.0 using javascript string objects "mutable strings" by default for all strings
