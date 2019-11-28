@@ -12,3 +12,5 @@ example_apps
 .github
 .travis.yml
 .rspec
+docs/RubyMine_settings.png
+docs/owl.png
