@@ -39,7 +39,7 @@ const common_config = {
             {
                 // loader for .scss files
                 // test means "test for for file endings"
-                test: /.scss$/,
+                test: /\.s[ac]ss$/,
                 use: [
                     { loader: "style-loader" },
                     { loader: "css-loader" },
@@ -54,14 +54,14 @@ const common_config = {
             },
             {
                 // loader for .css files
-                test: /.css$/,
+                test: /\.css$/,
                 use: [
                     { loader: "style-loader" },
                     { loader: "css-loader" }
                 ]
             },
             {
-                test: /.(png|svg|jpg|gif|woff|woff2|eot|ttf|otf)$/,
+                test: /\.(png|svg|jpg|gif|woff|woff2|eot|ttf|otf)$/,
                 use: [ "file-loader" ]
             },
             {
