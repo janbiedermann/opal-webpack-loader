@@ -14,6 +14,7 @@ Gem::Specification.new do |s|
     (but can be used with both of them too). 
     Comes with a installer for rails and other frameworks.
   TEXT
+  s.metadata      = { "github_repo" => "ssh://github.com/isomorfeus/gems" }
   s.executables << 'opal-webpack-compile-server'
   s.executables << 'owl-install'
   s.executables << 'owl-gen-loadpath-cache'
