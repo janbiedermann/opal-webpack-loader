@@ -57,9 +57,9 @@ module OpalWebpackLoader
         end
         tempfile.chmod(i += 1)
         ret = begin
-          IO.select([@socket], nil, nil, OpalWebpackLoader::CompileServer::TIMEOUT / 2) || next
-        rescue Errno::EBADF
-        end
+                IO.select([@socket], nil, nil, OpalWebpackLoader::CompileServer::TIMEOUT / 2) || next
+              rescue Errno::EBADF
+              end
       end
     end
 
@@ -82,7 +82,7 @@ module OpalWebpackLoader
         result['required_trees'] = c.required_trees
         Oj.dump(result, mode: :strict)
       rescue Exception => e
-        Oj.dump({ 'error' => { 'name' => e.class, 'message' => e.message, 'backtrace' => e.backtrace.join("\n") } }, mode: :strict)
+        Oj.dump({ 'error' => { 'name' => e.class.to_s, 'message' => e.message, 'backtrace' => e.backtrace.join("\n") } }, mode: :strict)
       end
     end
   end
