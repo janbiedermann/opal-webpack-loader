@@ -1,12 +1,14 @@
 'use strict';
 
 const child_process = require('child_process');
+const crypto = require('crypto');
 const fs = require('fs');
 const net = require('net');
 const os = require('os');
 const path = require('path');
 const process = require('process');
 const loaderUtils = require('loader-utils');
+const MemcachePlus = require('memcache-plus');
 
 // keep some global state
 let Owl = {
@@ -17,7 +19,8 @@ let Owl = {
     socket_ready: false,
     options: null,
     socket_wait_counter: 0,
-    is_stopping: false
+    is_stopping: false,
+    memcache_client: null,
 };
 
 const default_options = {
@@ -29,6 +32,7 @@ const default_options = {
     dynamicRequireSeverity: null,
     compilerFlagsOn: null,
     compilerFlagsOff: null,
+    memcached: null,
 };
 
 function handle_exit() {
@@ -48,36 +52,12 @@ function handle_exit() {
 process.on('exit', function(code) { handle_exit(); });
 process.on('SIGTERM', function(signal) { handle_exit(); });
 
-function delegate_compilation(that, callback, meta, request_json) {
-    let buffer = Buffer.alloc(0);
-    // or let the source be compiled by the compile server
-    let socket = net.connect(Owl.socket_path, function () {
-        socket.write(request_json + "\x04"); // triggers compilation
-    });
-    socket.on('data', function (data) {
-        buffer = Buffer.concat([buffer, data]);
-    });
-    socket.on('end', function() {
-        let compiler_result = JSON.parse(buffer.toString('utf8'));
-        if (typeof compiler_result.error !== 'undefined') {
-            callback(new Error(
-                "opal-webpack-loader: A error occurred during compiling!\n" +
-                compiler_result.error.name + "\n" +
-                compiler_result.error.message + "\n" +
-                compiler_result.error.backtrace
-            ));
-        } else {
-            for (var i = 0; i < compiler_result.required_trees.length; i++) {
-                that.addContextDependency(path.join(path.dirname(that.resourcePath), compiler_result.required_trees[i]));
-            }
-            let result;
-            let real_resource_path = path.normalize(that.resourcePath);
-            if (Owl.options.hmr && real_resource_path.startsWith(that.rootContext)) {
-                // search for ruby module name in compiled file
-                let start_index = compiler_result.javascript.indexOf(Owl.module_start) + Owl.module_start.length;
-                let end_index = compiler_result.javascript.indexOf(']', start_index);
-                let opal_module_name = compiler_result.javascript.substr(start_index, end_index - start_index);
-                let hmreloader = `
+function attach_hot_reloader(javascript) {
+    // search for ruby module name in compiled file
+    let start_index = javascript.indexOf(Owl.module_start) + Owl.module_start.length;
+    let end_index = javascript.indexOf(']', start_index);
+    let opal_module_name = javascript.substr(start_index, end_index - start_index);
+    let hmreloader = `
 if (module.hot) {
     if (typeof global.Opal !== 'undefined' && typeof Opal.require_table !== "undefined" && Opal.require_table['corelib/module']) {
         let already_loaded = false;
@@ -127,7 +107,38 @@ if (module.hot) {
     }
     module.hot.accept();
 }`;
-                result = [compiler_result.javascript, hmreloader].join("\n");
+    return [compiler_result.javascript, hmreloader].join("\n");
+}
+
+function delegate_compilation(that, callback, meta, request_json, memcache_key) {
+    let buffer = Buffer.alloc(0);
+    // or let the source be compiled by the compile server
+    let socket = net.connect(Owl.socket_path, function () {
+        socket.write(request_json + "\x04"); // triggers compilation
+    });
+    socket.on('data', function (data) {
+        buffer = Buffer.concat([buffer, data]);
+    });
+    socket.on('end', function() {
+        let compiler_result = JSON.parse(buffer.toString('utf8'));
+        if (typeof compiler_result.error !== 'undefined') {
+            callback(new Error(
+                "opal-webpack-loader: A error occurred during compiling!\n" +
+                compiler_result.error.name + "\n" +
+                compiler_result.error.message + "\n" +
+                compiler_result.error.backtrace
+            ));
+        } else {
+            for (var i = 0; i < compiler_result.required_trees.length; i++) {
+                that.addContextDependency(path.join(path.dirname(that.resourcePath), compiler_result.required_trees[i]));
+            }
+            if (memcache_key) {
+                Owl.memcache_client.set(memcache_key, { javascript: compiler_result.javascript, source_map: compiler_result.source_map })
+            }
+            let result;
+            let real_resource_path = path.normalize(that.resourcePath);
+            if (Owl.options.hmr && real_resource_path.startsWith(that.rootContext)) {
+                result = attach_hot_reloader(compiler_result.javascript);
             } else { result = compiler_result.javascript; }
             callback(null, result, compiler_result.source_map, meta);
         }
@@ -145,16 +156,16 @@ if (module.hot) {
     });
 }
 
-function wait_for_socket_and_delegate(that, callback, meta, request_json) {
+function wait_for_socket_and_delegate(that, callback, meta, request_json, memcache_key) {
     if (Owl.socket_ready) {
-        delegate_compilation(that, callback, meta, request_json);
+        delegate_compilation(that, callback, meta, request_json, memcache_key);
     } else if (fs.existsSync(Owl.socket_path)) {
         Owl.socket_ready = true;
-        delegate_compilation(that, callback, meta, request_json);
+        delegate_compilation(that, callback, meta, request_json, memcache_key);
     } else {
         setTimeout(function() {
             if (Owl.socket_wait_counter > 600) { throw new Error('opal-webpack-loader: Unable to connect to compile server!'); }
-            wait_for_socket_and_delegate(that, callback, meta, request_json);
+            wait_for_socket_and_delegate(that, callback, meta, request_json, memcache_key);
         }, 50);
     }
 }
@@ -180,6 +191,14 @@ function start_compile_server() {
     }
 }
 
+function start_memcache_client() {
+    if (typeof Owl.options.memcached === 'string' || Array.isArray(Owl.options.memcached)) {
+        Owl.memcache_client = new MemcachePlus(Owl.options.memcached);
+    } else {
+        Owl.memcache_client = new MemcachePlus();
+    }
+}
+
 function initialize_options(that) {
     const options = loaderUtils.getOptions(that);
     Object.keys(default_options).forEach(
@@ -188,11 +207,33 @@ function initialize_options(that) {
     return options;
 }
 
+function compute_digest(source) {
+    const hash = crypto.createHash('sha1');
+    hash.update(source, 'utf-8');
+    return hash.digest('utf-8');
+}
+
 module.exports = function(source, map, meta) {
     let callback = this.async();
     this.cacheable && this.cacheable();
     if (!Owl.options) { Owl.options = initialize_options(this); }
     if (!Owl.socket_ready && !Owl.compile_server_starting) { start_compile_server(); }
-    let request_json = JSON.stringify({ filename: this.resourcePath, source_map: Owl.options.sourceMap });
-    wait_for_socket_and_delegate(this, callback, meta, request_json);
+    if (Owl.options.memcached) {
+        if (!Owl.memcache_client) { start_memcache_client(); }
+        let memcache_key = compute_digest(source);
+        Owl.memcache_client.get(memcache_key).then(function(memcache_result) {
+            let result;
+            let real_resource_path = path.normalize(this.resourcePath);
+            if (Owl.options.hmr && real_resource_path.startsWith(this.rootContext)) {
+                result = attach_hot_reloader(memcache_result.javascript);
+            } else { result = memcache_result.javascript; }
+            callback(null, result, result.source_map, meta);
+        }, function(reason) {
+            let request_json = JSON.stringify({filename: this.resourcePath, source_map: Owl.options.sourceMap});
+            wait_for_socket_and_delegate(this, callback, meta, request_json, memcache_key);
+        });
+    } else {
+        let request_json = JSON.stringify({filename: this.resourcePath, source_map: Owl.options.sourceMap});
+        wait_for_socket_and_delegate(this, callback, meta, request_json, null);
+    }
 };
