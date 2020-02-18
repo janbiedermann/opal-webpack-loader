@@ -221,16 +221,19 @@ module.exports = function(source, map, meta) {
     if (Owl.options.memcached) {
         if (!Owl.memcache_client) { start_memcache_client(); }
         let memcache_key = compute_digest(source);
+        let resource_path = this.resourcePath;
+        let root_context = this.rootContext;
+        let that = this;
         Owl.memcache_client.get(memcache_key).then(function(memcache_result) {
             let result;
-            let real_resource_path = path.normalize(this.resourcePath);
-            if (Owl.options.hmr && real_resource_path.startsWith(this.rootContext)) {
+            let real_resource_path = path.normalize(resource_path);
+            if (Owl.options.hmr && real_resource_path.startsWith(root_context)) {
                 result = attach_hot_reloader(memcache_result.javascript);
             } else { result = memcache_result.javascript; }
             callback(null, result, result.source_map, meta);
         }, function(reason) {
-            let request_json = JSON.stringify({filename: this.resourcePath, source_map: Owl.options.sourceMap});
-            wait_for_socket_and_delegate(this, callback, meta, request_json, memcache_key);
+            let request_json = JSON.stringify({filename: resource_path, source_map: Owl.options.sourceMap});
+            wait_for_socket_and_delegate(that, callback, meta, request_json, memcache_key);
         });
     } else {
         let request_json = JSON.stringify({filename: this.resourcePath, source_map: Owl.options.sourceMap});
