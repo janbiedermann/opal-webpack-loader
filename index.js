@@ -210,7 +210,7 @@ function initialize_options(that) {
 function compute_digest(source) {
     const hash = crypto.createHash('sha1');
     hash.update(source, 'utf-8');
-    return hash.digest('utf-8');
+    return hash.digest().toString('base64');;
 }
 
 module.exports = function(source, map, meta) {

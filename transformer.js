@@ -91,7 +91,7 @@ class RubyTransformer {
     compute_digest(source) {
         const hash = crypto.createHash('sha1');
         hash.update(source, 'utf-8');
-        return hash.digest('utf-8');
+        return hash.digest().toString('base64');
     }
 
     async delegate_compilation(request_json, memcache_key) {
