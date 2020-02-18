@@ -107,7 +107,7 @@ if (module.hot) {
     }
     module.hot.accept();
 }`;
-    return [compiler_result.javascript, hmreloader].join("\n");
+    return [javascript, hmreloader].join("\n");
 }
 
 function delegate_compilation(that, callback, meta, request_json, memcache_key) {
