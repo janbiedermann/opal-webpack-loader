@@ -28,6 +28,7 @@
   "homepage": "https://github.com/isomorfeus/opal-webpack-loader#readme",
   "dependencies": {
     "loader-utils": "^1.2.3",
+    "memcache-plus": "^0.2.20",
     "webpack": "^4.30.0"
   }
 }
