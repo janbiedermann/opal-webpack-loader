@@ -1,4 +1,5 @@
 #!/usr/bin/env ruby
+require 'digest'
 require 'open3'
 require 'oj'
 require 'c_lexer'
@@ -44,6 +45,16 @@ OptionParser.new do |opts|
   opts.on('-s', '--socket-path PATH', 'Path of the socket the compile server should create.') do |s|
     compile_server_options[:socket_path] = s
   end
+
+  opts.on('-m', '--memcached URL', 'URL of memcached server. Will enable use of memcached for caching compiler results.') do |m|
+    compile_server_options[:memcached] = m
+    require 'dalli'
+  end
+
+  opts.on('-e', '--redis URL', 'URL of redis server. Will enable use of redis for caching compiler results.') do |e|
+    compile_server_options[:redis] = e
+    require 'redis'
+  end
 end.parse!
 
 modules_to_require.each do |mod|
@@ -66,13 +77,6 @@ else
     number_of_workers = ARGV[1].to_i
     number_of_workers == 4 if number_of_workers == 0
     number_of_workers == 16 if number_of_workers > 16
-    if ARGV[2] && ARGV[2].start_with?('webpack')
-      raise <<~MSG
-      Please change the scripts in package.json to only start webpack:\n
-      eg. from: "debug": "bundle exec opal-webpack-compile-server start 8 webpack --config=config/webpack/test.js"
-      to just:  "debug": "webpack --config=config/webpack/test.js"
-      MSG
-    end
   else
     raise 'arguments must be either "stop" or "start number_of_workers"'
     exit(1)
@@ -83,7 +87,7 @@ else
     Opal.append_paths(*load_paths)
   end
 
-  pid = fork { OpalWebpackLoader::CompileServer.new.start(number_of_workers, compiler_options, compile_server_options[:socket_path]) }
+  pid = fork { OpalWebpackLoader::CompileServer.new(compile_server_options).start(number_of_workers, compiler_options) }
 
   have_socket = false
   start_time = Time.now
