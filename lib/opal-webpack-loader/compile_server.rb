@@ -33,18 +33,22 @@ module OpalWebpackLoader
       end
     end
 
-    def initialize
+    attr_reader :cache
+
+    def initialize(options)
       @read_pipe, @write_pipe = IO.pipe
       @workers = {}
       @signal_queue = []
+      @socket_path = options[:socket_path]
+      @options = options
     end
 
-    def start(number_of_workers = 4, compiler_options, socket_path)
+    def start(number_of_workers = 4, compiler_options)
       $PROGRAM_NAME = 'owl compile server'
       @number_of_workers = number_of_workers
       @server_pid = Process.pid
       $stderr.sync = $stdout.sync = true
-      @socket = UNIXServer.new(socket_path)
+      @socket = UNIXServer.new(@socket_path)
       spawn_workers(compiler_options)
       SIGNALS.each { |sig| trap_deferred(sig) }
       trap('CHLD') { @write_pipe.write_nonblock('.') }
@@ -118,7 +122,7 @@ module OpalWebpackLoader
         tempfile = Tempfile.new('')
         tempfile.unlink
         tempfile.sync = true
-        worker = OpalWebpackLoader::CompileWorker.new(@server_pid, @socket, tempfile, worker_number, compiler_options)
+        worker = OpalWebpackLoader::CompileWorker.new(@server_pid, @socket, tempfile, worker_number, compiler_options, @options)
         pid = fork { init_worker(worker) }
         @workers[pid] = worker
       end
