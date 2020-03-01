@@ -13,7 +13,9 @@ The following options are available:
         requireModules: ['a_compiler_extension'],
         dynamicRequireSeverity: 'error',
         compilerFlagsOn: ['arity_check', 'freezing'],
-        compilerFlagsOff: ['tainting']
+        compilerFlagsOff: ['tainting'],
+        memcached: true, // or:
+        redis: true
     }
 ``` 
 
@@ -25,3 +27,7 @@ The following options are available:
 - `dynamicRequireSeverity`: A opal compiler option, one of: 'error', 'warning', 'ignore'.
 - `compilerFlagsOn`: A array of opal compiler flags to turn on, to set to true.
 - `compilerFlagsOff`: A array of opal compiler flags to turn off, to set to false. 
+- `memcached`: Can be either `true` or a memcached connect string like `localhost:12345`. Enables memcached as compiler cache.
+- `redis`: Can be either `true` or a redis connect string like `redis://localhost:12345`. Enables redis as compiler cache.
+
+Only one of the options of `memcached` or `redis` can be given. 
