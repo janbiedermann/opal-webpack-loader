@@ -21,16 +21,17 @@ function handle_exit() {
 process.on('exit', function(code) { handle_exit(); });
 process.on('SIGTERM', function(signal) { handle_exit(); });
 
-
 module.exports = class Resolver {
     constructor(source, target, filter = []) {
         process.env.OWL_TMPDIR = fs.mkdtempSync(path.join(os.tmpdir(), 'opal-webpack-loader-'));
-        const owl_cache_path = path.join(process.env.OWL_TMPDIR, 'load_paths.json');
 
         if (!this.owl_cache_fetched) {
-            let gen_cache_result = child_process.spawnSync("bundle", ["exec", "owl-gen-loadpath-cache", owl_cache_path].concat(filter));
-            console.log(gen_cache_result.stdout.toString());
-            console.error(gen_cache_result.stderr.toString());
+            const owl_cache_path = path.join(process.env.OWL_TMPDIR, 'load_paths.json');
+            if (!fs.existsSync(owl_cache_path)) {
+                let gen_cache_result = child_process.spawnSync("bundle", ["exec", "owl-gen-loadpath-cache", owl_cache_path].concat(filter));
+                console.log(gen_cache_result.stdout.toString());
+                console.error(gen_cache_result.stderr.toString());
+            }
             let owl_cache_from_file = fs.readFileSync(owl_cache_path);
             let owl_cache = JSON.parse(owl_cache_from_file.toString());
             this.opal_load_paths = owl_cache.opal_load_paths;
@@ -62,7 +63,8 @@ module.exports = class Resolver {
     }
 
     is_file(path) {
-        return fs.statSync(path).isFile();
+        try { return fs.statSync(path).isFile(); }
+        catch { return false; }
     }
 
     get_absolute_path(path, request) {
@@ -100,7 +102,7 @@ module.exports = class Resolver {
             absolute_filename = this.opal_load_paths[i] + logical_filename_rb;
             if (this.opal_load_path_entries.includes(absolute_filename)) {
                 // check if file exists?
-                if (fs.existsSync(absolute_filename) && this.is_file(absolute_filename)) {
+                if (this.is_file(absolute_filename)) {
                     return absolute_filename;
                 }
             }
@@ -110,7 +112,7 @@ module.exports = class Resolver {
         for (let i = 0; i < l; i++) {
             if (this.opal_load_paths[i].startsWith(process.cwd())) {
                 absolute_filename = this.opal_load_paths[i] + logical_filename_rb;
-                if (fs.existsSync(absolute_filename) && this.is_file(absolute_filename)) {
+                if (this.is_file(absolute_filename)) {
                     return absolute_filename;
                 }
             }
@@ -119,7 +121,7 @@ module.exports = class Resolver {
         // check current path
         absolute_filename = path + logical_filename_rb;
         if (absolute_filename.startsWith(process.cwd())) {
-            if (fs.existsSync(absolute_filename) && this.is_file(absolute_filename)) {
+            if (this.is_file(absolute_filename)) {
                 return absolute_filename;
             }
         }
@@ -130,7 +132,7 @@ module.exports = class Resolver {
             absolute_filename = this.opal_load_paths[i] + logical_filename_js;
             if (this.opal_load_path_entries.includes(absolute_filename)) {
                 // check if file exists?
-                if (fs.existsSync(absolute_filename) && this.is_file(absolute_filename)) {
+                if (this.is_file(absolute_filename)) {
                     return absolute_filename;
                 }
             }
@@ -140,11 +142,13 @@ module.exports = class Resolver {
         for (let i = 0; i < l; i++) {
             if (this.opal_load_paths[i].startsWith(process.cwd())) {
                 absolute_filename = this.opal_load_paths[i] + logical_filename_js;
-                if (fs.existsSync(absolute_filename) && this.is_file(absolute_filename)) {
+                if (this.is_file(absolute_filename)) {
                     return absolute_filename;
                 }
             }
         }
+
+        // nothing found
         return null;
     }
 };
