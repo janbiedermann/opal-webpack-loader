@@ -29,6 +29,8 @@ const default_options = {
     dynamicRequireSeverity: null,
     compilerFlagsOn: null,
     compilerFlagsOff: null,
+    memcached: null,
+    redis: null
 };
 
 function handle_exit() {
@@ -167,6 +169,8 @@ function start_compile_server() {
         let options = ["exec", "opal-webpack-compile-server", "start", os.cpus().length.toString(), "-l", Owl.load_paths_cache, "-s", Owl.socket_path];
 
         if (Owl.options.dynamicRequireSeverity) options.push('-d', Owl.options.dynamicRequireSeverity);
+        if (Owl.options.memcached) options.push('-m', Owl.options.memcached);
+        else if (Owl.options.redis) options.push('-e', Owl.options.redis);
 
         (Owl.options.includePaths || []).forEach((path) => options.push('-I', path));
         (Owl.options.requireModules || []).forEach((requiredModule) => options.push('-r', requiredModule));
@@ -185,6 +189,8 @@ function initialize_options(that) {
     Object.keys(default_options).forEach(
         (key) => { if (typeof options[key] === 'undefined') options[key] = default_options[key]; }
     );
+    if (options.memcached === true) { options.memcached = 'localhost:11211'; }
+    if (options.redis === true) { options.redis = 'redis://localhost:6379'; }
     return options;
 }
 
