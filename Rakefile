@@ -27,7 +27,6 @@ task :push_packages, [:npm_otp] do |_, args|
   system("npm publish opal-webpack-loader-#{version}.tgz --otp=#{args[:npm_otp]}")
   system("gem push opal-webpack-loader-#{version}.gem")
   system("gem push --key github --host https://rubygems.pkg.github.com/isomorfeus opal-webpack-loader-#{version}.gem")
-  system("gem inabox opal-webpack-loader-#{version}.gem --host http://localhost:5555/")
 end
 
 require 'rspec/core/rake_task'
