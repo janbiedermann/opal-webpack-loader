@@ -62,13 +62,13 @@ RSpec.describe 'owl installer' do
       system('rails new railing --skip-git --skip-bundle --skip-sprockets --skip-spring --skip-bootsnap')
       expect(Dir.exist?('railing')).to be true
       Dir.chdir('railing')
-      gemfile = File.read('Gemfile')
-      gemfile << <<~GEMS
-      gem 'webpacker'
-      GEMS
-      File.write('Gemfile', gemfile)
-      system('env -i PATH=$PATH bundle install')
-      system('env -i PATH=$PATH bundle exec rails webpacker:install')
+      if Gem.win_platform?
+        system('bundle install')
+        system('bundle exec rails webpacker:install')
+      else
+        system('env -i PATH=$PATH bundle install')
+        system('env -i PATH=$PATH bundle exec rails webpacker:install')
+      end
       expect(File.exist?(File.join('config', 'webpack', 'environment.js'))).to be true
       OpalWebpackLoader::Installer::CLI.start(%w[webpacker -o hyperhyper])
       expect(File.exist?(File.join('app', 'javascript', 'packs', 'application.js'))).to be true
