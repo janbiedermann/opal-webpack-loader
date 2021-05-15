@@ -24,7 +24,7 @@ end
 task :push_packages do |_, args|
   package_json = Oj.load(File.read('package.json'), {})
   version = package_json['version']
-  system("npm publish opal-webpack-loader-#{version}.tgz
+  system("npm publish opal-webpack-loader-#{version}.tgz")
   system("gem push opal-webpack-loader-#{version}.gem")
   system("gem push --key github --host https://rubygems.pkg.github.com/isomorfeus opal-webpack-loader-#{version}.gem")
 end
