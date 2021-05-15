@@ -1,14 +1,14 @@
 source 'https://rubygems.org'
 git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
-gem 'puma', '~> 3.12.0', require: false
+gem 'puma', '~> 5.11.0', require: false
 
-gem 'roda', '~> 3.15.0'
+gem 'roda', '~> 3.43.0'
 
-gem 'isomorfeus-puppetmaster', '>= 0.2.2'
+gem 'isomorfeus-puppetmaster', '>= 0.4.0'
 
 gem 'rspec'
 
 gem 'opal', github: 'janbiedermann/opal', branch: 'es6_modules'
-gem 'opal-webpack-loader', '~> 0.8.0'
+gem 'opal-webpack-loader', '>= 0.9.0'
 

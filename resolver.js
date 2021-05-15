@@ -3,12 +3,12 @@
 const fs = require('fs');
 const child_process = require('child_process');
 const os = require('os');
-const path = require('path');
+const pathmod = require('path');
 const process = require('process');
 
 function handle_exit() {
-    try { fs.unlinkSync(path.join(process.env.OWL_TMPDIR, 'load_paths.json')); } catch (err) { }
-    let socket_path = path.join(process.env.OWL_TMPDIR, 'owcs_socket');
+    try { fs.unlinkSync(pathmod.join(process.env.OWL_TMPDIR, 'load_paths.json')); } catch (err) { }
+    let socket_path = pathmod.join(process.env.OWL_TMPDIR, 'owcs_socket');
     try {
         if (fs.existsSync(socket_path)) {
             // this doesnt seem to return, so anything below it is not executed
@@ -23,12 +23,15 @@ process.on('SIGTERM', function(signal) { handle_exit(); });
 
 module.exports = class Resolver {
     constructor(source, target, filter = []) {
-        process.env.OWL_TMPDIR = fs.mkdtempSync(path.join(os.tmpdir(), 'opal-webpack-loader-'));
+        process.env.OWL_TMPDIR = fs.mkdtempSync(pathmod.join(os.tmpdir(), 'opal-webpack-loader-'));
 
         if (!this.owl_cache_fetched) {
-            const owl_cache_path = path.join(process.env.OWL_TMPDIR, 'load_paths.json');
+            const owl_cache_path = pathmod.join(process.env.OWL_TMPDIR, 'load_paths.json');
             if (!fs.existsSync(owl_cache_path)) {
-                let gen_cache_result = child_process.spawnSync("bundle", ["exec", "owl-gen-loadpath-cache", owl_cache_path].concat(filter));
+                let bundle_cmd;
+                if (os.platform().indexOf('win') > -1) { bundle_cmd = "bundle.cmd"; }
+                else { bundle_cmd = "bundle"; }
+                let gen_cache_result = child_process.spawnSync(bundle_cmd, ["exec", "owl-gen-loadpath-cache", owl_cache_path].concat(filter));
                 console.log(gen_cache_result.stdout.toString());
                 console.error(gen_cache_result.stderr.toString());
             }
@@ -78,6 +81,8 @@ module.exports = class Resolver {
             module = request.slice(1);
         } else if (request.startsWith('/')) {
             module = request;
+        } else if (request.match(/^[A-Za-z]+\:[\\/]/)) {
+            module = request.replace(/\\/g,'/');
         } else {
             module = '/' + request;
         }
@@ -93,6 +98,12 @@ module.exports = class Resolver {
         }
 
         let l = this.opal_load_paths.length;
+
+        // check absolute path if in Windows
+        if (request.match(/^[A-Za-z]+\:[\\/]/)) {
+            if (this.is_file(logical_filename_rb)) { return logical_filename_rb; }
+            else if (this.is_file(logical_filename_js)) { return logical_filename_js; }
+        }
 
         // in general, to avoid conflicts, we need to lookup .rb first, once all .rb
         // possibilities are checked, check .js
@@ -110,7 +121,7 @@ module.exports = class Resolver {
 
         // look up file system of app
         for (let i = 0; i < l; i++) {
-            if (this.opal_load_paths[i].startsWith(process.cwd())) {
+            if (this.opal_load_paths[i].startsWith(process.cwd().replace(/\\/g,'/'))) {
                 absolute_filename = this.opal_load_paths[i] + logical_filename_rb;
                 if (this.is_file(absolute_filename)) {
                     return absolute_filename;
@@ -120,7 +131,7 @@ module.exports = class Resolver {
 
         // check current path
         absolute_filename = path + logical_filename_rb;
-        if (absolute_filename.startsWith(process.cwd())) {
+        if (absolute_filename.startsWith(process.cwd().replace(/\\/g,'/'))) {
             if (this.is_file(absolute_filename)) {
                 return absolute_filename;
             }
@@ -140,7 +151,7 @@ module.exports = class Resolver {
 
         // look up file system of app
         for (let i = 0; i < l; i++) {
-            if (this.opal_load_paths[i].startsWith(process.cwd())) {
+            if (this.opal_load_paths[i].startsWith(process.cwd().replace(/\\/g,'/'))) {
                 absolute_filename = this.opal_load_paths[i] + logical_filename_js;
                 if (this.is_file(absolute_filename)) {
                     return absolute_filename;

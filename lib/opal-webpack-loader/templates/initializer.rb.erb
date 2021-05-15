@@ -10,3 +10,5 @@ else
   OpalWebpackLoader.use_manifest = false
 end
 <%= opal_load_path %>
+
+Rails.autoloaders.main.ignore "#{__dir__}/../../app/opal" if Dir.exist? "#{__dir__}/../../app/opal"

@@ -39,10 +39,13 @@ OpalWebpackLoader.client_asset_path = 'http://localhost:3035/assets/'
 OpalWebpackLoader.use_manifest = false
 
 # TODO require yarn instead of npm
-# TODO don't depend on which for non unixes
-npm = `which npm`.chop
+npm = if Gem.win_platform?
+        `where npm`.chop.lines.last
+      else
+        `which npm`.chop
+      end
 
-if npm != ''
+if !npm.nil? && !npm.empty?
   bin_dir = `npm bin`.chop
   begin
     owl_npm_version = `#{File.join(bin_dir, 'opal-webpack-loader-npm-version')}`.chop

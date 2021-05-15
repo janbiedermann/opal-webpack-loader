@@ -9,20 +9,20 @@
     "production_build": "webpack --config=webpack/production.js"
   },
   "devDependencies": {
-    "cache-loader": "^3.0.0",
-    "chokidar": "^2.1.5",
-    "compression-webpack-plugin": "^2.0.0",
-    "css-loader": "^2.1.1",
+    "cache-loader": "^4.1.0",
+    "chokidar": "^3.5.1",
+    "compression-webpack-plugin": "^7.1.2",
+    "css-loader": "^5.2.4",
     "extra-watch-webpack-plugin": "^1.0.3",
-    "file-loader": "^1.1.11",
-    "node-sass": "^4.12.0",
-    "puppeteer": "1.14.0",
-    "sass-loader": "^7.1.0",
-    "style-loader": "^0.23.1",
-    "terser-webpack-plugin": "^1.2.3",
-    "webpack": "^4.30.0",
-    "webpack-cli": "^3.3.0",
-    "webpack-dev-server": "^3.3.1",
-    "webpack-manifest-plugin": "^2.0.4"
+    "file-loader": "^6.2.0",
+    "node-sass": "^6.0.0",
+    "puppeteer": "9.1.1",
+    "sass-loader": "^11.1.1",
+    "style-loader": "^2.0.0",
+    "terser-webpack-plugin": "^5.1.2",
+    "webpack": "^5.37.0",
+    "webpack-cli": "^4.7.0",
+    "webpack-dev-server": "^3.11.2",
+    "webpack-manifest-plugin": "^3.1.1"
   }
 }

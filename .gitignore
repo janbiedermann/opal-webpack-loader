@@ -59,7 +59,7 @@ typings/
 
 # dotenv environment variables file
 .env
-
+package-lock.json
 Gemfile.lock
 
 # test apps

@@ -10,9 +10,7 @@ const common_config = {
     optimization: {
         minimize: true, // minimize
         minimizer: [
-            new TerserPlugin({
-                cache: true
-            })
+            new TerserPlugin()
         ]
     },
     performance: {
@@ -30,7 +28,7 @@ const common_config = {
         ]
     },
     plugins: [
-        new CompressionPlugin({ test: /^((?!application_ssr).)*$/, cache: true }), // gzip compress, exclude application_ssr.js
+        new CompressionPlugin({ test: /^((?!application_ssr).)*$/ }), // gzip compress, exclude application_ssr.js
         new ManifestPlugin({ fileName: 'manifest.json' }) // generate manifest
     ],
     module: {

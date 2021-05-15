@@ -9,7 +9,7 @@ const common_config = {
     mode: "production",
     optimization: {
         minimize: true, // minimize
-        minimizer: [new TerserPlugin({ parallel: true, cache: true })]
+        minimizer: [new TerserPlugin({ parallel: true })]
     },
     performance: {
         maxAssetSize: 20000000,
@@ -26,8 +26,8 @@ const common_config = {
         ]
     },
     plugins: [
-        new CompressionPlugin({ test: /^((?!application_ssr).)*$/, cache: true }), // gzip compress, exclude application_ssr.js
-        new WebpackAssetsManifest({ publicPath: true, merge: true }) // generate manifest
+        new CompressionPlugin({ test: /^((?!application_ssr).)*$/ }), // gzip compress, exclude application_ssr.js
+        new WebpackAssetsManifest({ publicPath: true, merge: true, output: 'manifest.json' }) // generate manifest
     ],
     module: {
         rules: [

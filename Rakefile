@@ -21,10 +21,10 @@ console.log("#{version}");
   system('gem build opal-webpack-loader')
 end
 
-task :push_packages, [:npm_otp] do |_, args|
+task :push_packages do |_, args|
   package_json = Oj.load(File.read('package.json'), {})
   version = package_json['version']
-  system("npm publish opal-webpack-loader-#{version}.tgz --otp=#{args[:npm_otp]}")
+  system("npm publish opal-webpack-loader-#{version}.tgz
   system("gem push opal-webpack-loader-#{version}.gem")
   system("gem push --key github --host https://rubygems.pkg.github.com/isomorfeus opal-webpack-loader-#{version}.gem")
 end

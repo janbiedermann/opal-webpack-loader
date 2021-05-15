@@ -18,7 +18,8 @@ Gem::Specification.new do |s|
   s.executables << 'opal-webpack-compile-server'
   s.executables << 'owl-install'
   s.executables << 'owl-gen-loadpath-cache'
-  s.files          = `git ls-files -- {lib,LICENSE,readme.md}`.split("\n")
+  s.executables << 'owl-compiler'
+  s.files          = `git ls-files -- lib LICENSE README.md`.split("\n")
   # s.test_files     = `git ls-files -- {test,spec,features}/*`.split("\n")
   s.require_paths  = ['lib']
 
