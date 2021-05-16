@@ -95,6 +95,3 @@ begin
 rescue Exception => e
   STDOUT.puts Oj.dump({ 'error' => { 'name' => e.class.to_s, 'message' => e.message, 'backtrace' => e.backtrace.join("\n") } }, mode: :strict)
 end
-
-
-
