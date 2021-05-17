@@ -93,7 +93,7 @@ function delegate_to_external_compiler(that, callback, meta, resource_path) {
         }
     });
     child.stderr.on('data', function(data) {
-        console.error(data);
+        console.error("" + data);
     });
 }
 
