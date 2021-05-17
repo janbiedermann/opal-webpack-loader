@@ -75,7 +75,6 @@ function delegate_to_external_compiler(that, callback, meta, resource_path) {
         let compiler_result = JSON.parse(buffer.toString('utf8'));
         if (typeof compiler_result.error !== 'undefined') {
             callback(new Error(
-                "opal-webpack-loader: A error occurred during compiling!\n" +
                 compiler_result.error.name + "\n" +
                 compiler_result.error.message + "\n" +
                 compiler_result.error.backtrace
@@ -94,7 +93,7 @@ function delegate_to_external_compiler(that, callback, meta, resource_path) {
         }
     });
     child.stderr.on('data', function(data) {
-        console.error("opal-webpack-loader: A error occurred during compiling!\n" + data);
+        console.error(data);
     });
 }
 
@@ -255,6 +254,7 @@ function initialize_options(that) {
     );
     if (options.memcached === true) { options.memcached = 'localhost:11211'; }
     if (options.redis === true) { options.redis = 'redis://localhost:6379'; }
+    Owl.max_children = os.cpus().length;
     return options;
 }
 
