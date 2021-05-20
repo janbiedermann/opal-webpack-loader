@@ -80,7 +80,10 @@ begin
     source_digest = Digest::SHA1.hexdigest(source)
     key = "owl_#{compiler_options_digest}_#{source_digest}_#{compile_source_map}"
     result_json = compile_server_options[:cache].get(key)
-    STDOUT.puts result_json if result_json
+    if result_json
+      STDOUT.puts result_json
+      exit 0
+    end
   end
   c = Opal::Compiler.new(source, compiler_options)
   result = { 'javascript' => c.compile }
