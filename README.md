@@ -23,7 +23,7 @@ At the [Isomorfeus Framework Project](http://isomorfeus.com)
 opal-webpack-loader-0.7.1 compiles all of opal, a bunch of gems and over 19000SLC on a
 Intel® Core™ i7-7700HQ CPU @ 2.80GHz × 8, with 8 workers in around 1850ms
 - support for memcached or redis as compiler cache
-- parallel builds working on Windows too, but not as fast as on Linux
+- fast builds on windows too, parallel when building multiple assets with parallel webpack
 - opal modules are packaged as es6 modules
 - support for rails with webpacker
 - other webpack features become available, like:
