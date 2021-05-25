@@ -1,0 +1,125 @@
+#!/usr/bin/env ruby
+require 'digest'
+require 'oj'
+require 'c_lexer'
+require 'optparse'
+require 'opal/paths'
+require 'opal/source_map'
+require 'opal/compiler'
+require 'opal-webpack-loader/load_path_manager'
+require 'opal-webpack-loader/pipe_server'
+
+modules_to_require = []
+compiler_options = {}
+compile_server_options = {}
+cache = false
+
+OptionParser.new do |opts|
+  opts.on('-r', '--require MODULE', 'Require the module before starting the compile server.') do |m|
+    modules_to_require << m
+  end
+
+  opts.on('-I', '--include DIR', 'Append a load path (may be used more than once)') do |i|
+    $:.unshift(File.expand_path(i))
+  end
+
+  opts.on('-d', '--dynamic-require-severity SEVERITY', 'Compiler option, one of: error, warning, ignore.') do |s|
+    if %w[error warning ignore].include?(s)
+      compiler_options[:dynamic_require_severity] = s.to_sym
+    end
+  end
+
+  opts.on('-t', '--true FLAG', 'Set compiler flag to true.' ) do |f|
+    compiler_options[f.to_sym] = true
+  end
+
+  opts.on('-f', '--false FLAG', 'Set compiler flag to false.' ) do |f|
+    compiler_options[f.to_sym] = false
+  end
+
+  opts.on('-l', '--load-paths-cache PATH', 'Path to load path cache json') do |l|
+    compile_server_options[:load_paths_cache] = l
+  end
+
+  opts.on('-p', '--pipe-name PATH', 'Name of the named pipe.') do |p|
+    compile_server_options[:pipe_name] = p
+  end
+
+  opts.on('-m', '--memcached URL', 'URL of memcached server. Will enable use of memcached for caching compiler results.') do |m|
+    compile_server_options[:memcached] = m
+    require 'dalli'
+    cache = Dalli::Client.new(compile_server_options[:memchached])
+  end
+
+  opts.on('-e', '--redis URL', 'URL of redis server. Will enable use of redis for caching compiler results.') do |e|
+    compile_server_options[:redis] = e
+    require 'redis'
+    cache = Redis.new(url: compile_server_options[:redis])
+  end
+end.parse!
+
+compiler_options.merge!(es6_modules: true)
+
+modules_to_require.each do |mod|
+  require mod
+end
+
+def compile(request, cache, compiler_options)
+  begin
+    request_json = Oj.load(request.chop!, mode: :strict)
+
+    compile_source_map = request_json["source_map"]
+    filename = request_json["filename"]
+    source = File.read(filename)
+    if cache
+      source_digest = Digest::SHA1.hexdigest(source)
+      key = "owl_#{compiler_options_digest}_#{source_digest}_#{compile_source_map}"
+      result_json = cache.get(key)
+      return result_json if result_json
+    end
+    c = Opal::Compiler.new(source, compiler_options.merge(file: filename))
+    result = { 'javascript' => c.compile }
+    if compile_source_map
+      result['source_map'] = c.source_map.as_json
+      result['source_map']['file'] = filename
+    end
+    result['required_trees'] = c.required_trees
+    result_json = Oj.dump(result, mode: :strict)
+    cache.set(key, result_json) if cache
+    result_json
+  rescue Exception => e
+    Oj.dump({ 'error' => { 'name' => e.class.to_s, 'message' => e.message, 'backtrace' => e.backtrace.join("\n") } }, mode: :strict)
+  end
+end
+
+if ARGV[0] == 'start'
+  number_of_instances = ARGV[1].to_i
+  number_of_instances == 4 if number_of_instances == 0
+else
+  raise 'arguments must be either "stop" or "start number_of_instances"'
+  exit(1)
+end
+
+load_paths = OpalWebpackLoader::LoadPathManager.read_load_paths_cache(compile_server_options[:load_paths_cache])
+if load_paths
+  Opal.append_paths(*load_paths)
+end
+
+begin
+  OpalWebpackLoader::PipeServer.new(compile_server_options[:pipe_name], number_of_instances) do |request|
+    if request
+      if request.start_with?('command:stop')
+        STDERR.puts "Exiting with drama."
+        exit(0)
+      else
+        result = compile(request, cache, compiler_options)
+        result
+      end
+    end
+  end.run
+rescue Exception => e
+  STDERR.puts "opal-webpack-windows-compile-server couldn't start:"
+  STDERR.puts e.backtrace.join("\n")
+  STDERR.puts e.message
+  exit 1
+end
