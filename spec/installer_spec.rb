@@ -66,8 +66,8 @@ RSpec.describe 'owl installer' do
         system('bundle install')
         system('bundle exec rails webpacker:install')
       else
-        system('env -i PATH=$PATH bundle install')
-        system('env -i PATH=$PATH bundle exec rails webpacker:install')
+        system('env -i PATH="$PATH" bundle install')
+        system('env -i PATH="$PATH" bundle exec rails webpacker:install')
       end
       expect(File.exist?(File.join('config', 'webpack', 'environment.js'))).to be true
       OpalWebpackLoader::Installer::CLI.start(%w[webpacker -o hyperhyper])
