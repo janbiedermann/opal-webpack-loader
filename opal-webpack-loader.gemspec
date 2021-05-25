@@ -19,13 +19,14 @@ Gem::Specification.new do |s|
   s.executables << 'owl-install'
   s.executables << 'owl-gen-loadpath-cache'
   s.executables << 'owl-compiler'
+  s.executables << 'opal-webpack-windows-compile-server'
   s.files          = `git ls-files -- lib LICENSE README.md`.split("\n")
-  # s.test_files     = `git ls-files -- {test,spec,features}/*`.split("\n")
   s.require_paths  = ['lib']
 
   s.add_dependency 'opal', '>= 1.0.0'
   s.add_dependency 'c_lexer'
   s.add_dependency 'dalli', '>= 2.7.0'
+  s.add_dependency 'ffi', '~> 1.15.0'
   s.add_dependency 'oj', '>= 3.11.0'
   s.add_dependency 'redis', '>= 4.2.0'
   s.add_dependency 'thor', '>= 0.19.4'
