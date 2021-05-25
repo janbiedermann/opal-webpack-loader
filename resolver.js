@@ -2,22 +2,32 @@
 
 const fs = require('fs');
 const child_process = require('child_process');
+const net = require('net');
 const os = require('os');
 const pathmod = require('path');
 const process = require('process');
 
 function handle_exit() {
     try { fs.unlinkSync(pathmod.join(process.env.OWL_TMPDIR, 'load_paths.json')); } catch (err) { }
-    let socket_path = pathmod.join(process.env.OWL_TMPDIR, 'owcs_socket');
-    try {
-        if (fs.existsSync(socket_path)) {
-            // this doesnt seem to return, so anything below it is not executed
-            child_process.spawnSync("bundle", ["exec", "opal-webpack-compile-server", "stop", "-s", socket_path], {timeout: 10000});
-        }
-    } catch (err) { }
-    try { fs.unlinkSync(socket_path); } catch (err) { }
+    if (os.platform().indexOf('win') > -1) {
+        let pipe_name = process.env.OWL_TMPDIR.replace(':', '_').replaceAll('\\', '_').replaceAll('/', '_').substr(-100);
+        let socket_path = '\\\\.\\pipe\\' + pipe_name;
+        try {
+            fs.writeFileSync(socket_path, "command:stop\x04");
+        } catch(e) {}
+    } else {
+        let socket_path = pathmod.join(process.env.OWL_TMPDIR, 'owcs_socket');
+        try {
+            if (fs.existsSync(socket_path)) {
+                // this doesnt seem to return, so anything below it is not executed
+                child_process.spawnSync("bundle", ["exec", "opal-webpack-compile-server", "stop", "-s", socket_path], {timeout: 10000});
+            }
+        } catch (err) { }
+        try { fs.unlinkSync(socket_path); } catch (err) { }
+    }
     try { fs.rmdirSync(process.env.OWL_TMPDIR); } catch (err) { }
 }
+
 process.on('exit', function(code) { handle_exit(); });
 process.on('SIGTERM', function(signal) { handle_exit(); });
 

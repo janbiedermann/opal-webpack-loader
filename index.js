@@ -12,14 +12,13 @@ const loaderUtils = require('loader-utils');
 let Owl = {
     load_paths_cache: null,
     socket_path: null,
+    pipe_name: null,
     module_start: 'const opal_code = function() {\n  global.Opal.modules[',
     compile_server_starting: false,
     socket_ready: false,
     options: null,
     socket_wait_counter: 0,
-    is_stopping: false,
-    child_count: 0,
-    max_children: 32
+    is_stopping: false
 };
 
 const default_options = {
@@ -40,7 +39,9 @@ function handle_exit() {
         Owl.is_stopping = true;
         try { fs.unlinkSync(Owl.load_paths_cache); } catch (err) { }
         if (os.platform().indexOf('win') > -1) {
-            // not so much to do on Windows, because we didnt use the compile server
+            try {
+                fs.writeFileSync(Owl.socket_path, "command:stop\x04");
+            } catch(e) {}
         } else {
             try {
                 if (fs.existsSync(Owl.socket_path)) {
@@ -56,98 +57,66 @@ function handle_exit() {
 process.on('exit', function(code) { handle_exit(); });
 process.on('SIGTERM', function(signal) { handle_exit(); });
 
-function delegate_to_external_compiler(that, callback, meta, resource_path) {
-    let buffer = Buffer.alloc(0);
-
-    let bundle_cmd;
-    if (os.platform().indexOf('win') > -1) { bundle_cmd = "bundle.cmd"; }
-    else { bundle_cmd = "bundle"; }
-    if (!Owl.load_paths_cache) { Owl.load_paths_cache = path.join(process.env.OWL_TMPDIR, 'load_paths.json'); }
-    let options = ["exec", "owl-compiler", "-l", Owl.load_paths_cache, "-s", resource_path];
-    if (Owl.sourceMap) { options.push('-c'); }
-    let child = child_process.spawn(bundle_cmd, options, {timeout: 600000});
-    Owl.child_count++;
-    child.stdout.on('data', function(data) {
-        buffer = Buffer.concat([buffer, data]);
-    });
-    child.on('close', function(code) {
-        Owl.child_count--;
-        let compiler_result = JSON.parse(buffer.toString('utf8'));
-        if (typeof compiler_result.error !== 'undefined') {
-            callback(new Error(
-                compiler_result.error.name + "\n" +
-                compiler_result.error.message + "\n" +
-                compiler_result.error.backtrace
-            ));
-        } else {
-            for (var i = 0; i < compiler_result.required_trees.length; i++) {
-                that.addContextDependency(path.resolve(path.join(path.dirname(that.resourcePath)), compiler_result.required_trees[i]));
-            }
-            let result;
-            let real_resource_path = path.normalize(that.resourcePath);
-            if (Owl.options.hmr && real_resource_path.startsWith(that.rootContext)) {
-                let hmreloader = create_hmreloader(data);
-                result = [compiler_result.javascript, hmreloader].join("\n");
-            } else { result = compiler_result.javascript; }
-            callback(null, result, compiler_result.source_map, meta);
-        }
-    });
-    child.stderr.on('data', function(data) {
-        console.error("" + data);
-    });
-}
-
-function wait_for_children_and_delegate(that, callback, meta, resource_path) {
-    if (Owl.child_count < Owl.max_children) {
-        delegate_to_external_compiler(that, callback, meta, resource_path);
-    } else {
-        setTimeout(function() {
-            wait_for_children_and_delegate(that, callback, meta, resource_path);
-        }, 50);
-    }
-}
-
 function delegate_compilation(that, callback, meta, request_json) {
     let buffer = Buffer.alloc(0);
     // or let the source be compiled by the compile server
-    let socket = net.connect(Owl.socket_path, function () {
+    let socket = net.connect(Owl.socket_path);
+    socket.setTimeout(2000);
+    socket.on('error', function (err) {
+        // only with webpack-dev-server running, somehow connecting to the IPC sockets leads to ECONNREFUSED
+        // even though the socket is alive. this happens every once in a while for some seconds
+        // not sure why this happens, but looping here solves it after a while
+        if (err.syscall === 'connect') {
+            //setTimeout(function() {
+            //    delegate_compilation(that, callback, meta, request_json);
+            //}, 1);
+        } else if (os.platform().indexOf('win') > -1 && err.message.includes("read EPIPE")) {
+            // Windows specific, hand over to 'close' event
+            // this means the named has been closed after reading
+        } else if (os.platform().indexOf('win') > -1 && err.message.includes("write EPIPE")) {
+            // Windows specific, hand over to 'close' event
+            // Windows specific, this means, the named pipe could not write for some reason, try again later
+        } else { callback(err); }
+    });
+    socket.on('ready', function () {
         socket.write(request_json + "\x04"); // triggers compilation
     });
     socket.on('data', function (data) {
         buffer = Buffer.concat([buffer, data]);
     });
-    socket.on('end', function() {
-        let compiler_result = JSON.parse(buffer.toString('utf8'));
-        if (typeof compiler_result.error !== 'undefined') {
-            callback(new Error(
-                "opal-webpack-loader: A error occurred during compiling!\n" +
-                compiler_result.error.name + "\n" +
-                compiler_result.error.message + "\n" +
-                compiler_result.error.backtrace
-            ));
-        } else {
-            for (var i = 0; i < compiler_result.required_trees.length; i++) {
-                that.addContextDependency(path.resolve(path.join(path.dirname(that.resourcePath)), compiler_result.required_trees[i]));
-            }
-            let result;
-            let real_resource_path = path.normalize(that.resourcePath);
-            if (Owl.options.hmr && real_resource_path.startsWith(that.rootContext)) {
-                let hmreloader = create_hmreloader(compiler_result);
-                result = [compiler_result.javascript, hmreloader].join("\n");
-            } else { result = compiler_result.javascript; }
-            callback(null, result, compiler_result.source_map, meta);
-        }
+    socket.on('timeout', function() {
+        socket.destroy();
+    //    // delegate_compilation(that, callback, meta, request_json);
     });
-    socket.on('error', function (err) {
-        // only with webpack-dev-server running, somehow connecting to the IPC sockets leads to ECONNREFUSED
-        // even though the socket is alive. this happens every once in a while for some seconds
-        // not sure why this happens, but looping here solves it after a while
-        // console.log("connect error for ", that.resourcePath)
-        if (err.syscall === 'connect') {
+    socket.on('close', function() {
+        if (buffer.length > 0) {
+            let compiler_result = JSON.parse(buffer.toString('utf8'));
+            if (typeof compiler_result.error !== 'undefined') {
+                callback(new Error(compiler_result.error.name + "\n" +
+                    compiler_result.error.message + "\n" +
+                    compiler_result.error.backtrace
+                ));
+            } else {
+                for (var i = 0; i < compiler_result.required_trees.length; i++) {
+                    that.addContextDependency(path.resolve(path.join(path.dirname(that.resourcePath)), compiler_result.required_trees[i]));
+                }
+                let result;
+                let real_resource_path = path.normalize(that.resourcePath);
+                if (Owl.options.hmr && real_resource_path.startsWith(that.rootContext)) {
+                    let hmreloader = create_hmreloader(compiler_result);
+                    result = [compiler_result.javascript, hmreloader].join("\n");
+                } else { result = compiler_result.javascript; }
+                try {
+                    callback(null, result, compiler_result.source_map, meta);
+                } catch(e) {
+                    console.error("callback called twice for " + that.resourcePath);
+                }
+            }
+        } else {
             setTimeout(function() {
                 delegate_compilation(that, callback, meta, request_json);
-            }, 100);
-        } else { callback(err); }
+            }, 10);
+        }
     });
 }
 
@@ -209,6 +178,8 @@ if (module.hot) {
     return hmreloader;
 }
 
+// *nixes, *nuxes and *BSDs
+
 function wait_for_socket_and_delegate(that, callback, meta, request_json) {
     if (Owl.socket_ready) {
         delegate_compilation(that, callback, meta, request_json);
@@ -247,6 +218,57 @@ function start_compile_server() {
     }
 }
 
+// Windows
+
+function wait_for_named_pipe_and_delegate(that, callback, meta, request_json) {
+    if (Owl.socket_ready) {
+        delegate_compilation(that, callback, meta, request_json);
+    } else {
+        try {
+            let socket = net.connect(Owl.socket_path)
+            socket.on('connect', function(){
+                Owl.socket_ready = true;
+                socket.destroy();
+                delegate_compilation(that, callback, meta, request_json);
+            })
+            socket.on('error', function (err) {
+                setTimeout(function() {
+                    if (Owl.socket_wait_counter > 600) { throw new Error('opal-webpack-loader: Unable to connect to compile server!'); }
+                    wait_for_named_pipe_and_delegate(that, callback, meta, request_json);
+                }, 50);
+            });
+        } catch(e) {
+            setTimeout(function() {
+                if (Owl.socket_wait_counter > 600) { throw new Error('opal-webpack-loader: Unable to connect to compile server!'); }
+                wait_for_named_pipe_and_delegate(that, callback, meta, request_json);
+            }, 50);
+        }
+    }
+}
+
+function start_windows_compile_server() {
+    Owl.pipe_name = process.env.OWL_TMPDIR.replace(':', '_').replaceAll('\\', '_').replaceAll('/', '_').substr(-100);
+    Owl.socket_path = '\\\\.\\pipe\\' + Owl.pipe_name;
+
+    Owl.compile_server_starting = true;
+    Owl.load_paths_cache = path.join(process.env.OWL_TMPDIR, 'load_paths.json');
+    let options = ["exec", "opal-webpack-windows-compile-server", "start", os.cpus().length.toString(), "-l", Owl.load_paths_cache, "-p", Owl.pipe_name];
+
+    if (Owl.options.dynamicRequireSeverity) options.push('-d', Owl.options.dynamicRequireSeverity);
+    if (Owl.options.memcached) options.push('-m', Owl.options.memcached);
+    else if (Owl.options.redis) options.push('-e', Owl.options.redis);
+
+    (Owl.options.includePaths || []).forEach((path) => options.push('-I', path));
+    (Owl.options.requireModules || []).forEach((requiredModule) => options.push('-r', requiredModule));
+    (Owl.options.compilerFlagsOn || []).forEach((flagOn) => options.push('-t', flagOn));
+    (Owl.options.compilerFlagsOff || []).forEach((flagOff) => options.push('-f', flagOff));
+
+    let compile_server = child_process.spawn("bundle.cmd", options, { detached: true, stdio: 'ignore' });
+    compile_server.unref();
+}
+
+// common again
+
 function initialize_options(that) {
     const options = loaderUtils.getOptions(that);
     Object.keys(default_options).forEach(
@@ -254,7 +276,6 @@ function initialize_options(that) {
     );
     if (options.memcached === true) { options.memcached = 'localhost:11211'; }
     if (options.redis === true) { options.redis = 'redis://localhost:6379'; }
-    Owl.max_children = os.cpus().length;
     return options;
 }
 
@@ -263,8 +284,9 @@ module.exports = function(source, map, meta) {
     this.cacheable && this.cacheable();
     if (!Owl.options) { Owl.options = initialize_options(this); }
     if (os.platform().indexOf('win') > -1) {
-        // dont start compile server on Windows, instead execute compiler directly
-        wait_for_children_and_delegate(this, callback, meta, this.resourcePath);
+        if (!Owl.socket_ready && !Owl.compile_server_starting) { start_windows_compile_server(); }
+        let request_json = JSON.stringify({ filename: this.resourcePath, source_map: Owl.options.sourceMap });
+        wait_for_named_pipe_and_delegate(this, callback, meta, request_json);
     } else {
         if (!Owl.socket_ready && !Owl.compile_server_starting) { start_compile_server(); }
         let request_json = JSON.stringify({ filename: this.resourcePath, source_map: Owl.options.sourceMap });
