@@ -46,5 +46,5 @@ gem 'tzinfo-data', platforms: [:mingw, :mswin, :x64_mingw, :jruby]
 gem 'webpacker'
 
 gem 'opal', github: 'janbiedermann/opal', branch: 'es6_modules'
-gem 'opal-webpack-loader', '~> 0.8.0'
+gem 'opal-webpack-loader', '~> 0.11.0'
 
