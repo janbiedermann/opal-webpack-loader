@@ -1,7 +1,7 @@
 {
   "private": true,
   "dependencies": {
-    "opal-webpack-loader": "^0.8.0"
+    "opal-webpack-loader": "^0.11.0"
   },
   "scripts": {
     "debug": "webpack-dev-server --config webpack/debug.js",
