@@ -61,6 +61,7 @@ typings/
 .env
 package-lock.json
 Gemfile.lock
+yarn.lock
 
 # test apps
 spec/test_apps/*
