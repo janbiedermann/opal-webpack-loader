@@ -41,7 +41,7 @@ function handle_exit() {
         if (os.platform().indexOf('win') > -1) {
             try {
                 fs.writeFileSync(Owl.socket_path, "command:stop\x04");
-            } catch(e) {}
+            } catch (err) { }
         } else {
             try {
                 if (fs.existsSync(Owl.socket_path)) {
@@ -178,7 +178,7 @@ if (module.hot) {
     return hmreloader;
 }
 
-// *nixes, *nuxes and *BSDs
+// *nixes, *nuxes, *arises and *BSDs
 
 function wait_for_socket_and_delegate(that, callback, meta, request_json) {
     if (Owl.socket_ready) {
