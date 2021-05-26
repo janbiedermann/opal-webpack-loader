@@ -39,33 +39,24 @@ OpalWebpackLoader.client_asset_path = 'http://localhost:3035/assets/'
 OpalWebpackLoader.use_manifest = false
 
 owl_npm_version = nil
-
-yarn = if Gem.win_platform?
-         `where yarn`.chop.lines.last
-       else
-         `which yarn`.chop
-       end
-if !yarn.nil? && !yarn.empty?
-  begin
-    owl_npm_version = `yarn run -s opal-webpack-loader-npm-version`.chop
-  rescue
-    owl_npm_version = nil
-  end
-end
-
-unless owl_npm_version
-  npm = if Gem.win_platform?
-          `where npm`.chop.lines.last
+begin
+  yarn = if Gem.win_platform?
+          `where yarn`.chop.lines.last.include?('yarn')
         else
-          `which npm`.chop
+          `which yarn`.chop.include?('yarn')
         end
-  if !npm.nil? && !npm.empty?
-    begin
-      owl_npm_version = `npm exec opal-webpack-loader-npm-version`.chop
-    rescue
-      owl_npm_version = nil
-    end
+  owl_npm_version = `yarn run -s opal-webpack-loader-npm-version`.chop if yarn
+
+  unless owl_npm_version
+    npm = if Gem.win_platform?
+            `where npm`.chop.lines.last.include?('npm')
+          else
+            `which npm`.chop.include?('npm')
+          end
+    owl_npm_version = `npm exec opal-webpack-loader-npm-version`.chop if npm
   end
+rescue
+  owl_npm_version = nil
 end
 
 if owl_npm_version != OpalWebpackLoader::VERSION
