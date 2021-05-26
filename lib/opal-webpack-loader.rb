@@ -38,27 +38,40 @@ OpalWebpackLoader.manifest_path = File.join(Dir.getwd, 'public', 'assets', 'mani
 OpalWebpackLoader.client_asset_path = 'http://localhost:3035/assets/'
 OpalWebpackLoader.use_manifest = false
 
-# TODO require yarn instead of npm
-npm = if Gem.win_platform?
-        `where npm`.chop.lines.last
-      else
-        `which npm`.chop
-      end
+owl_npm_version = nil
 
-if !npm.nil? && !npm.empty?
-  bin_dir = `npm bin`.chop
+yarn = if Gem.win_platform?
+         `where yarn`.chop.lines.last
+       else
+         `which yarn`.chop
+       end
+if !yarn.nil? && !yarn.empty?
   begin
-    owl_npm_version = `#{File.join(bin_dir, 'opal-webpack-loader-npm-version')}`.chop
+    owl_npm_version = `yarn run -s opal-webpack-loader-npm-version`.chop
   rescue
     owl_npm_version = nil
   end
-
-  if owl_npm_version != OpalWebpackLoader::VERSION
-    STDERR.puts "opal-webpack-loader: Incorrect version of npm package found or npm package not installed.\n" +
-      "Please install the npm package for opal-webpack-loader:\n" +
-      "\twith npm:\tnpm install opal-webpack-loader@#{OpalWebpackLoader::VERSION}\n" +
-      "\tor with yarn:\tyarn add opal-webpack-loader@#{OpalWebpackLoader::VERSION}\n"
-  end
-else
-  STDERR.puts "opal-webpack-loader: Unable to check npm package version. Please check your npm installation."
 end
+
+unless owl_npm_version
+  npm = if Gem.win_platform?
+          `where npm`.chop.lines.last
+        else
+          `which npm`.chop
+        end
+  if !npm.nil? && !npm.empty?
+    begin
+      owl_npm_version = `npm exec opal-webpack-loader-npm-version`.chop
+    rescue
+      owl_npm_version = nil
+    end
+  end
+end
+
+if owl_npm_version != OpalWebpackLoader::VERSION
+  STDERR.puts "opal-webpack-loader: Incorrect version of npm package found or npm package not installed.\n" +
+    "Please install the npm package for opal-webpack-loader:\n" +
+    "\twith npm:\tnpm install opal-webpack-loader@#{OpalWebpackLoader::VERSION}\n" +
+    "\tor with yarn:\tyarn add opal-webpack-loader@#{OpalWebpackLoader::VERSION}\n"
+end
+
