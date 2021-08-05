@@ -24,7 +24,6 @@ Gem::Specification.new do |s|
   s.require_paths  = ['lib']
 
   s.add_dependency 'opal', '>= 1.0.0'
-  s.add_dependency 'c_lexer'
   s.add_dependency 'dalli', '>= 2.7.0'
   s.add_dependency 'ffi', '~> 1.15.0'
   s.add_dependency 'oj', '>= 3.11.0'
