@@ -84,26 +84,25 @@ const common_config = {
     devServer: {
         <%= dev_server_before %>
         open: false,
-        lazy: false,
         port: 3035,
-        hot: true,
-        // hotOnly: true,
-        inline: true,
+        hot: false,
         https: false,
-        disableHostCheck: true,
+        allowedHosts: 'all',
         headers: {
             "Access-Control-Allow-Origin": "*",
             "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",
             "Access-Control-Allow-Headers": "X-Requested-With, content-type, Authorization"
         },
-        watchOptions: {
-            // in case of problems with hot reloading uncomment the following two lines:
-            // aggregateTimeout: 250,
-            // poll: 50,
+        static: {
+            directory: path.resolve(__dirname, 'public'),
+            watch: {
+                // in case of problems with hot reloading uncomment the following two lines:
+                // aggregateTimeout: 250,
+                // poll: 50,
             ignored: /\bnode_modules\b/
+            }
         },
-        contentBase: path.resolve(__dirname, 'public'),
-        useLocalIp: false
+        host: 'local-ip'
     }
 };
 
