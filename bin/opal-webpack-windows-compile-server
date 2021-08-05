@@ -63,6 +63,10 @@ modules_to_require.each do |mod|
   require mod
 end
 
+def compiler_options_digest(compiler_options)
+  @compiler_options_digest ||= Digest::SHA1.hexdigest(Oj.dump(compiler_options, mode: :strict))
+end
+
 def compile(request, cache, compiler_options)
   begin
     request_json = Oj.load(request.chop!, mode: :strict)
@@ -72,7 +76,7 @@ def compile(request, cache, compiler_options)
     source = File.read(filename)
     if cache
       source_digest = Digest::SHA1.hexdigest(source)
-      key = "owl_#{compiler_options_digest}_#{source_digest}_#{compile_source_map}"
+      key = "owl_#{compiler_options_digest(compiler_options)}_#{source_digest}_#{compile_source_map}"
       result_json = cache.get(key)
       return result_json if result_json
     end
@@ -94,6 +98,7 @@ end
 if ARGV[0] == 'start'
   number_of_instances = ARGV[1].to_i
   number_of_instances == 4 if number_of_instances == 0
+  number_of_instances == 16 if number_of_instances > 16
 else
   raise 'arguments must be either "stop" or "start number_of_instances"'
   exit(1)
@@ -111,8 +116,7 @@ begin
         STDERR.puts "Exiting with drama."
         exit(0)
       else
-        result = compile(request, cache, compiler_options)
-        result
+        compile(request, cache, compiler_options)
       end
     end
   end.run

@@ -72,19 +72,23 @@ compile_source_map = compile_server_options[:source_map]
 filename = compile_server_options[:source_file]
 source = File.read(filename)
 compiler_options.merge!(es6_modules: true)
-compiler_options.merge!(file: filename)
+
+def compiler_options_digest(compiler_options)
+  @compiler_options_digest ||= Digest::SHA1.hexdigest(Oj.dump(compiler_options, mode: :strict))
+end
 
 begin
   if compile_server_options[:cache]
     source_digest = Digest::SHA1.hexdigest(source)
-    key = "owl_#{compiler_options_digest}_#{source_digest}_#{compile_source_map}"
+    key = "owl_#{compiler_options_digest(compiler_options)}_#{source_digest}_#{compile_source_map}"
     result_json = compile_server_options[:cache].get(key)
     if result_json
       STDOUT.puts result_json
       exit 0
     end
   end
-  c = Opal::Compiler.new(source, compiler_options)
+  
+  c = Opal::Compiler.new(source, compiler_options.merge(file: filename))
   result = { 'javascript' => c.compile }
   if compile_source_map
     result['source_map'] = c.source_map.as_json
