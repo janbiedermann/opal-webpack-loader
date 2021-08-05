@@ -8,7 +8,8 @@ require 'isomorfeus-puppetmaster'
 require_relative '../app'
 
 Isomorfeus::Puppetmaster.download_path = File.join(Dir.pwd, 'download_path_tmp')
-Isomorfeus::Puppetmaster.driver = :chromium
+Isomorfeus::Puppetmaster.driver = :chrome
+Isomorfeus::Puppetmaster.server = :puma
 Isomorfeus::Puppetmaster.app = App
 Isomorfeus::Puppetmaster.boot_app
 

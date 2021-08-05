@@ -5,6 +5,6 @@ gem 'puma', '~> 5.3.0', require: false
 
 gem 'roda', '~> 3.43.0'
 
-gem 'isomorfeus-puppetmaster', '>= 0.4.0'
+gem 'isomorfeus-puppetmaster', '>= 0.4.1'
 
 gem 'rspec'
