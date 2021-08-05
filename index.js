@@ -247,7 +247,7 @@ function wait_for_named_pipe_and_delegate(that, callback, meta, request_json) {
 }
 
 function start_windows_compile_server() {
-    Owl.pipe_name = process.env.OWL_TMPDIR.replace(':', '_').replaceAll('\\', '_').replaceAll('/', '_').substr(-100);
+    Owl.pipe_name = process.env.OWL_TMPDIR.replace(/:/g, '_').replace(/\\\\/g, '_').replace(/\//g, '_').substr(-100);
     Owl.socket_path = '\\\\.\\pipe\\' + Owl.pipe_name;
 
     Owl.compile_server_starting = true;
