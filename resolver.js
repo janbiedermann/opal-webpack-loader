@@ -10,7 +10,7 @@ const process = require('process');
 function handle_exit() {
     try { fs.unlinkSync(pathmod.join(process.env.OWL_TMPDIR, 'load_paths.json')); } catch (err) { }
     if (os.platform().indexOf('win') > -1) {
-        let pipe_name = process.env.OWL_TMPDIR.replace(':', '_').replaceAll('\\', '_').replaceAll('/', '_').substr(-100);
+        let pipe_name = process.env.OWL_TMPDIR.replace(':', '_').replace(/\\\\/g, '_').replace(/\//g, '_').substr(-100);
         let socket_path = '\\\\.\\pipe\\' + pipe_name;
         try {
             fs.writeFileSync(socket_path, "command:stop\x04");
