@@ -30,7 +30,7 @@ RSpec.describe 'owl' do
       gemfile = File.read('Gemfile')
       gemfile << <<~GEMS
 
-      gem 'opal', github: 'janbiedermann/opal', branch: 'es6_modules'
+      gem 'opal', github: 'janbiedermann/opal', branch: 'es6_modules_1_2'
       gem 'opal-webpack-loader', path: '#{File.realpath(File.join('..','..', '..', '..', 'opal-webpack-loader'))}'
 
       GEMS
@@ -78,7 +78,7 @@ RSpec.describe 'owl' do
       gemfile = File.read('Gemfile')
       gemfile << <<~GEMS
 
-      gem 'opal', github: 'janbiedermann/opal', branch: 'es6_modules'
+      gem 'opal', github: 'janbiedermann/opal', branch: 'es6_modules_1_2'
       gem 'opal-webpack-loader', path: '#{File.realpath(File.join('..','..', '..', '..', 'opal-webpack-loader'))}'
 
       GEMS
@@ -136,7 +136,7 @@ RSpec.describe 'owl' do
       gemfile = File.read('Gemfile')
       gemfile << <<~GEMS
 
-      gem 'opal', github: 'janbiedermann/opal', branch: 'es6_modules'
+      gem 'opal', github: 'janbiedermann/opal', branch: 'es6_modules_1_2'
       gem 'opal-webpack-loader', path: '#{File.realpath(File.join('..','..', '..', '..', 'opal-webpack-loader'))}'
 
       GEMS
@@ -166,7 +166,7 @@ RSpec.describe 'owl' do
       expect(File.exist?(File.join('public', application_js))).to be true
     end
 
-    it 'can run the production build script in a roda app and execute ruby code in the browser with the es6_modules branch' do
+    it 'can run the production build script in a roda app and execute ruby code in the browser with the es6_modules_1_2 branch' do
       FileUtils.cp_r(File.join('..', 'fixtures', 'flattering'), File.join('.'))
       expect(Dir.exist?('flattering')).to be true
       Dir.chdir('flattering')
@@ -175,7 +175,7 @@ RSpec.describe 'owl' do
       gemfile = File.read('Gemfile')
       gemfile << <<~GEMS
 
-      gem 'opal', github: 'janbiedermann/opal', branch: 'es6_modules'
+      gem 'opal', github: 'janbiedermann/opal', branch: 'es6_modules_1_2'
       gem 'opal-webpack-loader', path: '#{File.realpath(File.join('..','..', '..', '..', 'opal-webpack-loader'))}'
 
       GEMS
@@ -207,92 +207,6 @@ RSpec.describe 'owl' do
       expect(File.exist?(File.join('public', application_js))).to be true
       test_result = Gem.win_platform? ? `bundle exec rspec` : `env -i PATH="$PATH" bundle exec rspec`
       puts test_result
-      expect(test_result).to include('1 example, 0 failures')
-    end
-
-    it 'can run the production build script in a roda app and execute ruby code in the browser with the es6_modules_string branch' do
-      FileUtils.cp_r(File.join('..', 'fixtures', 'flattering'), File.join('.'))
-      expect(Dir.exist?('flattering')).to be true
-      Dir.chdir('flattering')
-      OpalWebpackLoader::Installer::CLI.start(%w[flat])
-
-      gemfile = File.read('Gemfile')
-      gemfile << <<~GEMS
-
-      gem 'opal', github: 'janbiedermann/opal', branch: 'es6_modules_string'
-      gem 'opal-webpack-loader', path: '#{File.realpath(File.join('..','..', '..', '..', 'opal-webpack-loader'))}'
-
-      GEMS
-      File.write('Gemfile', gemfile)
-      # add local owl npm package
-      package_json = Oj.load(File.read('package.json'), mode: :strict)
-      package_json["dependencies"].delete("opal-webpack-loader")
-      File.write('package.json', Oj.dump(package_json, mode: :strict))
-      if Gem.win_platform?
-        system("yarn add file:../../../opal-webpack-loader-#{OpalWebpackLoader::VERSION}.tgz")
-        system('yarn add puppeteer@9.1.1 --dev')
-        system('yarn install')
-        # bundler set some environment things, but we need a clean environment, so things don't get mixed up, use env
-        system('bundle install')
-        expect(File.exist?('Gemfile.lock')).to be true
-        system('yarn run production_build')
-      else
-        system("env -i PATH=\"$PATH\" yarn add file:../../../opal-webpack-loader-#{OpalWebpackLoader::VERSION}.tgz")
-        system('env -i PATH="$PATH" yarn add puppeteer@9.1.1 --dev')
-        system('env -i PATH="$PATH" yarn install')
-        # bundler set some environment things, but we need a clean environment, so things don't get mixed up, use env
-        system('env -i PATH="$PATH" bundle install')
-        expect(File.exist?('Gemfile.lock')).to be true
-        system('env -i PATH="$PATH" yarn run production_build')
-      end
-      expect(File.exist?(File.join('public', 'assets', 'manifest.json'))).to be true
-      manifest = Oj.load(File.read(File.join('public', 'assets', 'manifest.json')), mode: :strict)
-      application_js = manifest['application.js']
-      expect(File.exist?(File.join('public', application_js))).to be true
-      test_result = Gem.win_platform? ? `bundle exec rspec` : `env -i PATH="$PATH" bundle exec rspec`
-      expect(test_result).to include('1 example, 0 failures')
-    end
-
-    it 'can run the production build script in a roda app and execute ruby code in the browser with the es6_modules_1_1 branch' do
-      FileUtils.cp_r(File.join('..', 'fixtures', 'flattering'), File.join('.'))
-      expect(Dir.exist?('flattering')).to be true
-      Dir.chdir('flattering')
-      OpalWebpackLoader::Installer::CLI.start(%w[flat])
-
-      gemfile = File.read('Gemfile')
-      gemfile << <<~GEMS
-
-      gem 'opal', github: 'janbiedermann/opal', branch: 'es6_modules_1_1'
-      gem 'opal-webpack-loader', path: '#{File.realpath(File.join('..','..', '..', '..', 'opal-webpack-loader'))}'
-
-      GEMS
-      File.write('Gemfile', gemfile)
-      # add local owl npm package
-      package_json = Oj.load(File.read('package.json'), mode: :strict)
-      package_json["dependencies"].delete("opal-webpack-loader")
-      File.write('package.json', Oj.dump(package_json, mode: :strict))
-      if Gem.win_platform?
-        system("yarn add file:../../../opal-webpack-loader-#{OpalWebpackLoader::VERSION}.tgz")
-        system('yarn add puppeteer@9.1.1 --dev')
-        system('yarn install')
-        # bundler set some environment things, but we need a clean environment, so things don't get mixed up, use env
-        system('bundle install')
-        expect(File.exist?('Gemfile.lock')).to be true
-        system('yarn run production_build')
-      else
-        system("env -i PATH=\"$PATH\" yarn add file:../../../opal-webpack-loader-#{OpalWebpackLoader::VERSION}.tgz")
-        system('env -i PATH="$PATH" yarn add puppeteer@9.1.1 --dev')
-        system('env -i PATH="$PATH" yarn install')
-        # bundler set some environment things, but we need a clean environment, so things don't get mixed up, use env
-        system('env -i PATH="$PATH" bundle install')
-        expect(File.exist?('Gemfile.lock')).to be true
-        system('env -i PATH="$PATH" yarn run production_build')
-      end
-      expect(File.exist?(File.join('public', 'assets', 'manifest.json'))).to be true
-      manifest = Oj.load(File.read(File.join('public', 'assets', 'manifest.json')), mode: :strict)
-      application_js = manifest['application.js']
-      expect(File.exist?(File.join('public', application_js))).to be true
-      test_result = Gem.win_platform? ? `bundle exec rspec` : `env -i PATH="$PATH" bundle exec rspec`
       expect(test_result).to include('1 example, 0 failures')
     end
   end
