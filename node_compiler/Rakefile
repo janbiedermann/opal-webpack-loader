@@ -1,0 +1,7 @@
+task :build_node_compiler do
+  require_relative 'app_loader'
+  require 'opal'
+  require 'opal/builder'
+  Opal.append_path('.')
+  File.write('../node_opal_compiler.js', Opal::Builder.build('node_opal_loader.rb').to_s)
+end

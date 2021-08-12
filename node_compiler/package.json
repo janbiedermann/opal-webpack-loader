@@ -1,0 +1,30 @@
+{
+  "name": "node-opal-compiler",
+  "scripts": {
+    "development": "webpack --config=webpack/development.js",
+    "production": "webpack --config=webpack/production.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/isomorfeus/opal-webpack-loader.git"
+  },
+  "keywords": [
+    "opal",
+    "ruby",
+    "webpack",
+    "loader",
+    "resolver"
+  ],
+  "author": "Jan Biedermann",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/isomorfeus/opal-webpack-loader/issues"
+  },
+  "homepage": "https://github.com/isomorfeus/opal-webpack-loader#readme",
+  "dependencies": {
+    "loader-utils": "^2.0.0",
+    "opal-webpack-loader": "file:..",
+    "webpack": "^5.50.0",
+    "webpack-cli": "4.7.2"
+  }
+}

@@ -1,0 +1,5 @@
+source 'https://rubygems.org'
+git_source(:github) { |repo| "https://github.com/#{repo}.git" }
+
+gem 'opal', path: '../../opal' # github: 'janbiedermann/opal', branch: 'es6_modules_1_2'
+gem 'opal-webpack-loader', path: '..'

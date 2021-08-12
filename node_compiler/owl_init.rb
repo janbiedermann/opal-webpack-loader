@@ -1,0 +1,1 @@
+Opal.append_path(File.realdirpath('../lib'))
