@@ -2,7 +2,6 @@
 
 const fs = require('fs');
 const child_process = require('child_process');
-const net = require('net');
 const os = require('os');
 const pathmod = require('path');
 const process = require('process');
