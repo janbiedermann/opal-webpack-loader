@@ -8,6 +8,11 @@ const path = require('path');
 const process = require('process');
 const loaderUtils = require('loader-utils');
 
+console.log("loading Opal", typeof Opal);
+require('node_opal_compiler');
+
+console.log("got Opal?", typeof Opal);
+
 // keep some global state
 let Owl = {
     load_paths_cache: null,

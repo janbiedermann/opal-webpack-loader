@@ -2,7 +2,7 @@
   "name": "opal-webpack-loader",
   "version": "0.12.0",
   "description": "A loader for Opal Ruby files for Webpack, including the resolver.",
-  "main": "index.js",
+  "main": "loader.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -28,6 +28,6 @@
   "homepage": "https://github.com/isomorfeus/opal-webpack-loader#readme",
   "dependencies": {
     "loader-utils": "^2.0.0",
-    "webpack": "^4.46.0"
+    "webpack": "^5.50.0"
   }
 }
