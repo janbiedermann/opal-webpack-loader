@@ -81,9 +81,7 @@ else
   end
 
   load_paths = OpalWebpackLoader::LoadPathManager.read_load_paths_cache(compile_server_options[:load_paths_cache])
-  if load_paths
-    Opal.append_paths(*load_paths)
-  end
+  Opal.append_paths(*load_paths) if load_paths
 
   pid = fork { OpalWebpackLoader::CompileServer.new(compile_server_options).start(number_of_workers, compiler_options) }
 
