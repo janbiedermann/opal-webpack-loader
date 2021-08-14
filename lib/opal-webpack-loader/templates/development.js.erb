@@ -7,6 +7,7 @@ const common_config = {
     context: path.resolve(__dirname, '<%= opal_directory %>'),
     mode: "development",
     optimization: {
+        moduleIds: 'named',
         removeAvailableModules: false,
         removeEmptyChunks: false,
         minimize: false // dont minimize in development, to speed up hot reloads
@@ -28,8 +29,7 @@ const common_config = {
         ]
     },
     plugins: [
-        // both for hot reloading
-        new webpack.NamedModulesPlugin(),
+        // for hot reloading
         new webpack.HotModuleReplacementPlugin(),
         // watch for added files in opal dir
         new ExtraWatchWebpackPlugin({ dirs: [ path.resolve(__dirname, '<%= opal_directory %>') ] })
@@ -99,7 +99,7 @@ const common_config = {
                 // in case of problems with hot reloading uncomment the following two lines:
                 // aggregateTimeout: 250,
                 // poll: 50,
-            ignored: /\bnode_modules\b/
+                ignored: /\bnode_modules\b/
             }
         },
         host: 'localhost'

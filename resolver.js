@@ -61,7 +61,7 @@ module.exports = class Resolver {
             if (request.request.endsWith('.rb') || request.request.endsWith('.js')) {
                 let absolute_path = this.get_absolute_path(request.path, request.request);
                 if (absolute_path) {
-                    let result = Object.assign({}, request, {path: absolute_path});
+                    let result = Object.assign({}, request, {path: pathmod.normalize(absolute_path)});
                     resolver.doResolve(target, result, null, resolveContext, callback);
                 } else {
                     // continue pipeline

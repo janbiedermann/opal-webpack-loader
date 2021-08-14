@@ -26,7 +26,7 @@ Gem::Specification.new do |s|
   s.add_dependency 'opal', '~> 1.2.0'
   s.add_dependency 'dalli', '~> 2.7.0'
   s.add_dependency 'ffi', '~> 1.15.1'
-  s.add_dependency 'oj', '~> 3.12.0'
+  s.add_dependency 'oj', '>= 3.13.0'
   s.add_dependency 'redis', '~> 4.4.0'
   s.add_dependency 'thor', '>= 0.19.4'
   s.add_development_dependency 'bundler'
@@ -35,5 +35,5 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'rails', '~> 6.1.0'
   s.add_development_dependency 'roda', '~> 3.46.0'
   s.add_development_dependency 'rspec', '~> 3.8.0'
-  s.add_development_dependency 'webpacker', '>= 5.3.0'
+  s.add_development_dependency 'webpacker', '>= 5.4.0'
 end

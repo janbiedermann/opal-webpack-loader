@@ -38,8 +38,8 @@ Intel® Core™ i7-7700HQ CPU @ 2.80GHz × 8, with 8 workers in around 1850ms
 ### Requirements
 - npm or yarn
 - opal-webpack-loader consists of 2 parts, the npm package and the gem, both are required and must be the same version.
-- webpack ^4.46
-- webpack-dev-server ^3.11.0
+- webpack ^5.50
+- optional webpack-dev-server ^^4.0.0-rc.0 for development configurations
 - the ES6 modules branch of opal
 
   - [PR#2266](https://github.com/opal/opal/pull/2266),

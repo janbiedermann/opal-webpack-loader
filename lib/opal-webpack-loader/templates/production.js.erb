@@ -1,15 +1,13 @@
 const path = require('path');
 const OwlResolver = require('opal-webpack-loader/resolver');
 const CompressionPlugin = require("compression-webpack-plugin"); // for gzipping the packs
-const TerserPlugin = require('terser-webpack-plugin');
 const WebpackAssetsManifest = require('webpack-assets-manifest');
 
 const common_config = {
     context: path.resolve(__dirname, '<%= opal_directory %>'),
     mode: "production",
     optimization: {
-        minimize: true, // minimize
-        minimizer: [new TerserPlugin({ parallel: true })]
+        minimize: true
     },
     performance: {
         maxAssetSize: 20000000,

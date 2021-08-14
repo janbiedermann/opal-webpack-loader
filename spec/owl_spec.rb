@@ -186,7 +186,7 @@ RSpec.describe 'owl' do
       File.write('package.json', Oj.dump(package_json, mode: :strict))
       if Gem.win_platform?
         system("yarn add file:../../../opal-webpack-loader-#{OpalWebpackLoader::VERSION}.tgz")
-        system('yarn add puppeteer@9.1.1 --dev')
+        system('yarn add puppeteer@10.2.0 --dev')
         system('yarn install')
         # bundler set some environment things, but we need a clean environment, so things don't get mixed up, use env
         system('bundle install')
@@ -194,7 +194,7 @@ RSpec.describe 'owl' do
         system('yarn run production_build')
       else
         system("env -i PATH=\"$PATH\" yarn add file:../../../opal-webpack-loader-#{OpalWebpackLoader::VERSION}.tgz")
-        system('env -i PATH="$PATH" yarn add puppeteer@9.1.1 --dev')
+        system('env -i PATH="$PATH" yarn add puppeteer@10.2.0 --dev')
         system('env -i PATH="$PATH" yarn install')
         # bundler set some environment things, but we need a clean environment, so things don't get mixed up, use env
         system('env -i PATH="$PATH" bundle install')

@@ -91,7 +91,7 @@ function delegate_compilation(that, callback, meta, request_json) {
     });
     socket.on('timeout', function() {
         socket.destroy();
-    //    // delegate_compilation(that, callback, meta, request_json);
+        // delegate_compilation(that, callback, meta, request_json);
     });
     socket.on('close', function() {
         if (buffer.length > 0) {
@@ -103,11 +103,11 @@ function delegate_compilation(that, callback, meta, request_json) {
                 ));
             } else {
                 for (var i = 0; i < compiler_result.required_trees.length; i++) {
-                    that.addContextDependency(path.resolve(path.join(path.dirname(that.resourcePath)), compiler_result.required_trees[i]));
+                    that.addContextDependency(path.normalize(path.resolve(path.join(path.dirname(that.resourcePath)), compiler_result.required_trees[i])));
                 }
                 let result;
                 let real_resource_path = path.normalize(that.resourcePath);
-                if (Owl.options.hmr && real_resource_path.startsWith(that.rootContext)) {
+                if (Owl.options.hmr && real_resource_path.startsWith(path.normalize(that.rootContext))) {
                     let hmreloader = create_hmreloader(compiler_result);
                     result = [compiler_result.javascript, hmreloader].join("\n");
                 } else { result = compiler_result.javascript; }

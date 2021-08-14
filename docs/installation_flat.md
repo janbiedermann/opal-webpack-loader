@@ -6,7 +6,7 @@ owl-install flat
 Please see the message of owl-install. You may need to manually add the following gems to the projects Gemfile:
 ```ruby
 gem 'opal', github: 'janbiedermann/opal', branch: 'es6_modules'
-gem 'opal-webpack-loader', '~> 0.8.0' # use the most recent released version here
+gem 'opal-webpack-loader', '~> 0.13.0' # use the most recent released version here
 ```
 
 Then:
