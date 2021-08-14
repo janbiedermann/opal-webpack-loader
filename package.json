@@ -28,6 +28,6 @@
   "homepage": "https://github.com/isomorfeus/opal-webpack-loader#readme",
   "dependencies": {
     "loader-utils": "^2.0.0",
-    "webpack": "^4.46.0"
+    "webpack": "^5.50.0"
   }
 }

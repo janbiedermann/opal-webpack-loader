@@ -35,5 +35,5 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'rails', '~> 6.1.0'
   s.add_development_dependency 'roda', '~> 3.46.0'
   s.add_development_dependency 'rspec', '~> 3.8.0'
-  s.add_development_dependency 'webpacker', '>= 5.3.0'
+  s.add_development_dependency 'webpacker', '>= 5.4.0'
 end
