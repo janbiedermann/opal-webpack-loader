@@ -1,8 +1,9 @@
 {
   "name": "node-opal-compiler",
   "scripts": {
-    "development": "webpack --config=webpack/development.js",
-    "production": "webpack --config=webpack/production.js"
+    "profile": "0x --output-dir profile node_modules/webpack/bin/webpack.js --progress --config=webpack/profile.js",
+    "development": "webpack --progress --config=webpack/development.js",
+    "production": "webpack --progress --config=webpack/production.js"
   },
   "repository": {
     "type": "git",
@@ -22,8 +23,11 @@
   },
   "homepage": "https://github.com/isomorfeus/opal-webpack-loader#readme",
   "dependencies": {
+    "glob": "7.1.3",
+    "unxhr": "1.0.1",
     "loader-utils": "^2.0.0",
     "opal-webpack-loader": "file:..",
+    "thread-loader": "^3.0.4",
     "webpack": "^5.50.0",
     "webpack-cli": "4.7.2"
   }

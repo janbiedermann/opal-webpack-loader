@@ -1,7 +1,35 @@
-task :build_node_compiler do
-  require_relative 'app_loader'
-  require 'opal'
+require 'fileutils'
+require_relative 'app_loader'
+
+task :build_production_node_compiler do
+  puts "Building stage 1 compiler with ruby"
+  FileUtils.rm('../node_opal_compiler.js') rescue nil
+  FileUtils.cp('../loader.js', 'node_modules/opal-webpack-loader/loader.js')
+  FileUtils.cp('../resolver.js', 'node_modules/opal-webpack-loader/resolver.js')
   require 'opal/builder'
-  Opal.append_path('.')
-  File.write('../node_opal_compiler.js', Opal::Builder.build('node_opal_loader.rb').to_s)
+  File.write('node_modules/opal-webpack-loader/node_opal_compiler.js', Opal::Builder.build('node_opal_loader.rb').to_s)
+  puts "\n\n=> Stage 1 compiler size: #{File.size('node_modules/opal-webpack-loader/node_opal_compiler.js')}\n\n"
+  puts "Building production compiler with stage 1 compiler"
+  system('yarn run production')
+  puts "\n\n=> Production stage 1 compiler size: #{File.size('../node_opal_compiler.js')}\n\n"
+  FileUtils.cp('../node_opal_compiler.js', 'node_modules/opal-webpack-loader/node_opal_compiler.js')
+  puts "Building production compiler with production compiler"
+  system('yarn run production')
+  puts "\n\n=> Production production compiler size: #{File.size('../node_opal_compiler.js')}\n\n"
 end
+
+task :build_node_compiler do
+  FileUtils.cp('../loader.js', 'node_modules/opal-webpack-loader/loader.js')
+  require 'opal/builder'
+  File.write('node_modules/opal-webpack-loader/node_opal_compiler.js', Opal::Builder.build('node_opal_loader.rb').to_s)
+  system('yarn run development')
+end
+
+task :profile_node_compiler do
+  FileUtils.cp('../loader.js', 'node_modules/opal-webpack-loader/loader.js')
+  require 'opal/builder'
+  File.write('node_modules/opal-webpack-loader/node_opal_compiler.js', Opal::Builder.build('node_opal_loader.rb').to_s)
+  system('yarn run profile')
+end
+
+task :default => :build_production_node_compiler

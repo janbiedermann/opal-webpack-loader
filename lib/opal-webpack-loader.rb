@@ -1,6 +1,8 @@
 # check version of opal-webpack-loader-npm
 require 'opal-webpack-loader/version'
 require 'opal-webpack-loader/manifest'
+require 'oj'
+require 'opal-webpack-loader/load_path_manager'
 
 module OpalWebpackLoader
   class << self
@@ -24,6 +26,11 @@ module OpalWebpackLoader
       else
         "#{OpalWebpackLoader.client_asset_path}application_ssr.js"
       end
+    end
+
+    def save_load_paths(filename = nil)
+      filename = 'owl_load_paths.json' unless filename
+      OpalWebpackLoader::LoadPathManager.create_opal_load_paths_cache(filename)
     end
   end
 end

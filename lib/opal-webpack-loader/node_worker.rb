@@ -1,13 +1,20 @@
 module OpalWebpackLoader
   class NodeWorker
-    def self.compile(source, filename, compile_source_map, compiler_options, cache)
+    def self.init(paths)
+      Opal.append_paths(*paths)
+    end
+
+    def self.compile(filename, source, compile_source_map, compiler_options)
       begin
         result = {}
-        c = Opal::Compiler.new(source, compiler_options.merge(file: filename))
+        c = Opal::Compiler.new(source, compiler_options)
         result[:javascript] = c.compile
         if compile_source_map
-          result[:source_map] = c.source_map.as_json.to_n
-          result[:source_map][:file] = filename
+          source_map = c.source_map.as_json
+          source_map[:file] = filename
+          result[:source_map] = source_map.to_n
+        else
+          result[:source_map] = `null`
         end
         result[:required_trees] = c.required_trees.to_n
         result.to_n

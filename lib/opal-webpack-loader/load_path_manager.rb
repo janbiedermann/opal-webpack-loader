@@ -30,7 +30,33 @@ module OpalWebpackLoader
       load_paths_cache['opal_load_paths']
     end
 
-    def self.create_load_paths_cache(args)
+    def self.create_opal_load_paths_cache(*args)
+      cache_path = args[0]
+      filter = ['.json']
+      load_paths = Opal.paths
+      if $? == 0
+        load_path_lines = load_paths.uniq
+        load_path_lines.pop if load_path_lines.last == ''
+
+        load_path_entries = []
+
+        cwd = Dir.pwd
+
+        load_path_lines.each do |path|
+          next if path.start_with?(cwd)
+          more_path_entries = get_load_path_entries(path, filter)
+          load_path_entries.push(*more_path_entries) if more_path_entries.size > 0
+        end
+        cache_obj = { 'opal_load_paths' => load_path_lines, 'opal_load_path_entries' => load_path_entries }
+        File.write(cache_path, Oj.dump(cache_obj, mode: :strict, indent: 2))
+        load_path_lines
+      else
+        raise 'Error getting load paths!'
+        exit(2)
+      end
+    end
+
+    def self.create_load_paths_cache(*args)
       cache_path = args[0]
       filter = args[1..-1]
       load_paths = if File.exist?(File.join('bin', 'rails'))
