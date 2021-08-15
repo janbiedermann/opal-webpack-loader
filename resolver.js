@@ -1,56 +1,17 @@
 'use strict';
 
 const fs = require('fs');
-const child_process = require('child_process');
-const os = require('os');
 const pathmod = require('path');
 const process = require('process');
 
-function handle_exit() {
-    try { fs.unlinkSync(pathmod.join(process.env.OWL_TMPDIR, 'load_paths.json')); } catch (err) { }
-    if (os.platform().indexOf('win') > -1) {
-        let pipe_name = process.env.OWL_TMPDIR.replace(':', '_').replace(/\\\\/g, '_').replace(/\//g, '_').substr(-100);
-        let socket_path = '\\\\.\\pipe\\' + pipe_name;
-        try {
-            fs.writeFileSync(socket_path, "command:stop\x04");
-        } catch(e) {}
-    } else {
-        let socket_path = pathmod.join(process.env.OWL_TMPDIR, 'owcs_socket');
-        try {
-            if (fs.existsSync(socket_path)) {
-                // this doesnt seem to return, so anything below it is not executed
-                child_process.spawnSync("bundle", ["exec", "opal-webpack-compile-server", "stop", "-s", socket_path], {timeout: 10000});
-            }
-        } catch (err) { }
-        try { fs.unlinkSync(socket_path); } catch (err) { }
-    }
-    try { fs.rmdirSync(process.env.OWL_TMPDIR); } catch (err) { }
-}
-
-process.on('exit', function(code) { handle_exit(); });
-process.on('SIGTERM', function(signal) { handle_exit(); });
-
 module.exports = class Resolver {
-    constructor(source, target, filter = []) {
-        process.env.OWL_TMPDIR = fs.mkdtempSync(pathmod.join(os.tmpdir(), 'opal-webpack-loader-'));
-
-        if (!this.owl_cache_fetched) {
-            const owl_cache_path = pathmod.join(process.env.OWL_TMPDIR, 'load_paths.json');
-            if (!fs.existsSync(owl_cache_path)) {
-                let bundle_cmd;
-                if (os.platform().indexOf('win') > -1) { bundle_cmd = "bundle.cmd"; }
-                else { bundle_cmd = "bundle"; }
-                let gen_cache_result = child_process.spawnSync(bundle_cmd, ["exec", "owl-gen-loadpath-cache", owl_cache_path].concat(filter));
-                console.log(gen_cache_result.stdout.toString());
-                console.error(gen_cache_result.stderr.toString());
-            }
-            let owl_cache_from_file = fs.readFileSync(owl_cache_path);
-            let owl_cache = JSON.parse(owl_cache_from_file.toString());
+    constructor(source, target, filter = [], options) {
+        if (!this.opal_load_paths) {
+            let json = fs.readFileSync(options.load_paths_json);
+            let owl_cache = JSON.parse(json);
             this.opal_load_paths = owl_cache.opal_load_paths;
             this.opal_load_path_entries = owl_cache.opal_load_path_entries;
-            this.owl_cache_fetched = true;
         }
-
         this.source = source;
         this.target = target;
     }
