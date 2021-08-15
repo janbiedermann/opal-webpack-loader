@@ -20,8 +20,9 @@ coverage
 # nyc test coverage
 .nyc_output
 
-# IntelliJ
+# IDEs
 .idea
+.scode
 
 # Grunt intermediate storage (http://gruntjs.com/creating-plugins#storing-task-files)
 .grunt
@@ -72,3 +73,5 @@ public/assets
 # packages
 *.gem
 *.tgz
+
+*.js.LICENSE.txt
