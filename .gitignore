@@ -76,3 +76,4 @@ public/assets
 
 *.js.LICENSE.txt
 node_opal_compiler.js
+owl_load_paths.json
