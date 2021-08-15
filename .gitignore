@@ -75,3 +75,4 @@ public/assets
 *.tgz
 
 *.js.LICENSE.txt
+node_opal_compiler.js
