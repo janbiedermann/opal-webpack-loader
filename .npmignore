@@ -7,6 +7,7 @@ Rakefile
 *.tgz
 *.gem
 .idea
+.vscode
 spec
 example_apps
 .github
@@ -14,3 +15,4 @@ example_apps
 .rspec
 docs/RubyMine_settings.png
 docs/owl.png
+node_compiler
