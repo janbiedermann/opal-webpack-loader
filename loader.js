@@ -59,7 +59,6 @@ process.on('SIGTERM', function(signal) { handle_exit(); });
 
 function delegate_compilation(that, callback, meta, request_json) {
     let buffer = Buffer.alloc(0);
-    // or let the source be compiled by the compile server
     let socket = net.connect(Owl.socket_path);
     socket.setTimeout(2000);
     socket.on('error', function (err) {
