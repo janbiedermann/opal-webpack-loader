@@ -224,7 +224,7 @@ function wait_for_named_pipe_and_delegate(that, callback, meta, request_json) {
         delegate_compilation(that, callback, meta, request_json);
     } else {
         try {
-            let socket = net.connect(Owl.socket_path)
+            let socket = net.connect(Owl.socket_path);
             socket.on('connect', function(){
                 Owl.socket_ready = true;
                 socket.destroy();
