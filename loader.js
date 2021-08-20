@@ -262,7 +262,7 @@ function start_windows_compile_server() {
     (Owl.options.compilerFlagsOn || []).forEach((flagOn) => options.push('-t', flagOn));
     (Owl.options.compilerFlagsOff || []).forEach((flagOff) => options.push('-f', flagOff));
 
-    let compile_server = child_process.spawn("bundle.cmd", options, { detached: true, stdio: 'ignore' });
+    let compile_server = child_process.spawn("bundle.cmd", options, { detached: true, stdio: 'ignore', windowsHide: true });
     compile_server.unref();
 }
 
