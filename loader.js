@@ -10,16 +10,12 @@ require('opal-webpack-loader/node_opal_compiler.js');
 let Owl = {
     load_paths_cache: null,
     load_paths: null,
-    socket_path: null,
-    pipe_name: null,
+
     module_start: 'const opal_code = function() {\n  global.Opal.modules[',
-    compile_server_starting: false,
-    socket_ready: false,
+
     options: null,
     compiler_options: { es6_modules: true },
-    socket_wait_counter: 0,
-    is_stopping: false,
-    production_node_compiler_loaded: false
+
 };
 
 const default_options = {
@@ -33,7 +29,6 @@ const default_options = {
     compilerFlagsOff: null,
     memcached: null,
     redis: null,
-    compiler: 'ruby',
     load_paths_json: 'owl_load_paths.json'
 };
 
