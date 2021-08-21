@@ -116,7 +116,7 @@ if (module.hot) {
     return hmreloader;
 }
 
-function initialize_options(that, callback) {
+function initialize_options(that) {
     const options = loaderUtils.getOptions(that);
     Object.keys(default_options).forEach(
         (key) => { if (typeof options[key] === 'undefined') options[key] = default_options[key]; }
@@ -133,7 +133,7 @@ function initialize_options(that, callback) {
 module.exports = function(source, map, meta) {
     let callback = this.async();
     this.cacheable && this.cacheable();
-    if (!Owl.options) { Owl.options = initialize_options(this, callback); }
+    if (!Owl.options) { Owl.options = initialize_options(this); }
     compile_in_node(this, callback, meta, this.resourcePath, source, Owl.options.sourceMap);
     return undefined;
 };
