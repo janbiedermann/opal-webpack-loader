@@ -126,8 +126,8 @@ function create_hmreloader(compiler_result) {
                 let opal_module_name = compiler_result.javascript.substr(start_index, end_index - start_index);
                 let hmreloader = `
 if (module.hot) {
-    if (typeof global.Opal !== 'undefined' && typeof Opal.require_table !== "undefined" && Opal.require_table['corelib/module']) {
-        let already_loaded = false;
+    if (typeof global.Opal !== 'undefined' && typeof global.Opal.require_table !== "undefined" && global.Opal.require_table['corelib/module']) {
+        var already_loaded = false;
         if (typeof global.Opal.modules !== 'undefined') {
             if (typeof global.Opal.modules[${opal_module_name}] === 'function') {
                 already_loaded = true;
@@ -136,7 +136,7 @@ if (module.hot) {
         opal_code();
         if (already_loaded) {
             try {
-                if (Opal.require_table[${opal_module_name}]) {
+                if (global.Opal.require_table[${opal_module_name}]) {
                     global.Opal.load.call(global.Opal, ${opal_module_name});
                 } else {
                     global.Opal.require.call(global.Opal, ${opal_module_name});
@@ -149,7 +149,7 @@ if (module.hot) {
             var start = new Date();
             var fun = function() {
                 try {
-                    if (Opal.require_table[${opal_module_name}]) {
+                    if (global.Opal.require_table[${opal_module_name}]) {
                         global.Opal.load.call(global.Opal, ${opal_module_name});
                     } else {
                         global.Opal.require.call(global.Opal, ${opal_module_name});
